@@ -1,0 +1,2662 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CRYPTO GRAND PRIX · Live Market Race</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-0: #07080b;
+    --bg-1: #0d0f14;
+    --bg-2: #14171f;
+    --asphalt-0: #3e4047;
+    --asphalt-1: #54575e;
+    --asphalt-2: #686b73;
+    --grass-0: #2a4f1a;
+    --grass-1: #3a6e26;
+    --line-white: #f4f4f6;
+    --line-yellow: #f6c843;
+    --kerb-red: #e23b3b;
+    --neon-green: #10b981;
+    --neon-red: #ef4444;
+    --neon-yellow: #facc15;
+    --neon-cyan: #22d3ee;
+    --gold: #ffd24a;
+    --silver: #c8cdd6;
+    --bronze: #cd7f32;
+    --text-0: #f6f7fa;
+    --text-1: #b9bdc7;
+    --text-2: #6c7180;
+    --panel-bg: rgba(13, 15, 20, 0.62);
+    --panel-bd: rgba(255, 255, 255, 0.08);
+    --hud-h: 64px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-0);
+    color: var(--text-0);
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Carbon fiber-ish background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1200px 700px at 25% 30%, rgba(220, 38, 38, 0.06), transparent 60%),
+      radial-gradient(1000px 600px at 80% 80%, rgba(34, 211, 238, 0.05), transparent 60%),
+      linear-gradient(135deg, #060709 0%, #0a0c11 100%);
+    z-index: -2;
+  }
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 4px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* ============ HUD ============ */
+  #hud {
+    position: relative;
+    height: var(--hud-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    background: linear-gradient(180deg, rgba(20, 23, 31, 0.85), rgba(10, 12, 17, 0.85));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    z-index: 10;
+  }
+  #hud::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg,
+      transparent, transparent 8%,
+      var(--neon-red) 8%, var(--neon-red) 14%,
+      transparent 14%, transparent 22%,
+      var(--neon-yellow) 22%, var(--neon-yellow) 28%,
+      transparent 28%, transparent 60%,
+      var(--neon-green) 60%, var(--neon-green) 66%,
+      transparent 66%, transparent 78%,
+      var(--neon-cyan) 78%, var(--neon-cyan) 84%,
+      transparent 84%);
+    opacity: .8;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-mark {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background:
+      radial-gradient(circle at 30% 30%, #ef4444, #7f1d1d 70%);
+    position: relative;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 6px 16px rgba(239,68,68,.25);
+    overflow: hidden;
+  }
+  .logo-mark::before {
+    /* checkered flag */
+    content: "";
+    position: absolute;
+    inset: 6px 6px 6px auto;
+    width: 16px;
+    background-image:
+      linear-gradient(45deg, #fff 25%, transparent 25%, transparent 75%, #fff 75%),
+      linear-gradient(45deg, #fff 25%, #1a1a1a 25%, #1a1a1a 75%, #fff 75%);
+    background-size: 6px 6px;
+    background-position: 0 0, 3px 3px;
+    background-color: #1a1a1a;
+    opacity: .85;
+    border-radius: 2px;
+  }
+  .logo-text {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    letter-spacing: 3px;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .logo-text .accent { color: var(--neon-red); }
+  .logo-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--text-2);
+    margin-top: 3px;
+  }
+
+  .hud-center {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* Lap counter */
+  .lap-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+  }
+  .lap-display .label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-2);
+  }
+  .lap-display .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--neon-yellow);
+    font-size: 14px;
+    text-shadow: 0 0 8px rgba(250,204,21,0.4);
+  }
+
+  /* Timeframe selector */
+  .tf-selector {
+    display: flex;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .tf-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+  }
+  .tf-btn:hover { color: var(--text-0); }
+  .tf-btn.active {
+    background: var(--neon-red);
+    color: white;
+    text-shadow: 0 0 6px rgba(255,255,255,0.4);
+  }
+
+  /* Car count segmented selector (10 / 15) */
+  .grid-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 4px 12px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+  }
+  .grid-control .label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-2);
+  }
+  .grid-segment {
+    display: flex;
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .grid-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+  }
+  .grid-btn:hover { color: var(--text-0); }
+  .grid-btn.active {
+    background: var(--neon-cyan);
+    color: #02181c;
+    text-shadow: 0 0 4px rgba(255,255,255,0.3);
+  }
+
+  /* Day / Night toggle */
+  .mode-toggle {
+    display: flex;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mode-btn:hover { color: var(--text-0); }
+  .mode-btn .mode-ico {
+    width: 11px; height: 11px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .mode-btn[data-mode="day"].active {
+    background: linear-gradient(180deg, #f9d423, #f5a623);
+    color: #1a1300;
+    text-shadow: 0 0 4px rgba(255,255,255,0.4);
+  }
+  .mode-btn[data-mode="night"].active {
+    background: linear-gradient(180deg, #2c3e7b, #131e44);
+    color: #cfd9ff;
+    text-shadow: 0 0 6px rgba(180, 200, 255, 0.8);
+  }
+
+  .hud-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Pause button */
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text-0);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  .icon-btn:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); transform: scale(1.05); }
+  .icon-btn.paused { background: rgba(250,204,21,0.15); border-color: rgba(250,204,21,0.5); }
+  .icon-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+  /* Status indicator */
+  .status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--neon-green);
+    box-shadow: 0 0 8px currentColor;
+  }
+  .status-dot.live { animation: pulse 1.5s ease-in-out infinite; }
+  .status-dot.error { background: var(--neon-red); }
+  .status-dot.loading { background: var(--neon-yellow); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .status-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-1);
+    font-weight: 700;
+  }
+  .status-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-2);
+  }
+
+  /* ============ Main ============ */
+  #main {
+    position: relative;
+    width: 100%;
+    height: calc(100% - var(--hud-h));
+    display: flex;
+  }
+
+  #stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--grass-0);
+  }
+
+  #track {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(7, 8, 11, 0.94);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 180px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transform: translate(-50%, -110%);
+    opacity: 0;
+    transition: opacity .12s;
+    z-index: 5;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  #tooltip.visible { opacity: 1; }
+  #tooltip .tt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: 'Rajdhani', sans-serif; }
+  #tooltip .tt-name {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #tooltip .tt-name img { width: 18px; height: 18px; }
+  #tooltip .tt-label { font-size: 11px; color: var(--text-2); letter-spacing: 1px; text-transform: uppercase; }
+  #tooltip .tt-value { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
+
+  /* ============ Leaderboard ============ */
+  #leaderboard {
+    flex: 0 0 auto;
+    width: 25%;
+    min-width: 300px;
+    max-width: 380px;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(13, 15, 20, 0.7), rgba(7, 8, 11, 0.85));
+    border-left: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  #leaderboard::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(180deg,
+      var(--neon-red) 0%, var(--neon-red) 12%,
+      transparent 12%, transparent 22%,
+      var(--neon-yellow) 22%, var(--neon-yellow) 30%,
+      transparent 30%, transparent 70%,
+      var(--neon-green) 70%, var(--neon-green) 78%,
+      transparent 78%, transparent 88%,
+      var(--neon-cyan) 88%, var(--neon-cyan) 100%
+    );
+    opacity: .5;
+  }
+
+  .lb-header {
+    position: relative;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-shrink: 0;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 88px;
+  }
+  .lb-flag-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .lb-flag-checker {
+    position: absolute;
+    inset: -16px -16px;
+    background:
+      conic-gradient(#0a0a0a 0% 25%, #efeff2 0% 50%, #0a0a0a 0% 75%, #efeff2 0% 100%);
+    background-size: 22px 22px;
+    background-color: #0a0a0a;
+    filter: url(#flagDistort) contrast(1.05);
+    animation:
+      lb-flag-wave 3.6s ease-in-out infinite,
+      lb-flag-scroll 9s linear infinite;
+    transform-origin: center;
+    will-change: transform, background-position;
+  }
+  .lb-flag-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(95deg,
+      rgba(0,0,0,0) 0%,
+      rgba(0,0,0,0.55) 18%,
+      rgba(0,0,0,0) 38%,
+      rgba(0,0,0,0.42) 60%,
+      rgba(0,0,0,0) 80%,
+      rgba(0,0,0,0.50) 100%);
+    background-size: 250% 100%;
+    animation: lb-flag-shade 4.4s ease-in-out infinite;
+    mix-blend-mode: multiply;
+  }
+  .lb-flag-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg,
+        rgba(7,8,11,0.55) 0%,
+        rgba(7,8,11,0.70) 50%,
+        rgba(7,8,11,0.85) 100%),
+      radial-gradient(120% 100% at 50% 50%,
+        rgba(7,8,11,0) 0%,
+        rgba(7,8,11,0.55) 100%);
+  }
+  .lb-title-content {
+    position: relative;
+    z-index: 2;
+  }
+  .lb-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    letter-spacing: 3.5px;
+    margin-bottom: 5px;
+    color: #ffffff;
+    text-shadow:
+      0 2px 4px rgba(0,0,0,0.95),
+      0 0 10px rgba(0,0,0,0.75),
+      0 0 22px rgba(0,0,0,0.55);
+  }
+  .lb-title .accent {
+    color: var(--neon-red);
+    text-shadow:
+      0 2px 4px rgba(0,0,0,0.95),
+      0 0 10px rgba(239,68,68,0.55),
+      0 0 22px rgba(0,0,0,0.55);
+  }
+  .lb-subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: #dde1ea;
+    text-transform: uppercase;
+    font-weight: 600;
+    text-shadow:
+      0 1px 3px rgba(0,0,0,0.95),
+      0 0 8px rgba(0,0,0,0.65);
+  }
+
+  /* Rank-by toggle (Market Cap / % Change) inside leaderboard header */
+  .lb-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .rank-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 5px;
+    overflow: hidden;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  }
+  .rank-btn {
+    background: transparent;
+    border: none;
+    color: #c4cad6;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 9.5px;
+    letter-spacing: 1.5px;
+    padding: 6px 11px;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+  }
+  .rank-btn:hover { color: #ffffff; background: rgba(255,255,255,0.04); }
+  .rank-btn.active {
+    background: linear-gradient(180deg, #facc15, #f59e0b);
+    color: #1a1100;
+    text-shadow: 0 0 4px rgba(255,255,255,0.4);
+  }
+
+  @keyframes lb-flag-wave {
+    0%, 100% { transform: skewY(-2deg) translateY(0); }
+    25% { transform: skewY(2.4deg) translateY(-1.5px); }
+    50% { transform: skewY(-1.2deg) translateY(1px); }
+    75% { transform: skewY(1.8deg) translateY(-0.5px); }
+  }
+  @keyframes lb-flag-scroll {
+    0%   { background-position: 0 0; }
+    100% { background-position: 88px 0; }
+  }
+  @keyframes lb-flag-shade {
+    0%, 100% { background-position: 100% 0; }
+    50%      { background-position: -100% 0; }
+  }
+
+  .lb-columns {
+    display: grid;
+    grid-template-columns: 28px 1fr auto auto;
+    gap: 10px;
+    padding: 10px 16px 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-2);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .lb-columns .col-pos { text-align: center; }
+  .lb-columns .col-asset { text-align: left; }
+  .lb-columns .col-price { text-align: right; }
+  .lb-columns .col-pct { text-align: right; min-width: 60px; }
+
+  .lb-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 8px 12px;
+    position: relative;
+  }
+  .lb-list::-webkit-scrollbar { width: 6px; }
+  .lb-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  .lb-list::-webkit-scrollbar-track { background: transparent; }
+
+  /* Each row absolutely positioned for animated reordering */
+  .lb-row {
+    position: absolute;
+    left: 8px; right: 8px;
+    height: 72px;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 28px 38px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 8px;
+    transition: top 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .lb-row:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .lb-row.highlighted {
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.4);
+    box-shadow: 0 0 0 1px rgba(239,68,68,0.3), 0 0 18px rgba(239,68,68,0.2);
+  }
+
+  .lb-row .pos {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-1);
+    line-height: 1;
+  }
+  .lb-row[data-pos="1"] .pos { color: var(--gold); text-shadow: 0 0 10px rgba(255,210,74,0.5); }
+  .lb-row[data-pos="2"] .pos { color: var(--silver); text-shadow: 0 0 8px rgba(200,205,214,0.4); }
+  .lb-row[data-pos="3"] .pos { color: var(--bronze); text-shadow: 0 0 8px rgba(205,127,50,0.4); }
+
+  .lb-row .icon-wrap {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border: 1.5px solid var(--car-color, rgba(255,255,255,0.1));
+  }
+  .lb-row .icon-wrap img {
+    width: 24px; height: 24px;
+    object-fit: contain;
+  }
+  .lb-row .icon-wrap .fallback {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 10px;
+    color: var(--car-color, #fff);
+  }
+
+  .lb-row .info {
+    display: flex; flex-direction: column; gap: 3px;
+    overflow: hidden;
+  }
+  .lb-row .symbol {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .lb-row .name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    color: var(--text-2);
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .lb-row .price-block {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+  .lb-row .price {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+    color: #ffd827;
+    text-shadow:
+      0 0 1px rgba(255, 220, 70, 0.95),
+      0 0 8px rgba(255, 200, 40, 0.55),
+      0 0 18px rgba(255, 180, 30, 0.35),
+      0 1px 2px rgba(0, 0, 0, 0.85);
+    filter: drop-shadow(0 0 0.5px rgba(255, 230, 100, 0.6));
+  }
+  .lb-row .pct {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: 4px;
+  }
+  .pct.up { color: var(--neon-green); background: rgba(16,185,129,0.12); }
+  .pct.down { color: var(--neon-red); background: rgba(239,68,68,0.12); }
+  .pct.flat { color: var(--text-2); background: rgba(255,255,255,0.04); }
+
+  /* Loading overlay */
+  #loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(7, 8, 11, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 50;
+    flex-direction: column;
+    gap: 18px;
+    transition: opacity .4s;
+  }
+  #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+  .loader-stripes {
+    width: 220px;
+    height: 14px;
+    background:
+      linear-gradient(90deg,
+        var(--neon-red) 0 33%,
+        var(--neon-yellow) 33% 66%,
+        var(--neon-green) 66% 100%);
+    background-size: 200% 100%;
+    animation: stripeMove 1.4s linear infinite;
+    border-radius: 2px;
+    box-shadow: 0 0 20px rgba(239,68,68,0.3);
+    position: relative;
+  }
+  .loader-stripes::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0 6px, transparent 6px 12px);
+  }
+  @keyframes stripeMove {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+  }
+  .loader-text {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--text-1);
+  }
+  .loader-text .blink { animation: blink 0.7s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: 0.2; } }
+
+  /* Error banner */
+  .error-banner {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(239, 68, 68, 0.18);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fecaca;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 1px;
+    z-index: 30;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(239,68,68,0.3);
+    transition: opacity .3s, transform .3s;
+  }
+  .error-banner.hidden { opacity: 0; transform: translateX(-50%) translateY(-10px); pointer-events: none; }
+
+  /* Mobile / smaller screens */
+  @media (max-width: 900px) {
+    #main { flex-direction: column; }
+    #leaderboard {
+      width: 100%;
+      max-width: none;
+      height: 45%;
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    #stage { height: 55%; flex: none; }
+    .hud-center { gap: 10px; }
+    .lap-display, .grid-control { display: none; }
+    .logo-sub { display: none; }
+  }
+  @media (max-width: 560px) {
+    .tf-btn { padding: 6px 10px; font-size: 10px; }
+    .logo-text { font-size: 14px; letter-spacing: 2px; }
+    .logo-mark { width: 32px; height: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================ HUD ================ -->
+<header id="hud">
+  <div class="logo">
+    <div class="logo-mark"></div>
+    <div>
+      <div class="logo-text">CRYPTO <span class="accent">GP</span></div>
+      <div class="logo-sub">LIVE MARKET RACE</div>
+    </div>
+  </div>
+
+  <div class="hud-center">
+    <div class="lap-display">
+      <span class="label">LAP</span>
+      <span class="value" id="lap-value">001 / ∞</span>
+    </div>
+    <div class="tf-selector" id="tf-selector">
+      <button class="tf-btn" data-tf="1h">1H</button>
+      <button class="tf-btn active" data-tf="24h">24H</button>
+      <button class="tf-btn" data-tf="7d">7D</button>
+    </div>
+    <div class="grid-control">
+      <span class="label">GRID</span>
+      <div class="grid-segment" id="grid-segment">
+        <button class="grid-btn active" data-grid="10">10</button>
+        <button class="grid-btn" data-grid="15">15</button>
+      </div>
+    </div>
+    <div class="mode-toggle" id="mode-toggle" title="Day / Night">
+      <button class="mode-btn" data-mode="day">
+        <svg class="mode-ico" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        DAY
+      </button>
+      <button class="mode-btn active" data-mode="night">
+        <svg class="mode-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        NIGHT
+      </button>
+    </div>
+  </div>
+
+  <div class="hud-right">
+    <button class="icon-btn" id="pause-btn" title="Pause / Play">
+      <svg viewBox="0 0 24 24" id="pause-icon"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+    </button>
+    <div class="status">
+      <div class="status-row">
+        <span class="status-dot loading" id="status-dot"></span>
+        <span class="status-text" id="status-text">CONNECTING</span>
+      </div>
+      <div class="status-time" id="status-time">— : — : —</div>
+    </div>
+  </div>
+</header>
+
+<!-- ================ Main ================ -->
+<main id="main">
+  <section id="stage">
+    <canvas id="track"></canvas>
+    <div id="tooltip"></div>
+    <div class="error-banner hidden" id="error-banner"></div>
+    <div id="loading-overlay">
+      <div class="loader-stripes"></div>
+      <div class="loader-text">FORMATION LAP<span class="blink">...</span></div>
+    </div>
+  </section>
+
+  <aside id="leaderboard">
+    <svg class="lb-svg-defs" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
+      <defs>
+        <filter id="flagDistort" x="-12%" y="-12%" width="124%" height="124%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="3" result="t">
+            <animate attributeName="baseFrequency" values="0.014 0.022; 0.024 0.030; 0.014 0.022" dur="5s" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="t" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+      </defs>
+    </svg>
+    <div class="lb-header">
+      <div class="lb-flag-bg" aria-hidden="true">
+        <div class="lb-flag-checker"></div>
+        <div class="lb-flag-shade"></div>
+        <div class="lb-flag-overlay"></div>
+      </div>
+      <div class="lb-title-content">
+        <div class="lb-title">CRYPTOCURRENCY <span class="accent">PRICES</span></div>
+        <div class="lb-controls">
+          <div class="rank-toggle" id="rank-toggle" title="Rank by Market Cap or % Change">
+            <button class="rank-btn" data-rank="marketcap">MARKET CAP</button>
+            <button class="rank-btn active" data-rank="performance">% CHANGE</button>
+          </div>
+          <div class="lb-subtitle" id="lb-tf-label">24H</div>
+        </div>
+      </div>
+    </div>
+    <div class="lb-columns">
+      <span class="col-pos">POS</span>
+      <span class="col-asset">ASSET</span>
+      <span class="col-price">PRICE</span>
+      <span class="col-pct">CHG</span>
+    </div>
+    <div class="lb-list" id="lb-list"></div>
+  </aside>
+</main>
+
+<script>
+/* =====================================================================
+ * CRYPTO GRAND PRIX — Top-down racing visualization of crypto markets
+ * ===================================================================== */
+'use strict';
+
+/* ---------- Configuration ---------- */
+const CFG = {
+  POLL_INTERVAL_MS: 60_000,       // 1 min — well within free tier limits
+  TRACK_RESOLUTION: 1200,         // # sample points along centerline
+  TRAIL_LENGTH: 22,               // history points kept for neon trail
+  SMOKE_MAX_PER_CAR: 10,          // particle pool per car
+  CAR_LEN: 46,
+  CAR_WID: 22,
+  TRACK_WIDTH_FACTOR: 0.135,      // % of min(canvas dim)
+  LANE_COUNT: 4,
+  BASE_SPEED_PX_S: 130,           // pixels/sec at neutral perf
+  COLOR_FALLBACK: {
+    btc:  '#f7931a', eth: '#627eea', usdt: '#26a17b', bnb: '#f3ba2f',
+    sol:  '#9945ff', xrp: '#1f8de0', usdc: '#2775ca', steth: '#00a3ff',
+    ada:  '#0033ad', avax: '#e84142', doge: '#c2a633', trx: '#ff060a',
+    dot:  '#e6007a', ton:  '#0098ea', link: '#2a5ada', matic: '#8247e5',
+    shib: '#f00500', ltc: '#345d9d', near: '#00c08b', bch: '#8dc351',
+    leo:  '#15a4d6', uni: '#ff007a', icp: '#3b00b9', etc: '#3ab83a',
+    apt:  '#00d4ff', xlm: '#08b5e5', cro: '#0033ad', okb: '#3a75c4',
+    fil:  '#0090ff', hbar: '#000000', mnt: '#000000', vet: '#15bdff',
+    arb:  '#28a0f0', op:  '#ff0420', stx: '#5546ff', imx: '#0b0e17',
+    inj:  '#00f1ff', ldo: '#00a3ff', kas: '#70c7ba', wbtc: '#f09242',
+    pepe: '#41a72a', sui: '#4ca2ff', tao: '#ffffff', rndr: '#ff5b4a',
+  }
+};
+
+/* ---------- DOM refs ---------- */
+const canvas = document.getElementById('track');
+let ctx = canvas.getContext('2d', { alpha: false });
+let trackCacheCanvas = null;
+const stage = document.getElementById('stage');
+const lbList = document.getElementById('lb-list');
+const tfSelector = document.getElementById('tf-selector');
+const gridSegment = document.getElementById('grid-segment');
+const modeToggle = document.getElementById('mode-toggle');
+const rankToggle = document.getElementById('rank-toggle');
+const pauseBtn = document.getElementById('pause-btn');
+const pauseIcon = document.getElementById('pause-icon');
+const statusDot = document.getElementById('status-dot');
+const statusText = document.getElementById('status-text');
+const statusTime = document.getElementById('status-time');
+const errorBanner = document.getElementById('error-banner');
+const loadingOverlay = document.getElementById('loading-overlay');
+const lapValue = document.getElementById('lap-value');
+const tooltip = document.getElementById('tooltip');
+const lbTfLabel = document.getElementById('lb-tf-label');
+
+/* ---------- State ---------- */
+const state = {
+  coins: [],          // raw API coins
+  cars: [],           // visualization cars
+  carCount: 10,
+  timeframe: '24h',
+  paused: false,
+  nightMode: true,
+  rankingMode: 'performance', // 'marketcap' | 'performance'
+  lastUpdate: null,
+  fetchFailures: 0,
+  pollTimer: null,
+  trackPoints: [],
+  trackArc: [],
+  totalArc: 0,
+  trackWidth: 80,
+  trackInsidePoints: [],
+  trackOutsidePoints: [],
+  startLineDistance: 0,
+  leaderLapsCompleted: 0,
+  hoveredCarId: null,
+  dpr: 1
+};
+
+/* =====================================================================
+ *                        TRACK GENERATION
+ * ===================================================================== */
+function pseudoNoise(a, b) {
+  const v = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+}
+
+function regenerateTrackCache() {
+  trackCacheCanvas = document.createElement('canvas');
+  trackCacheCanvas.width = canvas.width;
+  trackCacheCanvas.height = canvas.height;
+  const realCtx = ctx;
+  ctx = trackCacheCanvas.getContext('2d');
+  ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  drawTrack();
+  ctx = realCtx;
+}
+
+function generateTrack() {
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  state.trackWidth = Math.max(78, Math.min(W, H) * CFG.TRACK_WIDTH_FACTOR);
+
+  // Hand-crafted anchors for a clean stadium oval: two long horizontal straights
+  // connected by smooth elliptical end-curves. Generous radius everywhere.
+  const anchorsNorm = [
+    [0.18, 0.08],  //  0 — top-left (start of top straight)
+    [0.40, 0.08],  //  1 — top straight
+    [0.60, 0.08],  //  2 — top straight
+    [0.82, 0.08],  //  3 — top-right (entering right curve)
+    [0.95, 0.20],  //  4 — right curve upper
+    [1.00, 0.50],  //  5 — rightmost apex
+    [0.95, 0.80],  //  6 — right curve lower
+    [0.82, 0.92],  //  7 — bottom-right (exiting right curve)
+    [0.60, 0.92],  //  8 — bottom straight
+    [0.40, 0.92],  //  9 — bottom straight
+    [0.18, 0.92],  // 10 — bottom-left (entering left curve)
+    [0.05, 0.80],  // 11 — left curve lower
+    [0.00, 0.50],  // 12 — leftmost apex
+    [0.05, 0.20],  // 13 — left curve upper
+    // closes back to 0
+  ];
+
+  // Padding so track edges don't bleed off-canvas
+  const padX = state.trackWidth * 0.65 + 14;
+  const padY = state.trackWidth * 0.65 + 14;
+  const innerW = Math.max(40, W - padX * 2);
+  const innerH = Math.max(40, H - padY * 2);
+
+  const anchors = anchorsNorm.map(([nx, ny]) => ({
+    x: padX + nx * innerW,
+    y: padY + ny * innerH
+  }));
+
+  // Build a closed Catmull-Rom spline through anchors
+  const N = CFG.TRACK_RESOLUTION;
+  const M = anchors.length;
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const t = (i / N) * M;        // parameter goes 0..M over one full lap
+    const seg = Math.floor(t);
+    const u = t - seg;
+    const p0 = anchors[(seg - 1 + M) % M];
+    const p1 = anchors[seg % M];
+    const p2 = anchors[(seg + 1) % M];
+    const p3 = anchors[(seg + 2) % M];
+    pts.push(catmullRom(p0, p1, p2, p3, u));
+  }
+  pts.push({ x: pts[0].x, y: pts[0].y });
+
+  // arc-length parameterization
+  const arc = [0];
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const dx = pts[i].x - pts[i-1].x;
+    const dy = pts[i].y - pts[i-1].y;
+    const d = Math.hypot(dx, dy);
+    total += d;
+    arc.push(total);
+    pts[i-1].angle = Math.atan2(dy, dx);
+  }
+  pts[pts.length - 1].angle = pts[0].angle;
+
+  // inside / outside polygons (for kerb rendering)
+  const tw = state.trackWidth;
+  const inside = [], outside = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p = pts[i];
+    const ang = p.angle;
+    const nx = -Math.sin(ang), ny = Math.cos(ang);
+    inside.push({ x: p.x - nx * tw * 0.5, y: p.y - ny * tw * 0.5 });
+    outside.push({ x: p.x + nx * tw * 0.5, y: p.y + ny * tw * 0.5 });
+  }
+
+  state.trackPoints = pts;
+  state.trackArc = arc;
+  state.totalArc = total;
+  state.trackInsidePoints = inside;
+  state.trackOutsidePoints = outside;
+  state.startLineDistance = 0;
+}
+
+function catmullRom(p0, p1, p2, p3, t) {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return {
+    x: 0.5 * (
+      (2 * p1.x) +
+      (-p0.x + p2.x) * t +
+      (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+      (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3
+    ),
+    y: 0.5 * (
+      (2 * p1.y) +
+      (-p0.y + p2.y) * t +
+      (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+      (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
+    )
+  };
+}
+
+function getTrackPosition(distance, laneOffset = 0) {
+  const total = state.totalArc;
+  if (total <= 0) return { x: 0, y: 0, angle: 0 };
+  let d = distance % total;
+  if (d < 0) d += total;
+
+  // binary search
+  const arc = state.trackArc;
+  let lo = 0, hi = arc.length - 1;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >> 1;
+    if (arc[mid] <= d) lo = mid; else hi = mid;
+  }
+  const segLen = arc[hi] - arc[lo] || 1;
+  const frac = (d - arc[lo]) / segLen;
+  const p1 = state.trackPoints[lo];
+  const p2 = state.trackPoints[hi];
+  const x = p1.x + (p2.x - p1.x) * frac;
+  const y = p1.y + (p2.y - p1.y) * frac;
+  const ang = p1.angle;
+  const nx = -Math.sin(ang), ny = Math.cos(ang);
+  return {
+    x: x + nx * laneOffset,
+    y: y + ny * laneOffset,
+    angle: ang
+  };
+}
+
+/* =====================================================================
+ *                          DRAWING THE TRACK
+ * ===================================================================== */
+function drawClosedPath(points) {
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (let i = 1; i < points.length; i++) {
+    ctx.lineTo(points[i].x, points[i].y);
+  }
+  ctx.closePath();
+}
+
+function drawTrack() {
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  const pts = state.trackPoints;
+  const tw = state.trackWidth;
+  const night = state.nightMode;
+
+  // ---------- Palette ----------
+  const P = night ? {
+    grassRadial: ['#0d1f17', '#0a1611', '#050a08'],
+    grassMottle: ['#163a25', '#0a1f12', '#1a4a2c'],
+    grassBlade: '#2a5d3a',
+    grassBladeDark: '#06120c',
+    vignette: 'rgba(0,0,8,0.75)',
+    runoff: '#1a2417',
+    edgeBand: '#0a0c10',
+    asphaltOuter: '#1c1f26',
+    asphaltMid: '#262a32',
+    asphaltCenter: '#2c3038',
+    speckleLight: '#3a3f48',
+    speckleLightAlpha: 0.10,
+    speckleDark: '#0a0c10',
+    speckleDarkAlpha: 0.10,
+    edgeLine: '#bfc4cf',
+    centerDash: 'rgba(255, 220, 110, 0.55)',
+    laneDash: 'rgba(180, 200, 240, 0.10)',
+    edgeGlow: 'rgba(80, 130, 230, 0.18)',
+  } : {
+    grassRadial: ['#3f7a2c', '#2f5e1f', '#1a3d11'],
+    grassMottle: ['#4a8a30', '#1f4413', '#386c24'],
+    grassBlade: '#5a9636',
+    grassBladeDark: '#1a3d10',
+    vignette: 'rgba(0,0,0,0.45)',
+    runoff: '#5a6b3a',
+    edgeBand: '#2a2c30',
+    asphaltOuter: '#3e4046',
+    asphaltMid: '#5a5d63',
+    asphaltCenter: '#666972',
+    speckleLight: '#7c7f86',
+    speckleLightAlpha: 0.18,
+    speckleDark: '#2a2c30',
+    speckleDarkAlpha: 0.14,
+    edgeLine: '#f0f1f4',
+    centerDash: 'rgba(255, 215, 90, 0.65)',
+    laneDash: 'rgba(255,255,255,0.10)',
+    edgeGlow: 'rgba(245, 180, 70, 0.10)',
+  };
+
+  // ---------- Grass / surroundings ----------
+  const bg = ctx.createRadialGradient(W*0.5, H*0.5, 0, W*0.5, H*0.5, Math.max(W, H) * 0.75);
+  bg.addColorStop(0, P.grassRadial[0]);
+  bg.addColorStop(0.55, P.grassRadial[1]);
+  bg.addColorStop(1, P.grassRadial[2]);
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // grass mottling — irregular organic patches
+  ctx.save();
+  for (let i = 0; i < 180; i++) {
+    const cx = pseudoNoise(i, 7) * W;
+    const cy = pseudoNoise(i, 13) * H;
+    const r4 = pseudoNoise(i, 23);
+    const tone = r4 > 0.55 ? P.grassMottle[0] : (r4 < 0.30 ? P.grassMottle[1] : P.grassMottle[2]);
+    ctx.fillStyle = tone;
+    ctx.globalAlpha = 0.10 + pseudoNoise(i, 19) * 0.10;
+    const blobs = 3 + Math.floor(pseudoNoise(i, 29) * 3);
+    for (let b = 0; b < blobs; b++) {
+      const ang = pseudoNoise(i, 31 + b) * Math.PI * 2;
+      const dist = pseudoNoise(i, 37 + b) * 16;
+      const rad = 6 + pseudoNoise(i, 43 + b) * 14;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(ang) * dist, cy + Math.sin(ang) * dist, rad, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // grass blade hatching — short irregular strokes for fine texture
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = P.grassBlade;
+  for (let i = 0; i < 1100; i++) {
+    const r1 = pseudoNoise(i, 31);
+    const r2 = pseudoNoise(i, 41);
+    const r3 = pseudoNoise(i, 53);
+    const r4 = pseudoNoise(i, 59);
+    const x = r1 * W;
+    const y = r2 * H;
+    const len = 1.5 + r3 * 3.5;
+    const ang = -Math.PI * 0.5 + (r4 - 0.5) * 0.8;
+    ctx.globalAlpha = (night ? 0.06 : 0.10) + r3 * (night ? 0.10 : 0.16);
+    ctx.lineWidth = 0.8 + r4 * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = P.grassBladeDark;
+  for (let i = 0; i < 350; i++) {
+    const r1 = pseudoNoise(i, 61);
+    const r2 = pseudoNoise(i, 67);
+    const r3 = pseudoNoise(i, 71);
+    const x = r1 * W;
+    const y = r2 * H;
+    const len = 1.5 + r3 * 2.5;
+    ctx.globalAlpha = 0.18 + r3 * 0.14;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + 0.4, y - len);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Night-only: starfield / scattered moonlit dust over grass
+  if (night) {
+    ctx.save();
+    ctx.fillStyle = '#cfd8ee';
+    for (let i = 0; i < 90; i++) {
+      const r1 = pseudoNoise(i, 81);
+      const r2 = pseudoNoise(i, 87);
+      const r3 = pseudoNoise(i, 93);
+      const x = r1 * W;
+      const y = r2 * H * 0.6;
+      ctx.globalAlpha = 0.12 + r3 * 0.18;
+      ctx.fillRect(x, y, 1, 1);
+    }
+    ctx.restore();
+  }
+
+  // vignette
+  const vig = ctx.createRadialGradient(W*0.5, H*0.5, Math.min(W,H)*0.35, W*0.5, H*0.5, Math.max(W,H)*0.75);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, P.vignette);
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---------- Run-off zone (compacted earth / faded asphalt strip) ----------
+  ctx.lineWidth = tw + 22;
+  ctx.strokeStyle = P.runoff;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  drawClosedPath(pts);
+  ctx.stroke();
+
+  // dark line just outside asphalt
+  ctx.lineWidth = tw + 8;
+  ctx.strokeStyle = P.edgeBand;
+  drawClosedPath(pts);
+  ctx.stroke();
+
+  // ---------- Asphalt ----------
+  ctx.lineWidth = tw + 4;
+  ctx.strokeStyle = P.asphaltOuter;
+  drawClosedPath(pts);
+  ctx.stroke();
+
+  ctx.lineWidth = tw;
+  ctx.strokeStyle = P.asphaltMid;
+  drawClosedPath(pts);
+  ctx.stroke();
+
+  ctx.lineWidth = tw - 8;
+  ctx.strokeStyle = P.asphaltCenter;
+  drawClosedPath(pts);
+  ctx.stroke();
+
+  // asphalt grain — bright speckles
+  ctx.save();
+  ctx.globalAlpha = P.speckleLightAlpha;
+  ctx.fillStyle = P.speckleLight;
+  for (let i = 0; i < state.trackPoints.length - 1; i += 2) {
+    const p = state.trackPoints[i];
+    const ang = p.angle || 0;
+    const nx = -Math.sin(ang), ny = Math.cos(ang);
+    for (let k = 0; k < 4; k++) {
+      const r1 = pseudoNoise(i, k);
+      const r2 = pseudoNoise(i, k + 11);
+      const r3 = pseudoNoise(i, k + 23);
+      const off = (r1 - 0.5) * tw * 0.85;
+      const fx = p.x + nx * off + (r2 - 0.5) * 2;
+      const fy = p.y + ny * off + (r3 - 0.5) * 2;
+      ctx.fillRect(fx, fy, 1, 1);
+    }
+  }
+  ctx.globalAlpha = P.speckleDarkAlpha;
+  ctx.fillStyle = P.speckleDark;
+  for (let i = 0; i < state.trackPoints.length - 1; i += 3) {
+    const p = state.trackPoints[i];
+    const ang = p.angle || 0;
+    const nx = -Math.sin(ang), ny = Math.cos(ang);
+    for (let k = 0; k < 2; k++) {
+      const r1 = pseudoNoise(i, k + 37);
+      const r2 = pseudoNoise(i, k + 41);
+      const r3 = pseudoNoise(i, k + 47);
+      const off = (r1 - 0.5) * tw * 0.85;
+      const fx = p.x + nx * off + (r2 - 0.5) * 2;
+      const fy = p.y + ny * off + (r3 - 0.5) * 2;
+      ctx.fillRect(fx, fy, 1, 1);
+    }
+  }
+  ctx.restore();
+
+  // ---------- Tire skid marks at corners ----------
+  drawSkidMarks();
+
+  // ---------- White edge lines ----------
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = P.edgeLine;
+  drawClosedPath(state.trackOutsidePoints);
+  ctx.stroke();
+  drawClosedPath(state.trackInsidePoints);
+  ctx.stroke();
+
+  // ---------- Edge ambient glow ----------
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineWidth = night ? 6 : 4;
+  ctx.strokeStyle = P.edgeGlow;
+  drawClosedPath(state.trackOutsidePoints);
+  ctx.stroke();
+  drawClosedPath(state.trackInsidePoints);
+  ctx.stroke();
+  ctx.restore();
+
+  // ---------- Red/white kerbs at curve sections ----------
+  drawKerbs();
+
+  // ---------- Yellow dashed center line ----------
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = P.centerDash;
+  ctx.setLineDash([14, 16]);
+  drawClosedPath(pts);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ---------- Lane separators (subtle dashed) ----------
+  ctx.save();
+  ctx.strokeStyle = P.laneDash;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 8]);
+  for (let lane = 1; lane < CFG.LANE_COUNT; lane++) {
+    const off = (lane / CFG.LANE_COUNT - 0.5) * tw;
+    const lanePts = state.trackPoints.map(p => {
+      const ang = p.angle || 0;
+      const nx = -Math.sin(ang), ny = Math.cos(ang);
+      return { x: p.x + nx * off, y: p.y + ny * off };
+    });
+    drawClosedPath(lanePts);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // ---------- Start / Finish line (checkered) ----------
+  drawStartLine();
+}
+
+function drawSkidMarks() {
+  // Draw subtle dark streaks at the inside of corners — looks like racing line / tire marks
+  const pts = state.trackPoints;
+  const tw = state.trackWidth;
+  const segCount = pts.length - 1;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (let i = 0; i < segCount; i += 2) {
+    const a1 = pts[i].angle || 0;
+    const a2 = pts[(i + 6) % segCount].angle || 0;
+    let diff = a2 - a1;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    const curv = Math.abs(diff);
+    if (curv < 0.025) continue;
+
+    const intensity = Math.min(1, (curv - 0.025) / 0.06);
+    const side = diff > 0 ? -1 : 1; // racing line on the inside of the curve
+
+    const p = pts[i];
+    const next = pts[(i + 1) % segCount];
+    const nAng = next.angle || a1;
+    const nx = -Math.sin(a1), ny = Math.cos(a1);
+    const nnx = -Math.sin(nAng), nny = Math.cos(nAng);
+
+    // Two parallel streaks (per pair of wheels)
+    for (const dl of [-0.05, 0.05]) {
+      const off = side * (tw * (0.05 + dl)) - side * tw * 0.10;
+      ctx.strokeStyle = `rgba(15, 16, 20, ${0.18 * intensity})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(p.x + nx * off, p.y + ny * off);
+      ctx.lineTo(next.x + nnx * off, next.y + nny * off);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawKerbs() {
+  // Identify segments where the track turns sharply for kerbs.
+  const pts = state.trackPoints;
+  const tw = state.trackWidth;
+  const segCount = pts.length - 1;
+  let curvature = new Array(segCount);
+  for (let i = 0; i < segCount; i++) {
+    const a1 = pts[i].angle || 0;
+    const a2 = pts[(i + 6) % segCount].angle || 0;
+    let diff = a2 - a1;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    curvature[i] = Math.abs(diff);
+  }
+  const threshold = 0.045;
+
+  ctx.save();
+  for (let i = 0; i < segCount; i++) {
+    if (curvature[i] < threshold) continue;
+    const p = pts[i];
+    const ang = p.angle || 0;
+    const nx = -Math.sin(ang), ny = Math.cos(ang);
+    // determine inside/outside based on signed curvature
+    const a1 = pts[i].angle || 0;
+    const a2 = pts[(i + 6) % segCount].angle || 0;
+    let diff = a2 - a1;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    const side = diff > 0 ? 1 : -1; // outside of the curve
+
+    const innerOff = side * (tw * 0.5 + 0.5);
+    const outerOff = side * (tw * 0.5 + 6);
+
+    // alternate red/white based on segment index
+    ctx.fillStyle = (i % 12 < 6) ? '#e23b3b' : '#f4f4f6';
+    ctx.beginPath();
+    ctx.moveTo(p.x + nx * innerOff, p.y + ny * innerOff);
+    ctx.lineTo(p.x + nx * outerOff, p.y + ny * outerOff);
+    const next = pts[(i + 1) % segCount];
+    const nAng = next.angle || ang;
+    const nnx = -Math.sin(nAng), nny = Math.cos(nAng);
+    ctx.lineTo(next.x + nnx * outerOff, next.y + nny * outerOff);
+    ctx.lineTo(next.x + nnx * innerOff, next.y + nny * innerOff);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawStartLine() {
+  const startIdx = 0;
+  const p = state.trackPoints[startIdx];
+  if (!p) return;
+  const ang = p.angle || 0;
+  const nx = -Math.sin(ang), ny = Math.cos(ang);
+  const tw = state.trackWidth;
+
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(ang);
+  // Background bar
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(-2, -tw * 0.5, 4, tw);
+
+  // Checkered pattern across the width
+  const cellSize = 6;
+  const cells = Math.floor(tw / cellSize);
+  for (let i = 0; i < cells; i++) {
+    for (let j = 0; j < 2; j++) {
+      const isWhite = ((i + j) % 2) === 0;
+      ctx.fillStyle = isWhite ? '#f4f4f6' : '#0a0a0a';
+      ctx.fillRect(-cellSize + j * cellSize, -tw * 0.5 + i * cellSize, cellSize, cellSize);
+    }
+  }
+
+  // Glow line on the start
+  ctx.strokeStyle = 'rgba(246,200,67,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -tw * 0.5);
+  ctx.lineTo(0, tw * 0.5);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* =====================================================================
+ *                            COLOR UTILS
+ * ===================================================================== */
+function symFallback(symbol) {
+  const k = (symbol || '').toLowerCase();
+  return CFG.COLOR_FALLBACK[k] || null;
+}
+
+// Hash-based fallback to keep cars distinct even without known mapping
+function hashColor(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  const hue = ((h % 360) + 360) % 360;
+  return `hsl(${hue}, 78%, 58%)`;
+}
+
+function ensureBrightness(rgb) {
+  // rgb: { r, g, b }. If too dark, lighten; if too washed, saturate.
+  let { r, g, b } = rgb;
+  const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+  if (lum < 60) {
+    const k = 60 / Math.max(lum, 1);
+    r = Math.min(255, r * k);
+    g = Math.min(255, g * k);
+    b = Math.min(255, b * k);
+  }
+  return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+}
+
+function extractDominantColor(img) {
+  try {
+    const tmp = document.createElement('canvas');
+    const W = 24, H = 24;
+    tmp.width = W; tmp.height = H;
+    const tctx = tmp.getContext('2d');
+    tctx.drawImage(img, 0, 0, W, H);
+    const data = tctx.getImageData(0, 0, W, H).data;
+    const buckets = {};
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3];
+      if (a < 100) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+      // skip near-white & near-black so we don't pick borders/shadows
+      if (lum > 235 || lum < 20) continue;
+      const sat = Math.max(r,g,b) - Math.min(r,g,b);
+      if (sat < 18 && lum > 80 && lum < 200) continue; // skip muddy grays unless needed
+      // quantize
+      const qr = r >> 4, qg = g >> 4, qb = b >> 4;
+      const k = (qr << 8) | (qg << 4) | qb;
+      if (!buckets[k]) buckets[k] = { c: 0, r: 0, g: 0, b: 0 };
+      buckets[k].c++;
+      buckets[k].r += r; buckets[k].g += g; buckets[k].b += b;
+    }
+    let best = null, bestScore = -1;
+    for (const k in buckets) {
+      const b = buckets[k];
+      const sat = (Math.max(b.r,b.g,b.b) - Math.min(b.r,b.g,b.b)) / Math.max(b.c, 1);
+      const score = b.c * (1 + sat / 80); // weight saturated colors
+      if (score > bestScore) { bestScore = score; best = b; }
+    }
+    if (!best || best.c === 0) return null;
+    return ensureBrightness({
+      r: best.r / best.c,
+      g: best.g / best.c,
+      b: best.b / best.c
+    });
+  } catch (err) {
+    return null;
+  }
+}
+
+/* =====================================================================
+ *                          IMAGE LOADING
+ * ===================================================================== */
+const imageCache = new Map(); // url -> { img, color, ready, promise }
+
+function loadCoinImage(url, symbol) {
+  if (!url) return Promise.resolve(null);
+  if (imageCache.has(url)) return imageCache.get(url).promise;
+
+  const entry = { img: null, color: null, ready: false, promise: null };
+  entry.promise = new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      entry.img = img;
+      entry.color = extractDominantColor(img);
+      if (!entry.color) entry.color = symFallback(symbol);
+      if (!entry.color) entry.color = hashColor(symbol || url);
+      entry.ready = true;
+      resolve(entry);
+    };
+    img.onerror = () => {
+      entry.img = null;
+      entry.color = symFallback(symbol) || hashColor(symbol || url);
+      entry.ready = true;
+      resolve(entry);
+    };
+    img.src = url;
+  });
+  imageCache.set(url, entry);
+  return entry.promise;
+}
+
+/* =====================================================================
+ *                          API LAYER
+ * ===================================================================== */
+async function fetchCoins(retry = 0) {
+  const perPage = state.carCount;
+  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=1&price_change_percentage=1h%2C24h%2C7d&sparkline=false`;
+  setStatus('loading', 'FETCHING');
+  try {
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error('empty data');
+    state.fetchFailures = 0;
+    hideErrorBanner();
+    return data;
+  } catch (err) {
+    state.fetchFailures++;
+    console.warn('fetchCoins failed:', err);
+    if (retry < 3) {
+      const wait = Math.min(15000, 1500 * Math.pow(2, retry));
+      showErrorBanner(`Connection issue · retrying in ${Math.round(wait/1000)}s`);
+      await new Promise(r => setTimeout(r, wait));
+      return fetchCoins(retry + 1);
+    }
+    showErrorBanner('Live data unavailable — showing demo grid');
+    return null;
+  }
+}
+
+const FALLBACK_COINS = [
+  { id:'bitcoin', symbol:'btc', name:'Bitcoin', current_price:67234.12, image:null, price_change_percentage_24h_in_currency:2.34, price_change_percentage_1h_in_currency:0.18, price_change_percentage_7d_in_currency:5.2 },
+  { id:'ethereum', symbol:'eth', name:'Ethereum', current_price:3567.45, image:null, price_change_percentage_24h_in_currency:1.87, price_change_percentage_1h_in_currency:0.05, price_change_percentage_7d_in_currency:3.1 },
+  { id:'tether', symbol:'usdt', name:'Tether', current_price:1.0, image:null, price_change_percentage_24h_in_currency:0.02, price_change_percentage_1h_in_currency:0.00, price_change_percentage_7d_in_currency:0.01 },
+  { id:'binancecoin', symbol:'bnb', name:'BNB', current_price:608.30, image:null, price_change_percentage_24h_in_currency:-0.56, price_change_percentage_1h_in_currency:-0.12, price_change_percentage_7d_in_currency:1.7 },
+  { id:'solana', symbol:'sol', name:'Solana', current_price:163.40, image:null, price_change_percentage_24h_in_currency:4.21, price_change_percentage_1h_in_currency:0.45, price_change_percentage_7d_in_currency:8.4 },
+  { id:'xrp', symbol:'xrp', name:'XRP', current_price:0.5234, image:null, price_change_percentage_24h_in_currency:-1.2, price_change_percentage_1h_in_currency:-0.08, price_change_percentage_7d_in_currency:-2.1 },
+  { id:'usd-coin', symbol:'usdc', name:'USD Coin', current_price:1.0, image:null, price_change_percentage_24h_in_currency:0.01, price_change_percentage_1h_in_currency:0.00, price_change_percentage_7d_in_currency:0.0 },
+  { id:'cardano', symbol:'ada', name:'Cardano', current_price:0.4521, image:null, price_change_percentage_24h_in_currency:-2.34, price_change_percentage_1h_in_currency:-0.21, price_change_percentage_7d_in_currency:-3.4 },
+  { id:'avalanche-2', symbol:'avax', name:'Avalanche', current_price:31.27, image:null, price_change_percentage_24h_in_currency:3.12, price_change_percentage_1h_in_currency:0.32, price_change_percentage_7d_in_currency:6.7 },
+  { id:'dogecoin', symbol:'doge', name:'Dogecoin', current_price:0.1234, image:null, price_change_percentage_24h_in_currency:-3.45, price_change_percentage_1h_in_currency:-0.43, price_change_percentage_7d_in_currency:-4.5 },
+  { id:'tron', symbol:'trx', name:'TRON', current_price:0.1234, image:null, price_change_percentage_24h_in_currency:0.43, price_change_percentage_1h_in_currency:0.05, price_change_percentage_7d_in_currency:1.2 },
+  { id:'polkadot', symbol:'dot', name:'Polkadot', current_price:6.78, image:null, price_change_percentage_24h_in_currency:1.56, price_change_percentage_1h_in_currency:0.12, price_change_percentage_7d_in_currency:2.3 },
+  { id:'chainlink', symbol:'link', name:'Chainlink', current_price:14.23, image:null, price_change_percentage_24h_in_currency:5.67, price_change_percentage_1h_in_currency:0.6, price_change_percentage_7d_in_currency:9.4 },
+  { id:'matic-network', symbol:'matic', name:'Polygon', current_price:0.7234, image:null, price_change_percentage_24h_in_currency:-1.89, price_change_percentage_1h_in_currency:-0.18, price_change_percentage_7d_in_currency:-2.8 },
+  { id:'shiba-inu', symbol:'shib', name:'Shiba Inu', current_price:0.0000234, image:null, price_change_percentage_24h_in_currency:6.45, price_change_percentage_1h_in_currency:0.7, price_change_percentage_7d_in_currency:11.2 },
+];
+
+/* =====================================================================
+ *                        SPEED MAPPING
+ * ===================================================================== */
+function getPerf(coin) {
+  const map = {
+    '1h':  'price_change_percentage_1h_in_currency',
+    '24h': 'price_change_percentage_24h_in_currency',
+    '7d':  'price_change_percentage_7d_in_currency'
+  };
+  const v = coin[map[state.timeframe]];
+  return (typeof v === 'number' && !isNaN(v)) ? v : 0;
+}
+
+function speedMultiplier(perf) {
+  // Non-linear mapping with tanh; clamp range so extreme values don't break visuals
+  if (perf > 0.5) {
+    return 1 + 0.55 * Math.tanh((perf - 0.5) / 6);
+  } else if (perf < -0.5) {
+    return 1 + 0.55 * Math.tanh((perf + 0.5) / 6); // negative → less than 1
+  }
+  return 1;
+}
+
+/* =====================================================================
+ *                          CARS
+ * ===================================================================== */
+function buildCars(coins) {
+  const cars = [];
+  // Distribute initial positions evenly along the lap; assign lanes round-robin
+  for (let i = 0; i < coins.length; i++) {
+    const coin = coins[i];
+    const initialDistance = (i / coins.length) * state.totalArc;
+    const laneIdx = i % CFG.LANE_COUNT;
+    const car = {
+      id: coin.id,
+      symbol: (coin.symbol || '').toUpperCase(),
+      name: coin.name || coin.id,
+      coin: coin,
+      distance: initialDistance,
+      lapsCompleted: 0,
+      lane: laneIdx,
+      laneOffset: 0,    // animated towards (laneIdx - 1.5) * spacing
+      speedMul: 1,
+      perf: getPerf(coin),
+      img: null,
+      color: symFallback(coin.symbol) || hashColor(coin.symbol || coin.id),
+      trail: [],
+      smoke: [],
+    };
+    cars.push(car);
+  }
+  // Kick off async image loading; update colors as they arrive
+  for (const car of cars) {
+    if (car.coin.image) {
+      loadCoinImage(car.coin.image, car.coin.symbol).then(entry => {
+        if (entry) {
+          car.img = entry.img;
+          if (entry.color) car.color = entry.color;
+        }
+      });
+    }
+  }
+  return cars;
+}
+
+function syncCarsWithCoins(coins) {
+  // Reuse existing car position state when possible
+  const oldByid = new Map(state.cars.map(c => [c.id, c]));
+  const newCars = [];
+  for (let i = 0; i < coins.length; i++) {
+    const coin = coins[i];
+    const old = oldByid.get(coin.id);
+    if (old) {
+      old.coin = coin;
+      old.perf = getPerf(coin);
+      old.symbol = (coin.symbol || '').toUpperCase();
+      old.name = coin.name || coin.id;
+      old.marketRank = i;
+      newCars.push(old);
+    } else {
+      const initialDistance = (i / coins.length) * state.totalArc;
+      const laneIdx = i % CFG.LANE_COUNT;
+      const car = {
+        id: coin.id,
+        symbol: (coin.symbol || '').toUpperCase(),
+        name: coin.name || coin.id,
+        coin,
+        marketRank: i,
+        distance: initialDistance,
+        lapsCompleted: 0,
+        lane: laneIdx,
+        laneOffset: (laneIdx - (CFG.LANE_COUNT - 1) / 2) * (state.trackWidth / CFG.LANE_COUNT),
+        speedMul: 1,
+        perf: getPerf(coin),
+        img: null,
+        color: symFallback(coin.symbol) || hashColor(coin.symbol || coin.id),
+        trail: [],
+        smoke: [],
+      };
+      if (coin.image) {
+        loadCoinImage(coin.image, coin.symbol).then(entry => {
+          if (entry) {
+            car.img = entry.img;
+            if (entry.color) car.color = entry.color;
+          }
+        });
+      }
+      newCars.push(car);
+    }
+  }
+  state.cars = newCars;
+  // make sure lanes are set
+  for (let i = 0; i < state.cars.length; i++) {
+    state.cars[i].lane = i % CFG.LANE_COUNT;
+  }
+}
+
+/* =====================================================================
+ *                       UPDATE & RENDER LOOP
+ * ===================================================================== */
+let lastTs = performance.now();
+function loop(ts) {
+  const dt = Math.min(0.05, (ts - lastTs) / 1000);
+  lastTs = ts;
+  if (!state.paused) updateCars(dt);
+  renderFrame();
+  requestAnimationFrame(loop);
+}
+
+function updateCars(dt) {
+  const tw = state.trackWidth;
+  const spacing = tw / (CFG.LANE_COUNT + 1);
+  const baseSpeed = CFG.BASE_SPEED_PX_S;
+  let leaderDistance = 0;
+
+  for (let i = 0; i < state.cars.length; i++) {
+    const c = state.cars[i];
+    // smoothly move towards target speed multiplier
+    const targetMul = speedMultiplier(c.perf);
+    c.speedMul += (targetMul - c.speedMul) * Math.min(1, dt * 1.4);
+
+    // smoothly move towards target lane offset
+    const targetLane = (c.lane - (CFG.LANE_COUNT - 1) / 2) * spacing;
+    c.laneOffset += (targetLane - c.laneOffset) * Math.min(1, dt * 2);
+
+    const v = baseSpeed * c.speedMul;
+    const prevDist = c.distance;
+    c.distance += v * dt;
+    if (c.distance > state.totalArc) {
+      c.distance -= state.totalArc;
+      c.lapsCompleted++;
+    }
+
+    const pos = getTrackPosition(c.distance, c.laneOffset);
+    c.x = pos.x; c.y = pos.y; c.angle = pos.angle;
+
+    // Trail (only when accelerating)
+    if (c.perf > 0.5) {
+      c.trail.push({ x: c.x, y: c.y, age: 0 });
+      if (c.trail.length > CFG.TRAIL_LENGTH) c.trail.shift();
+    } else {
+      // gradually drain trail
+      if (c.trail.length > 0 && Math.random() < 0.6) c.trail.shift();
+    }
+    for (let t = 0; t < c.trail.length; t++) c.trail[t].age += dt;
+
+    // Smoke (only when underperforming)
+    if (c.perf < -0.5) {
+      const intensity = Math.min(1, Math.abs(c.perf) / 8);
+      // emit roughly proportional to intensity, but cap pool
+      if (c.smoke.length < CFG.SMOKE_MAX_PER_CAR && Math.random() < intensity * 0.85) {
+        const tailX = c.x - Math.cos(c.angle) * (CFG.CAR_LEN * 0.55);
+        const tailY = c.y - Math.sin(c.angle) * (CFG.CAR_LEN * 0.55);
+        c.smoke.push({
+          x: tailX, y: tailY,
+          vx: -Math.cos(c.angle) * 14 + (Math.random() - 0.5) * 16,
+          vy: -Math.sin(c.angle) * 14 + (Math.random() - 0.5) * 16,
+          life: 0, ttl: 1.2 + Math.random() * 0.6,
+          size: 6 + Math.random() * 6
+        });
+      }
+    }
+    // update smoke
+    for (let s = c.smoke.length - 1; s >= 0; s--) {
+      const p = c.smoke[s];
+      p.life += dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.92; p.vy *= 0.92;
+      p.size += 22 * dt;
+      if (p.life >= p.ttl) c.smoke.splice(s, 1);
+    }
+
+    if (c.distance > leaderDistance) leaderDistance = c.distance;
+  }
+
+  // Update lap counter for leader
+  if (state.cars.length > 0) {
+    const leader = state.cars.reduce((a, b) =>
+      (a.lapsCompleted * state.totalArc + a.distance) >
+      (b.lapsCompleted * state.totalArc + b.distance) ? a : b
+    );
+    state.leaderLapsCompleted = leader.lapsCompleted;
+  }
+}
+
+function renderFrame() {
+  const W = canvas.clientWidth;
+  const H = canvas.clientHeight;
+  // Background + track (from cache)
+  if (trackCacheCanvas) {
+    ctx.drawImage(trackCacheCanvas, 0, 0, W, H);
+  } else {
+    drawTrack();
+  }
+
+  // Smoke first (under cars, but above trail of fast cars? — render in sensible order)
+  // Order: smoke (rear) → trails → cars
+  for (const c of state.cars) drawSmoke(c);
+  for (const c of state.cars) drawTrail(c);
+  for (const c of state.cars) drawCar(c);
+
+  // HUD overlays inside canvas
+  drawLapBanner();
+
+  // Update DOM bits that depend on state
+  updateLapDisplay();
+}
+
+function drawSmoke(c) {
+  if (c.smoke.length === 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  for (const p of c.smoke) {
+    const lifeFrac = p.life / p.ttl;
+    const alpha = (1 - lifeFrac) * 0.45;
+    const radius = p.size * (0.6 + lifeFrac * 1.4);
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+    grad.addColorStop(0, `rgba(70, 70, 78, ${alpha})`);
+    grad.addColorStop(0.6, `rgba(40, 40, 46, ${alpha * 0.5})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawTrail(c) {
+  if (c.trail.length < 2 || c.perf <= 0.5) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 1; i < c.trail.length; i++) {
+    const t = i / c.trail.length;
+    const alpha = t * 0.55 * Math.min(1, (c.perf - 0.5) / 6);
+    const lw = 2 + t * 9;
+    ctx.strokeStyle = withAlpha(c.color, alpha);
+    ctx.lineWidth = lw;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(c.trail[i - 1].x, c.trail[i - 1].y);
+    ctx.lineTo(c.trail[i].x, c.trail[i].y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawCar(c) {
+  const len = CFG.CAR_LEN;
+  const wid = CFG.CAR_WID;
+  const halfL = len * 0.5;
+  const halfW = wid * 0.5;
+  const isHovered = state.hoveredCarId === c.id;
+
+  ctx.save();
+  ctx.translate(c.x, c.y);
+
+  // Hover halo (rendered before rotation so it's circular)
+  if (isHovered) {
+    const pulse = 1 + 0.08 * Math.sin(performance.now() * 0.006);
+    const glow = ctx.createRadialGradient(0, 0, len * 0.4, 0, 0, len * 1.2 * pulse);
+    glow.addColorStop(0, withAlpha(c.color, 0.55));
+    glow.addColorStop(0.4, withAlpha(c.color, 0.25));
+    glow.addColorStop(1, withAlpha(c.color, 0));
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, len * 1.2 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.rotate(c.angle);
+
+  // ===== NIGHT MODE: headlight beams projecting forward onto the asphalt =====
+  if (state.nightMode) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // Two long, soft cone beams converging slightly forward of the car
+    const beamLen = len * 3.6;
+    const beamSpread = wid * 1.6;
+    const beamStartY = halfW * 0.45;
+
+    for (const sign of [-1, 1]) {
+      const startX = halfL - 0.5;
+      const startY = sign * beamStartY;
+      const endX = halfL + beamLen;
+      const grad = ctx.createLinearGradient(startX, startY, endX, sign * beamSpread);
+      grad.addColorStop(0,    'rgba(255, 240, 190, 0.55)');
+      grad.addColorStop(0.15, 'rgba(255, 235, 175, 0.36)');
+      grad.addColorStop(0.55, 'rgba(255, 230, 160, 0.18)');
+      grad.addColorStop(1,    'rgba(255, 225, 150, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(startX, sign * 1.2);
+      ctx.lineTo(endX, sign * (beamSpread + 1));
+      ctx.lineTo(endX, sign * (beamSpread - 5));
+      ctx.lineTo(startX, sign * (1.2 + 1.4));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Bright focused core beam down the center (stronger near the car, fades fast)
+    const coreGrad = ctx.createLinearGradient(halfL, 0, halfL + beamLen * 0.6, 0);
+    coreGrad.addColorStop(0,   'rgba(255, 245, 210, 0.55)');
+    coreGrad.addColorStop(0.4, 'rgba(255, 240, 180, 0.18)');
+    coreGrad.addColorStop(1,   'rgba(255, 235, 170, 0)');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.moveTo(halfL, -halfW * 0.55);
+    ctx.lineTo(halfL + beamLen * 0.6, -beamSpread * 0.55);
+    ctx.lineTo(halfL + beamLen * 0.6,  beamSpread * 0.55);
+    ctx.lineTo(halfL,  halfW * 0.55);
+    ctx.closePath();
+    ctx.fill();
+
+    // Tight bright pools on the asphalt right at the headlight bulbs
+    for (const sign of [-1, 1]) {
+      const px = halfL + 1.5;
+      const py = sign * (halfW - 2.5);
+      const pool = ctx.createRadialGradient(px, py, 0, px, py, 9);
+      pool.addColorStop(0,   'rgba(255, 250, 220, 0.95)');
+      pool.addColorStop(0.5, 'rgba(255, 240, 180, 0.45)');
+      pool.addColorStop(1,   'rgba(255, 235, 170, 0)');
+      ctx.fillStyle = pool;
+      ctx.beginPath();
+      ctx.arc(px, py, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ----- Drop shadow -----
+  ctx.fillStyle = state.nightMode ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.42)';
+  ctx.beginPath();
+  ctx.ellipse(2, 2.5, len * 0.48, wid * 0.65, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ----- Wheels (drawn first so they tuck under body, peek out at sides) -----
+  ctx.fillStyle = '#08080a';
+  // front pair
+  roundedRect(len * 0.20, -halfW - 1.8, 8, 5, 1);
+  roundedRect(len * 0.20, halfW - 3.2, 8, 5, 1);
+  // rear pair (slightly larger — Road Fighter aesthetic)
+  roundedRect(-len * 0.42, -halfW - 2, 9.5, 6, 1);
+  roundedRect(-len * 0.42, halfW - 4, 9.5, 6, 1);
+
+  // ----- Main body — rounded rectangle with very slight nose taper -----
+  const r = 3.2; // corner radius
+  const tip = halfL;
+  const noseInset = 0.8; // tiny taper
+  ctx.beginPath();
+  // front-right curve
+  ctx.moveTo(tip - r, halfW - noseInset);
+  ctx.quadraticCurveTo(tip, halfW - noseInset, tip, halfW - r - noseInset);
+  ctx.lineTo(tip, -halfW + r + noseInset);
+  ctx.quadraticCurveTo(tip, -halfW + noseInset, tip - r, -halfW + noseInset);
+  // along right side toward rear
+  ctx.lineTo(-halfL + r, -halfW);
+  ctx.quadraticCurveTo(-halfL, -halfW, -halfL, -halfW + r);
+  ctx.lineTo(-halfL, halfW - r);
+  ctx.quadraticCurveTo(-halfL, halfW, -halfL + r, halfW);
+  ctx.lineTo(tip - r, halfW - noseInset);
+  ctx.closePath();
+
+  // Body fill — vertical gradient gives faux-3D shading
+  const bodyGrad = ctx.createLinearGradient(0, -halfW, 0, halfW);
+  bodyGrad.addColorStop(0, shade(c.color, 0.10));
+  bodyGrad.addColorStop(0.5, c.color);
+  bodyGrad.addColorStop(1, shade(c.color, -0.22));
+  ctx.fillStyle = bodyGrad;
+  ctx.fill();
+
+  // Body outline
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+  ctx.stroke();
+
+  // ----- Front bumper line -----
+  ctx.fillStyle = 'rgba(0,0,0,0.30)';
+  ctx.fillRect(len * 0.42, -halfW + 1.5, 1.2, wid - 3);
+
+  // ----- Hood vent / detail (Road Fighter has a small black square on hood) -----
+  ctx.fillStyle = 'rgba(0,0,0,0.40)';
+  ctx.fillRect(len * 0.30, -wid * 0.18, 4.5, wid * 0.36);
+
+  // ----- Windshield (front, dark trapezoid — wider at rear, narrower at front) -----
+  ctx.beginPath();
+  ctx.moveTo(len * 0.22, -halfW + 3.5);
+  ctx.lineTo(len * 0.07, -halfW + 2);
+  ctx.lineTo(len * 0.07, halfW - 2);
+  ctx.lineTo(len * 0.22, halfW - 3.5);
+  ctx.closePath();
+  const wsGrad = ctx.createLinearGradient(0, -halfW, 0, halfW);
+  wsGrad.addColorStop(0, 'rgba(18, 26, 42, 0.95)');
+  wsGrad.addColorStop(0.5, 'rgba(40, 56, 78, 0.92)');
+  wsGrad.addColorStop(1, 'rgba(18, 26, 42, 0.95)');
+  ctx.fillStyle = wsGrad;
+  ctx.fill();
+  // windshield reflection sheen
+  ctx.fillStyle = 'rgba(255,255,255,0.20)';
+  ctx.fillRect(len * 0.10, -halfW + 4, len * 0.10, 1.3);
+
+  // ----- Roof (lighter strip between windshield and rear window) -----
+  ctx.fillStyle = shade(c.color, 0.20);
+  ctx.fillRect(-len * 0.16, -halfW + 4.2, len * 0.22, wid - 8.4);
+  // roof outline
+  ctx.fillStyle = 'rgba(0,0,0,0.20)';
+  ctx.fillRect(-len * 0.16, -halfW + 4.2, len * 0.22, 0.8);
+  ctx.fillRect(-len * 0.16, halfW - 5, len * 0.22, 0.8);
+
+  // ----- Rear window (smaller dark trapezoid) -----
+  ctx.beginPath();
+  ctx.moveTo(-len * 0.16, -halfW + 3);
+  ctx.lineTo(-len * 0.32, -halfW + 4);
+  ctx.lineTo(-len * 0.32, halfW - 4);
+  ctx.lineTo(-len * 0.16, halfW - 3);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(20, 28, 42, 0.92)';
+  ctx.fill();
+
+  // ----- Rear deck panel line -----
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.fillRect(-len * 0.42, -halfW + 2, 1, wid - 4);
+
+  // ----- Headlights (front corners) -----
+  ctx.fillStyle = state.nightMode ? 'rgba(255, 252, 230, 1)' : 'rgba(255, 235, 175, 0.95)';
+  ctx.fillRect(len * 0.43, -halfW + 1.5, 3, 2);
+  ctx.fillRect(len * 0.43, halfW - 3.5, 3, 2);
+
+  // ----- Tail lights (rear corners) -----
+  ctx.fillStyle = state.nightMode ? 'rgba(255, 80, 70, 1)' : 'rgba(225, 45, 50, 0.98)';
+  ctx.fillRect(-len * 0.485, -halfW + 1.5, 2.5, 2);
+  ctx.fillRect(-len * 0.485, halfW - 3.5, 2.5, 2);
+
+  // Night extras: bright headlight halos + faint red tail glow
+  if (state.nightMode) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    // headlight bulb glow
+    for (const sign of [-1, 1]) {
+      const hx = len * 0.445 + 1.5;
+      const hy = sign * (halfW - 2.5);
+      const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, 5);
+      g.addColorStop(0,   'rgba(255, 252, 230, 1)');
+      g.addColorStop(0.5, 'rgba(255, 240, 190, 0.6)');
+      g.addColorStop(1,   'rgba(255, 235, 170, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(hx, hy, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // faint red tail glow (subtle — just enough to read at night)
+    for (const sign of [-1, 1]) {
+      const tx = -len * 0.485 + 1.25;
+      const ty = sign * (halfW - 2.5);
+      const g = ctx.createRadialGradient(tx, ty, 0, tx, ty, 6);
+      g.addColorStop(0,   'rgba(255, 70, 60, 0.55)');
+      g.addColorStop(0.5, 'rgba(220, 30, 30, 0.22)');
+      g.addColorStop(1,   'rgba(180, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(tx, ty, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ----- Side mirrors (tiny stubs at windshield level) -----
+  ctx.fillStyle = shade(c.color, -0.30);
+  ctx.fillRect(len * 0.18, -halfW - 1.3, 1.8, 1.5);
+  ctx.fillRect(len * 0.18, halfW - 0.2, 1.8, 1.5);
+
+  // ----- Subtle body highlight (sun reflection on roof) -----
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  ctx.fillRect(-len * 0.10, -halfW + 5.5, len * 0.12, 0.8);
+
+  ctx.restore();
+
+  // Symbol label (drawn upright, not rotated)
+  drawCarLabel(c);
+}
+
+function drawCarLabel(c) {
+  // Floating coin icon hovering above the car — Sims plumbob style:
+  //   • bobs gently up & down (each car phase-shifted)
+  //   • soft glow halo in the car's accent color
+  //   • faint shadow beneath where it would land (constant, doesn't bob)
+  const baseOff = CFG.CAR_LEN * 0.65 + 20;
+
+  // unique bob phase per car (init once)
+  if (c.bobPhase === undefined) c.bobPhase = Math.random() * Math.PI * 2;
+  const t = performance.now() * 0.0022;
+  const bob = Math.sin(t + c.bobPhase) * 2.2;
+
+  const iconR = 13;
+  const x = c.x;
+  const y = c.y - baseOff + bob;
+
+  ctx.save();
+
+  // 1) Faint static shadow on the asphalt directly under the icon's resting point
+  ctx.fillStyle = state.nightMode ? 'rgba(0,0,0,0.30)' : 'rgba(0,0,0,0.20)';
+  ctx.beginPath();
+  ctx.ellipse(c.x, c.y - baseOff + iconR + 4, iconR * 0.6, 1.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2) Glow halo — pulses gently with the bob
+  const glowR = iconR + 9;
+  const halo = ctx.createRadialGradient(x, y, iconR - 1, x, y, glowR);
+  halo.addColorStop(0,   withAlpha(c.color, state.nightMode ? 0.70 : 0.55));
+  halo.addColorStop(0.5, withAlpha(c.color, state.nightMode ? 0.28 : 0.20));
+  halo.addColorStop(1,   withAlpha(c.color, 0));
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(x, y, glowR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3) Dark backing disc
+  ctx.beginPath();
+  ctx.arc(x, y, iconR, 0, Math.PI * 2);
+  ctx.fillStyle = '#0b0d12';
+  ctx.fill();
+
+  // 4) Coin image (clipped to circle), or symbol fallback
+  const cacheEntry = c.coin.image ? imageCache.get(c.coin.image) : null;
+  const img = cacheEntry && cacheEntry.img;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, iconR - 2, 0, Math.PI * 2);
+  ctx.clip();
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, x - (iconR - 2), y - (iconR - 2), (iconR - 2) * 2, (iconR - 2) * 2);
+  } else {
+    // Fallback: solid car-color disc with symbol text
+    ctx.fillStyle = c.color;
+    ctx.fillRect(x - iconR, y - iconR, iconR * 2, iconR * 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '800 9px Orbitron, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(c.symbol.slice(0, 4), x, y);
+  }
+  ctx.restore();
+
+  // 5) Accent ring in the car's color
+  ctx.beginPath();
+  ctx.arc(x, y, iconR - 1, 0, Math.PI * 2);
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = c.color;
+  ctx.stroke();
+
+  // 6) Top-left specular shine for the "3D plumbob" feel
+  const shine = ctx.createRadialGradient(x - 4, y - 5, 0, x - 4, y - 5, 9);
+  shine.addColorStop(0, 'rgba(255,255,255,0.40)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shine;
+  ctx.beginPath();
+  ctx.arc(x, y, iconR - 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawLapBanner() {
+  // upper-left corner overlay: a small "current leader" badge or similar
+  // To keep visuals clean, no extra banner here.
+}
+
+function roundedRect(x, y, w, h, r = 2) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function withAlpha(color, a) {
+  // accept rgb/hsl/hex, return string with alpha. For simplicity, use rgba via a tmp element.
+  // We assume color is an rgb()/hsl()/hex value.
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `, ${a})`);
+  }
+  if (color.startsWith('hsl(')) {
+    return color.replace('hsl(', 'hsla(').replace(')', `, ${a})`);
+  }
+  if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
+  return color;
+}
+
+function shade(color, amount) {
+  // amount in [-1, 1]
+  let r, g, b;
+  if (color.startsWith('rgb')) {
+    const m = color.match(/\d+(\.\d+)?/g);
+    r = +m[0]; g = +m[1]; b = +m[2];
+  } else if (color.startsWith('#')) {
+    const hex = color.replace('#', '');
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  } else if (color.startsWith('hsl')) {
+    // convert via canvas: shortcut, lighten/darken via L
+    return color; // fallback: no change
+  } else return color;
+
+  const f = amount > 0 ? (255 - r) * amount + r : r * (1 + amount);
+  const g2 = amount > 0 ? (255 - g) * amount + g : g * (1 + amount);
+  const b2 = amount > 0 ? (255 - b) * amount + b : b * (1 + amount);
+  return `rgb(${Math.max(0,Math.min(255,Math.round(f)))}, ${Math.max(0,Math.min(255,Math.round(g2)))}, ${Math.max(0,Math.min(255,Math.round(b2)))})`;
+}
+
+/* =====================================================================
+ *                          LEADERBOARD DOM
+ * ===================================================================== */
+function rebuildLeaderboardDOM() {
+  lbList.innerHTML = '';
+  for (const car of state.cars) {
+    const row = document.createElement('div');
+    row.className = 'lb-row';
+    row.dataset.id = car.id;
+    row.style.setProperty('--car-color', car.color);
+    row.innerHTML = `
+      <div class="pos">—</div>
+      <div class="icon-wrap">
+        ${car.coin.image ? `<img src="${car.coin.image}" alt="${car.symbol}" referrerpolicy="no-referrer" />` : `<span class="fallback">${car.symbol.slice(0,3)}</span>`}
+      </div>
+      <div class="info">
+        <div class="symbol">${car.symbol}</div>
+        <div class="name">${car.name}</div>
+      </div>
+      <div class="price-block">
+        <div class="price">$0.00</div>
+        <span class="pct flat">▲ 0.00%</span>
+      </div>
+    `;
+    row.addEventListener('mouseenter', () => { state.hoveredCarId = car.id; row.classList.add('highlighted'); });
+    row.addEventListener('mouseleave', () => { state.hoveredCarId = null; row.classList.remove('highlighted'); });
+    lbList.appendChild(row);
+  }
+  positionLeaderboardRows(true);
+}
+
+function positionLeaderboardRows(immediate = false) {
+  // Sort according to ranking mode
+  const ranked = [...state.cars].sort((a, b) => {
+    if (state.rankingMode === 'marketcap') {
+      return (a.marketRank ?? 0) - (b.marketRank ?? 0);
+    }
+    return b.perf - a.perf; // performance descending
+  });
+  const ROW_H = 76; // 72 row + 4 gap
+  // Build a map from id -> row element by iterating
+  const rowMap = new Map();
+  for (const child of lbList.children) {
+    if (child.dataset && child.dataset.id) rowMap.set(child.dataset.id, child);
+  }
+  for (let i = 0; i < ranked.length; i++) {
+    const car = ranked[i];
+    const row = rowMap.get(car.id);
+    if (!row) continue;
+    if (immediate) row.style.transition = 'none';
+    row.style.top = `${i * ROW_H}px`;
+    row.dataset.pos = i + 1;
+
+    // Update content
+    row.querySelector('.pos').textContent = i + 1;
+    const priceEl = row.querySelector('.price');
+    priceEl.textContent = formatPrice(car.coin.current_price);
+    const pctEl = row.querySelector('.pct');
+    const p = car.perf;
+    const arrow = p > 0.05 ? '▲' : p < -0.05 ? '▼' : '◆';
+    pctEl.textContent = `${arrow} ${p.toFixed(2)}%`;
+    pctEl.classList.remove('up', 'down', 'flat');
+    if (p > 0.05) pctEl.classList.add('up');
+    else if (p < -0.05) pctEl.classList.add('down');
+    else pctEl.classList.add('flat');
+
+    // Border color
+    row.style.setProperty('--car-color', car.color);
+    if (immediate) {
+      // re-enable transition next frame
+      requestAnimationFrame(() => row.style.transition = '');
+    }
+  }
+  // ensure list has min height
+  lbList.style.minHeight = `${ranked.length * ROW_H + 12}px`;
+}
+
+function cssEscape(s) {
+  return (s || '').replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+}
+
+function formatPrice(v) {
+  if (v == null || isNaN(v)) return '$—';
+  if (v >= 1000) return `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  if (v >= 1) return `$${v.toFixed(2)}`;
+  if (v >= 0.01) return `$${v.toFixed(4)}`;
+  if (v >= 0.0001) return `$${v.toFixed(6)}`;
+  // very small: scientific-ish
+  return `$${v.toPrecision(3)}`;
+}
+
+/* =====================================================================
+ *                          STATUS / HUD
+ * ===================================================================== */
+function setStatus(kind, text) {
+  statusDot.className = 'status-dot ' + kind;
+  if (kind === 'live') statusDot.classList.add('live');
+  statusText.textContent = text;
+}
+
+function updateClock() {
+  if (!state.lastUpdate) {
+    statusTime.textContent = '— : — : —';
+  } else {
+    const now = new Date();
+    const diff = Math.round((now - state.lastUpdate) / 1000);
+    if (diff < 60) statusTime.textContent = `${diff}s ago`;
+    else statusTime.textContent = `${Math.round(diff / 60)}m ago`;
+  }
+}
+setInterval(updateClock, 1000);
+
+function showErrorBanner(msg) {
+  errorBanner.textContent = msg;
+  errorBanner.classList.remove('hidden');
+}
+function hideErrorBanner() {
+  errorBanner.classList.add('hidden');
+}
+
+function updateLapDisplay() {
+  lapValue.textContent = `${String(state.leaderLapsCompleted + 1).padStart(3, '0')} / ∞`;
+}
+
+/* =====================================================================
+ *                            INTERACTION
+ * ===================================================================== */
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  let hovered = null;
+  let bestDist = 36 * 36;
+  for (const c of state.cars) {
+    const dx = c.x - mx, dy = c.y - my;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestDist) { bestDist = d2; hovered = c; }
+  }
+  const prevId = state.hoveredCarId;
+  state.hoveredCarId = hovered ? hovered.id : null;
+  if (prevId !== state.hoveredCarId) {
+    for (const child of lbList.children) {
+      if (child.dataset.id === state.hoveredCarId) child.classList.add('highlighted');
+      else child.classList.remove('highlighted');
+    }
+  }
+  if (hovered) {
+    showTooltip(hovered, mx, my);
+    canvas.style.cursor = 'pointer';
+  } else {
+    hideTooltip();
+    canvas.style.cursor = 'default';
+  }
+});
+canvas.addEventListener('mouseleave', () => {
+  state.hoveredCarId = null;
+  for (const child of lbList.children) child.classList.remove('highlighted');
+  hideTooltip();
+});
+
+function showTooltip(car, x, y) {
+  const c = car.coin;
+  const p1h = c.price_change_percentage_1h_in_currency;
+  const p24 = c.price_change_percentage_24h_in_currency;
+  const p7d = c.price_change_percentage_7d_in_currency;
+  const fmtPct = (v) => {
+    if (v == null || isNaN(v)) return '—';
+    const cls = v > 0.05 ? 'up' : v < -0.05 ? 'down' : 'flat';
+    const arrow = v > 0 ? '▲' : v < 0 ? '▼' : '◆';
+    const color = cls === 'up' ? 'var(--neon-green)' : cls === 'down' ? 'var(--neon-red)' : 'var(--text-2)';
+    return `<span style="color:${color}">${arrow} ${v.toFixed(2)}%</span>`;
+  };
+  tooltip.innerHTML = `
+    <div class="tt-name" style="color:${car.color}">
+      ${c.image ? `<img src="${c.image}" alt="" referrerpolicy="no-referrer" />` : ''}
+      ${car.symbol} · ${car.name}
+    </div>
+    <div class="tt-row"><span class="tt-label">Price</span><span class="tt-value">${formatPrice(c.current_price)}</span></div>
+    <div class="tt-row"><span class="tt-label">1h</span><span class="tt-value">${fmtPct(p1h)}</span></div>
+    <div class="tt-row"><span class="tt-label">24h</span><span class="tt-value">${fmtPct(p24)}</span></div>
+    <div class="tt-row"><span class="tt-label">7d</span><span class="tt-value">${fmtPct(p7d)}</span></div>
+    <div class="tt-row"><span class="tt-label">Speed</span><span class="tt-value">${(car.speedMul * 100).toFixed(0)}%</span></div>
+  `;
+  // clamp position so it stays on screen
+  const stageW = stage.clientWidth;
+  const stageH = stage.clientHeight;
+  const tx = Math.max(110, Math.min(stageW - 110, x));
+  const ty = Math.max(120, y);
+  tooltip.style.left = tx + 'px';
+  tooltip.style.top = (ty - 12) + 'px';
+  tooltip.classList.add('visible');
+}
+function hideTooltip() {
+  tooltip.classList.remove('visible');
+}
+
+tfSelector.addEventListener('click', (e) => {
+  const btn = e.target.closest('.tf-btn');
+  if (!btn) return;
+  tfSelector.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.timeframe = btn.dataset.tf;
+  lbTfLabel.textContent = btn.dataset.tf.toUpperCase();
+  // Refresh perf values & rerender list
+  for (const c of state.cars) c.perf = getPerf(c.coin);
+  positionLeaderboardRows();
+});
+
+gridSegment.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.grid-btn');
+  if (!btn) return;
+  if (btn.classList.contains('active')) return;
+  gridSegment.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.carCount = +btn.dataset.grid;
+  setStatus('loading', 'GRID CHANGE');
+  const data = await fetchCoins();
+  if (data) {
+    state.coins = data;
+    syncCarsWithCoins(data);
+    rebuildLeaderboardDOM();
+    state.lastUpdate = new Date();
+    setStatus('live', 'LIVE');
+  }
+});
+
+modeToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('.mode-btn');
+  if (!btn) return;
+  if (btn.classList.contains('active')) return;
+  modeToggle.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.nightMode = btn.dataset.mode === 'night';
+  document.body.classList.toggle('night-mode', state.nightMode);
+  // Re-bake the track cache with the new palette
+  regenerateTrackCache();
+});
+
+rankToggle.addEventListener('click', (e) => {
+  const btn = e.target.closest('.rank-btn');
+  if (!btn) return;
+  if (btn.classList.contains('active')) return;
+  rankToggle.querySelectorAll('.rank-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.rankingMode = btn.dataset.rank;
+  positionLeaderboardRows();
+});
+
+pauseBtn.addEventListener('click', () => {
+  state.paused = !state.paused;
+  pauseBtn.classList.toggle('paused', state.paused);
+  pauseIcon.innerHTML = state.paused
+    ? '<path d="M8 5v14l11-7z"/>'
+    : '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+});
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  generateTrack();
+  regenerateTrackCache();
+  // re-distribute lane offsets and clamp distance
+  const tw = state.trackWidth;
+  const spacing = tw / (CFG.LANE_COUNT + 1);
+  for (const c of state.cars) {
+    if (c.distance > state.totalArc) c.distance = c.distance % state.totalArc;
+    c.laneOffset = (c.lane - (CFG.LANE_COUNT - 1) / 2) * spacing;
+    c.trail.length = 0;
+  }
+});
+
+function resizeCanvas() {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  state.dpr = dpr;
+  const w = stage.clientWidth;
+  const h = stage.clientHeight;
+  canvas.width = Math.floor(w * dpr);
+  canvas.height = Math.floor(h * dpr);
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+/* =====================================================================
+ *                            BOOT
+ * ===================================================================== */
+async function refresh() {
+  const data = await fetchCoins();
+  if (data) {
+    state.coins = data;
+    syncCarsWithCoins(data);
+    rebuildLeaderboardDOM();
+    state.lastUpdate = new Date();
+    setStatus('live', 'LIVE');
+  } else if (state.cars.length === 0) {
+    // first failure: use fallback so the UI works as a demo
+    state.coins = FALLBACK_COINS.slice(0, state.carCount);
+    syncCarsWithCoins(state.coins);
+    rebuildLeaderboardDOM();
+    state.lastUpdate = new Date();
+    setStatus('error', 'DEMO MODE');
+  } else {
+    setStatus('error', 'OFFLINE');
+  }
+}
+
+async function init() {
+  // carCount is set in state default + via grid segmented buttons
+  document.body.classList.toggle('night-mode', state.nightMode);
+  resizeCanvas();
+  generateTrack();
+  regenerateTrackCache();
+  await refresh();
+  positionLeaderboardRows(true);
+  loadingOverlay.classList.add('hidden');
+  // Polling
+  state.pollTimer = setInterval(() => {
+    if (!state.paused) refresh();
+  }, CFG.POLL_INTERVAL_MS);
+  requestAnimationFrame(loop);
+}
+
+init();
+</script>
+</body>
+</html>
