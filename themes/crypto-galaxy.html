@@ -473,14 +473,8 @@
     #header { top: 18px; left: 18px; }
     .title { font-size: 16px; letter-spacing: 0.25em; }
     .subtitle { font-size: 8px; }
-    #controls {
-      top: 18px; right: 18px;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      max-width: calc(100vw - 36px);
-    }
-    .btn { padding: 7px 12px; font-size: 9px; letter-spacing: 0.18em; }
+    #controls { top: 18px; right: 18px; gap: 8px; }
+    .btn { padding: 7px 14px; font-size: 9px; }
     .icon-btn { width: 34px; height: 34px; }
     #status { bottom: 16px; left: 18px; font-size: 9px; }
     #legend { display: none; }
@@ -489,6 +483,19 @@
 </style>
 </head>
 <body>
+<style>
+.home-link{position:fixed;top:24px;left:30px;z-index:900;--hl:#f7931a;display:inline-flex;align-items:center;height:42px;min-width:42px;border-radius:999px;background:rgba(12,12,20,.82);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;box-shadow:0 6px 22px rgba(0,0,0,.45),0 0 22px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'JetBrains Mono','Share Tech Mono',monospace;}
+.home-link .hl-ico{flex:0 0 42px;height:42px;display:grid;place-items:center;}
+.home-link .hl-ico svg{width:18px;height:18px;display:block;}
+.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
+.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(8,9,14,.6));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 28px rgba(0,0,0,.5),0 0 28px -4px var(--hl);}
+.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
+.home-link .hl-txt{display:none;}
+.home-link:active{transform:scale(.94);}
+#header{left:92px !important;}
+@media (max-width:720px){.home-link{top:14px;left:14px;}#header{left:72px !important;top:18px;}}
+</style>
+<a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
 
 <!-- Loading -->
 <div id="loading">
@@ -514,11 +521,6 @@
     </svg>
     <span id="starsLabel">Stars On</span>
   </button>
-  <div class="toggle-group">
-    <button class="btn active" id="btn1D">1D</button>
-    <button class="btn" id="btn7D">7D</button>
-    <button class="btn" id="btn30D">30D</button>
-  </div>
   <div class="toggle-group">
     <button class="btn" id="btn25">Top 25</button>
     <button class="btn active" id="btn50">Top 50</button>
@@ -546,9 +548,9 @@
 <div id="legend">
   <div class="legend-title">System Legend</div>
   <div class="legend-line"><span class="dot gold"></span>Size ∝ Market Cap</div>
-  <div class="legend-line"><span class="dot green"></span>Clockwise orbit · <span id="legendUp">24h ↑</span></div>
-  <div class="legend-line"><span class="dot red"></span>Counter-clockwise orbit · <span id="legendDown">24h ↓</span></div>
-  <div class="legend-line" style="margin-top:6px; color: var(--text-muted); font-size:10px;">Speed ∝ |% <span id="legendAbs">24h</span>|</div>
+  <div class="legend-line"><span class="dot green"></span>Clockwise orbit · 24h ↑</div>
+  <div class="legend-line"><span class="dot red"></span>Counter-clockwise orbit · 24h ↓</div>
+  <div class="legend-line" style="margin-top:6px; color: var(--text-muted); font-size:10px;">Speed ∝ |% 24h|</div>
 </div>
 
 <!-- Tooltip -->
@@ -587,7 +589,6 @@ let ambienceOn = true;
 let raycaster, pointer;
 let hovered = null;
 let currentLimit = 50;
-let currentPeriod = '24h';   // '24h' | '7d' | '30d'  — selectable via UI
 let coinsData = [];
 let lastFetchOK = true;
 let refreshTimer = null;
@@ -655,9 +656,6 @@ function init() {
 
   document.getElementById('btn25').addEventListener('click', () => switchLimit(25));
   document.getElementById('btn50').addEventListener('click', () => switchLimit(50));
-  document.getElementById('btn1D').addEventListener('click',  () => switchPeriod('24h'));
-  document.getElementById('btn7D').addEventListener('click',  () => switchPeriod('7d'));
-  document.getElementById('btn30D').addEventListener('click', () => switchPeriod('30d'));
   document.getElementById('btnRefresh').addEventListener('click', () => {
     if (!isFetching) loadData(true);
   });
@@ -1256,7 +1254,7 @@ function buildPlanet(coin, idx, btcMc) {
   scene.add(group);
 
   // Speed: base / sqrt(distance) * (1 + |change|/6) * sign
-  const change = getCoinChange(coin);
+  const change = coin.price_change_percentage_24h ?? 0;
   const baseSpeed = 0.36;
   const speedMult = 1 + Math.min(Math.abs(change), 50) / 6;
   const direction = change >= 0 ? 1 : -1;
@@ -1416,7 +1414,7 @@ function makeFloatingIconSprite(imageUrl, isLarge, onColorReady) {
 function makePriceLabel(coin, isLarge) {
   const c = document.createElement('canvas');
   const text = '$' + formatPrice(coin.current_price);
-  const change = getCoinChange(coin);
+  const change = coin.price_change_percentage_24h ?? 0;
   const changeStr = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
 
   const fontPrice = isLarge ? 'bold 38px JetBrains Mono, monospace' : 'bold 26px JetBrains Mono, monospace';
@@ -1484,31 +1482,8 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 // ─────────────── API ───────────────
-// Returns the price change % for the currently selected period, with a safe
-// fallback chain. The "_in_currency" fields are what CoinGecko returns when
-// price_change_percentage param is set; legacy `price_change_percentage_24h`
-// is kept as a last-resort fallback for 24h.
-function getCoinChange(coin) {
-  if (currentPeriod === '7d') {
-    return coin.price_change_percentage_7d_in_currency ?? 0;
-  }
-  if (currentPeriod === '30d') {
-    return coin.price_change_percentage_30d_in_currency ?? 0;
-  }
-  return coin.price_change_percentage_24h_in_currency
-      ?? coin.price_change_percentage_24h
-      ?? 0;
-}
-
-// Human-readable label for the active period (used in legend & tooltip).
-function periodLabel() {
-  return currentPeriod === '7d' ? '7d' : currentPeriod === '30d' ? '30d' : '24h';
-}
-
 async function fetchCoins(limit) {
-  // Request all three period changes at once so the user can switch
-  // between 1D/7D/30D instantly without hitting the API again.
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&price_change_percentage=24h,7d,30d`;
+  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&price_change_percentage=24h`;
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
@@ -1692,7 +1667,7 @@ function onTouchTap(e) {
 function showTooltip(target) {
   const tt = document.getElementById('tooltip');
   const c = target.coin;
-  const change = getCoinChange(c);
+  const change = c.price_change_percentage_24h ?? 0;
   const changeClass = change >= 0 ? 'green' : 'red';
   const sign = change >= 0 ? '+' : '';
   const dirText = target.isSun
@@ -1701,7 +1676,6 @@ function showTooltip(target) {
         ? '<strong>Direct</strong> orbit · gain'
         : '<strong>Retrograde</strong> orbit · loss');
   const rank = c.market_cap_rank || '?';
-  const pLabel = periodLabel();
 
   tt.innerHTML = `
     <div class="tt-header">
@@ -1719,7 +1693,7 @@ function showTooltip(target) {
       <span class="tt-value">$${formatPrice(c.current_price)}</span>
     </div>
     <div class="tt-row">
-      <span class="tt-label">${pLabel}</span>
+      <span class="tt-label">24h</span>
       <span class="tt-value ${changeClass}">${sign}${change.toFixed(2)}%</span>
     </div>
     <div class="tt-row">
@@ -1771,59 +1745,6 @@ function switchLimit(limit) {
   document.getElementById('btn25').classList.toggle('active', limit === 25);
   document.getElementById('btn50').classList.toggle('active', limit === 50);
   loadData(true);
-}
-
-// Switch the active price-change period (24h / 7d / 30d). Because we already
-// fetched all three from the API, this updates the existing scene in place:
-// orbital direction & speed are recomputed, price labels regenerated, legend
-// & tooltip text refreshed. No network request needed.
-function switchPeriod(period) {
-  if (period === currentPeriod) return;
-  currentPeriod = period;
-
-  // Toggle button active states
-  document.getElementById('btn1D').classList.toggle('active',  period === '24h');
-  document.getElementById('btn7D').classList.toggle('active',  period === '7d');
-  document.getElementById('btn30D').classList.toggle('active', period === '30d');
-
-  // Update legend text
-  const label = periodLabel();
-  const elUp   = document.getElementById('legendUp');
-  const elDown = document.getElementById('legendDown');
-  const elAbs  = document.getElementById('legendAbs');
-  if (elUp)   elUp.textContent   = label + ' ↑';
-  if (elDown) elDown.textContent = label + ' ↓';
-  if (elAbs)  elAbs.textContent  = label;
-
-  // Recompute orbital speed & direction for every planet, and refresh labels
-  planets.forEach(p => {
-    const change    = getCoinChange(p.coin);
-    const baseSpeed = 0.36;
-    const speedMult = 1 + Math.min(Math.abs(change), 50) / 6;
-    const direction = change >= 0 ? 1 : -1;
-    p.speed = (baseSpeed / Math.sqrt(p.distance / 20)) * speedMult * direction;
-    refreshPriceLabel(p.priceLabel, p.coin, false);
-  });
-
-  // Refresh sun's price label too (BTC's change for the active period)
-  if (sun) refreshPriceLabel(sun.priceLabel, sun.coin, true);
-
-  // If a tooltip is currently visible, re-render it so the % updates live
-  if (hovered) showTooltip(hovered);
-}
-
-// Regenerates the price label texture in place — keeps the same sprite so
-// its position & bob animation aren't disturbed.
-function refreshPriceLabel(sprite, coin, isLarge) {
-  const fresh = makePriceLabel(coin, isLarge);
-  if (sprite.material.map) sprite.material.map.dispose();
-  sprite.material.map = fresh.material.map;
-  sprite.material.needsUpdate = true;
-  sprite.scale.copy(fresh.scale);
-  // The throwaway sprite's material still references the (now-shared) map;
-  // detach before disposing so we don't free a texture we just transferred.
-  fresh.material.map = null;
-  fresh.material.dispose();
 }
 
 // Toggles all background ambience: starfield + nebulae + comet system
