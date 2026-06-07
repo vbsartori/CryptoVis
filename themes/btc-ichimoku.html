@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BTC · Ichimoku Kinkō Hyō</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0c10; --bg2:#101218; --panel:#14161e; --panel2:#181b24;
+    --line:#242837; --line2:#2f3445; --ink:#ece8df; --muted:#878c9c; --faint:#5a5f6e;
+    --bull:#36b285; --bear:#e2533c; --gold:#e0b24a; --blue:#5b8def; --purple:#b07cff;
+    --jade:#36b285; --verm:#e2533c; --shadow:0 24px 60px -20px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 700px at 78% -8%, rgba(224,178,74,.07), transparent 60%),
+      radial-gradient(900px 600px at 8% 110%, rgba(91,141,239,.06), transparent 55%),
+      var(--bg);
+    color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-weight:300;
+    line-height:1.5; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:34px 22px 80px}
+
+  /* language toggle */
+  .lang-toggle{position:absolute;top:18px;right:22px;display:inline-flex;background:var(--bg2);
+    border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px;z-index:10}
+  .lang-toggle button{border:none;background:transparent;color:var(--muted);font-family:"IBM Plex Mono",monospace;
+    font-size:12px;font-weight:600;letter-spacing:.06em;padding:6px 11px;border-radius:6px;cursor:pointer;transition:.15s}
+  .lang-toggle button:hover{color:var(--ink)}
+  .lang-toggle button.on{background:var(--gold);color:#1a1406}
+
+  /* header */
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:22px;
+    border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:26px;margin-top:14px}
+  .brand .kanji{font-family:"Instrument Serif",serif;font-size:13px;letter-spacing:.42em;color:var(--gold);
+    text-transform:uppercase;opacity:.85}
+  .brand h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(30px,4.7vw,50px);
+    line-height:1.0;letter-spacing:-.01em;margin-top:6px}
+  .brand h1 em{font-style:italic;color:var(--gold)}
+  .brand p{color:var(--muted);font-size:13.5px;margin-top:10px;max-width:50ch}
+
+  .ticker{text-align:right;min-width:210px}
+  .ticker .lab{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+  .ticker .price{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:clamp(26px,4vw,38px);letter-spacing:-.01em;margin-top:2px;line-height:1}
+  .ticker .chg{font-family:"IBM Plex Mono",monospace;font-size:14px;margin-top:6px;font-weight:500}
+  .ticker .upd{font-size:11px;color:var(--faint);margin-top:8px;font-family:"IBM Plex Mono",monospace}
+  .pos{color:var(--bull)} .neg{color:var(--bear)}
+
+  /* consensus */
+  .consensus{display:flex;align-items:center;gap:18px;background:linear-gradient(120deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .consensus .gauge{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+    font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:20px;position:relative}
+  .consensus .ctxt .t{font-family:"Instrument Serif",serif;font-size:23px;line-height:1.1}
+  .consensus .ctxt .s{color:var(--muted);font-size:13px;margin-top:3px}
+  .consensus .bars{flex:1;display:flex;gap:4px;align-items:flex-end;height:46px;min-width:120px}
+  .consensus .bars span{flex:1;border-radius:3px 3px 0 0;background:var(--line2);transition:height .5s ease,background .5s}
+
+  /* tf cards */
+  .tf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:26px}
+  .tf-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;cursor:pointer;
+    position:relative;overflow:hidden;transition:transform .18s ease,border-color .18s ease,background .18s}
+  .tf-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2);transition:width .18s}
+  .tf-card:hover{transform:translateY(-3px);border-color:var(--line2)}
+  .tf-card.active{background:var(--panel2);border-color:var(--gold)}
+  .tf-card.active::after{width:4px;background:var(--gold)}
+  .tf-card .tf-head{display:flex;justify-content:space-between;align-items:baseline}
+  .tf-card .tf-name{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:16px;letter-spacing:.04em}
+  .tf-card .tf-px{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+  .tf-card .verdict{margin-top:12px;font-family:"Instrument Serif",serif;font-size:21px;line-height:1}
+  .tf-card .score{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:6px;letter-spacing:.05em}
+  .tf-card .mini{display:flex;gap:5px;margin-top:11px}
+  .tf-card .mini i{flex:1;height:5px;border-radius:3px;background:var(--line2)}
+  .v-2{color:var(--bull)} .v-1{color:#7fc9a6} .v0{color:var(--gold)} .v-neg1{color:#e89a86} .v-neg2{color:var(--bear)}
+
+  /* chart */
+  .chart-panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 18px 12px;box-shadow:var(--shadow);margin-bottom:22px}
+  .chart-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px}
+  .chart-top .title{font-family:"Instrument Serif",serif;font-size:25px}
+  .chart-top .title span{color:var(--gold)}
+  .seg{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+  .seg button{border:none;background:transparent;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;padding:7px 13px;border-radius:7px;cursor:pointer;transition:.15s;letter-spacing:.03em}
+  .seg button:hover{color:var(--ink)}
+  .seg button.on{background:var(--gold);color:#1a1406}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);padding:4px 2px 12px}
+  .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+  .legend .sw{width:13px;height:9px;border-radius:2px}
+  .canvas-host{position:relative;width:100%;height:440px;touch-action:none}
+  canvas{width:100%;height:100%;display:block;cursor:crosshair}
+  .chart-foot{display:flex;justify-content:space-between;color:var(--faint);font-size:11px;font-family:"IBM Plex Mono",monospace;padding:8px 2px 2px}
+
+  /* HOW TO READ — destaque */
+  .howto{background:linear-gradient(135deg,rgba(224,178,74,.07),var(--panel) 45%);
+    border:1px solid var(--line2);border-left:3px solid var(--gold);border-radius:16px;
+    padding:22px 26px;margin-bottom:24px;box-shadow:var(--shadow)}
+  .howto h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:25px;margin-bottom:3px}
+  .howto .lead{color:var(--muted);font-size:12.5px;font-family:"IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;margin-bottom:18px}
+  .howto-steps{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}
+  @media(max-width:680px){.howto-steps{grid-template-columns:1fr}}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step .num{flex:none;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+    font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:15px;color:#1a1406}
+  .step .stxt b{display:block;font-weight:500;font-size:15.5px;color:var(--ink);margin-bottom:3px;letter-spacing:.01em}
+  .step .stxt span{font-size:13.5px;color:#c2c6d0;line-height:1.55}
+  .step .stxt span em{font-style:normal;color:var(--ink);font-weight:500}
+
+  /* analysis */
+  .analysis{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:24px}
+  @media(max-width:760px){.analysis{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+  .card h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:21px;margin-bottom:4px}
+  .card .sub{color:var(--faint);font-size:11.5px;font-family:"IBM Plex Mono",monospace;letter-spacing:.05em;text-transform:uppercase;margin-bottom:14px}
+  .read-txt{font-size:14.5px;color:#cfd2da;line-height:1.62}
+  .read-txt b{color:var(--ink);font-weight:500}
+  .signals{display:flex;flex-direction:column;gap:11px}
+  .sig{display:flex;align-items:center;gap:12px}
+  .sig .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .sig .nm{flex:1;font-size:13.5px;color:#c8ccd6}
+  .sig .vl{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500;text-align:right}
+  .levels{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:4px}
+  .lv{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:7px 0;font-size:13px}
+  .lv .k{color:var(--muted)} .lv .v{font-family:"IBM Plex Mono",monospace;font-weight:500}
+
+  /* explainer */
+  details.edu{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 24px;margin-bottom:30px}
+  details.edu summary{cursor:pointer;list-style:none;padding:18px 0;font-family:"Instrument Serif",serif;font-size:22px;display:flex;justify-content:space-between;align-items:center}
+  details.edu summary::-webkit-details-marker{display:none}
+  details.edu summary .pl{font-family:"IBM Plex Mono",monospace;color:var(--gold);font-size:24px;transition:.2s}
+  details.edu[open] summary .pl{transform:rotate(45deg)}
+  .edu-body{padding-bottom:24px;color:#c2c6d0;font-size:14px;line-height:1.72}
+  .edu-body p{margin-bottom:12px}
+  .edu-body strong{color:var(--ink);font-weight:500}
+  .edu-body h4{font-family:"Instrument Serif",serif;font-weight:400;color:var(--gold);font-size:19px;margin:24px 0 8px}
+  .edu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:16px 0 6px}
+  .edu-grid div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .edu-grid h5{font-family:"IBM Plex Mono",monospace;font-size:12px;margin-bottom:5px;font-weight:600}
+  .edu-grid p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.5}
+  .alert{background:rgba(226,83,60,.08);border:1px solid rgba(226,83,60,.35);border-left:3px solid var(--verm);
+    border-radius:10px;padding:14px 16px;margin:16px 0}
+  .alert .at{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--verm);text-transform:uppercase;font-weight:600;margin-bottom:6px}
+  .alert p{margin:0;color:#d6cdc9;font-size:13.5px}
+  .ol{counter-reset:s;list-style:none;margin:6px 0 6px}
+  .ol li{counter-increment:s;position:relative;padding:6px 0 6px 30px;font-size:13.8px;color:#c8ccd6}
+  .ol li::before{content:counter(s);position:absolute;left:0;top:6px;width:20px;height:20px;border-radius:6px;
+    background:var(--gold);color:#1a1406;font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;display:grid;place-items:center}
+  .ol li b{color:var(--ink);font-weight:500}
+
+  footer{text-align:center;color:var(--faint);font-size:11.5px;font-family:"IBM Plex Mono",monospace;line-height:1.7}
+  footer a{color:var(--muted)}
+  .toolbar{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--bg2);border:1px solid var(--line);color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:.15s}
+  .btn:hover{color:var(--ink);border-color:var(--line2)}
+  .spin{display:inline-block;width:11px;height:11px;border:2px solid var(--line2);border-top-color:var(--gold);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-1px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .loading-veil{position:absolute;inset:0;display:grid;place-items:center;background:rgba(11,12,16,.55);backdrop-filter:blur(2px);border-radius:12px;font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:13px;z-index:5;transition:opacity .3s;text-align:center;padding:20px}
+  .err{color:var(--bear);font-size:13px;font-family:"IBM Plex Mono",monospace}
+  .fade-in{animation:fade .5s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<style>
+.home-link{--hl:#e0b24a;display:inline-flex;align-items:center;width:max-content;height:40px;min-width:40px;margin-bottom:14px;border-radius:999px;background:rgba(16,18,24,.7);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'IBM Plex Mono',monospace;}
+.home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
+.home-link .hl-ico svg{width:17px;height:17px;display:block;}
+.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
+.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(16,18,24,.7));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl);}
+.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
+.home-link:active{transform:scale(.94);}
+</style>
+<div class="wrap">
+
+  <div class="lang-toggle">
+    <button data-lang="pt" class="on">PT</button>
+    <button data-lang="en">EN</button>
+  </div>
+
+  <header>
+    <div class="brand">
+      <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
+      <div class="kanji">一目均衡表 · Ichimoku Kinkō Hyō</div>
+      <h1 id="h1"></h1>
+      <p id="subtitle"></p>
+    </div>
+    <div class="ticker">
+      <div class="lab">BTC / USDT · spot</div>
+      <div class="price" id="px">—</div>
+      <div class="chg" id="chg">—</div>
+      <div class="upd" id="upd"></div>
+    </div>
+  </header>
+
+  <div class="consensus fade-in">
+    <div class="gauge" id="gauge" style="background:conic-gradient(var(--line2) 0 100%);">
+      <div style="position:absolute;inset:5px;border-radius:50%;background:var(--panel);display:grid;place-items:center" id="gaugeIn">—</div>
+    </div>
+    <div class="ctxt">
+      <div class="t" id="consTitle"></div>
+      <div class="s" id="consSub"></div>
+    </div>
+    <div class="bars" id="consBars"></div>
+  </div>
+
+  <div class="tf-grid" id="tfGrid"></div>
+
+  <div class="chart-panel fade-in">
+    <div class="chart-top">
+      <div class="title" id="chartTitle"></div>
+      <div class="toolbar">
+        <div class="seg" id="seg"></div>
+        <button class="btn" id="refresh"></button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--gold)"></i>Tenkan (9)</span>
+      <span><i style="background:var(--blue)"></i>Kijun (26)</span>
+      <span><i style="background:var(--jade)"></i>Span A</span>
+      <span><i style="background:var(--verm)"></i>Span B</span>
+      <span><i style="background:var(--purple)"></i>Chikou (26)</span>
+      <span><i class="sw" style="background:rgba(54,178,133,.28)"></i><span id="legBull"></span></span>
+      <span><i class="sw" style="background:rgba(226,83,60,.28)"></i><span id="legBear"></span></span>
+    </div>
+    <div class="canvas-host" id="host">
+      <canvas id="cv"></canvas>
+      <div class="loading-veil" id="veil"><span class="spin"></span>&nbsp;<span id="veilTxt"></span></div>
+    </div>
+    <div class="chart-foot">
+      <span id="footL"></span>
+      <span id="footR"></span>
+    </div>
+  </div>
+
+  <!-- HOW TO READ -->
+  <div class="howto fade-in">
+    <h2 id="howtoTitle"></h2>
+    <div class="lead" id="howtoLead"></div>
+    <div class="howto-steps" id="howtoSteps"></div>
+  </div>
+
+  <div class="analysis">
+    <div class="card">
+      <h3 id="readH"></h3>
+      <div class="sub" id="readTf"></div>
+      <div class="read-txt" id="readTxt"></div>
+    </div>
+    <div class="card">
+      <h3 id="sigH"></h3>
+      <div class="sub" id="sigSub"></div>
+      <div class="signals" id="signals"></div>
+      <div class="levels" id="levels" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <details class="edu">
+    <summary><span id="eduSummary"></span> <span class="pl">+</span></summary>
+    <div class="edu-body" id="eduBody"></div>
+  </details>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+/* ============================================================
+   I18N
+============================================================ */
+let lang = "pt";
+const I18N = {
+pt:{
+  title:'Bitcoin <em>Ichimoku</em> Kinkō Hyō Cloud',
+  subtitle:'Análise da nuvem (Kumo) e das linhas de Ichimoku em vários tempos gráficos, com preço ao vivo.',
+  waiting:'aguardando dados…', updated:'atualizado ', loadingCandles:'carregando velas…',
+  errLoad:'⚠ Não foi possível carregar os dados de preço.<br>Verifique a conexão ou recarregue a página.',
+  refresh:'↻ atualizar', footHint:'role para zoom · arraste para navegar',
+  legBull:'Kumo altista', legBear:'Kumo baixista',
+  readH:'Leitura da nuvem', selectTf:'Selecione um tempo gráfico para ver a interpretação.',
+  sigH:'Sinais', sigSub:'componentes do sistema',
+  candles:' velas · atualizado ', consCalc:'Calculando consenso…', consReading:'Lendo 5 tempos gráficos',
+  // tf names
+  tf_15m:'15 minutos', tf_1h:'1 hora', tf_4h:'4 horas', tf_1d:'diário', tf_1w:'semanal',
+  // verdicts
+  strong_buy:'Forte compra', buy:'Compra', neutral:'Neutro', sell:'Venda', strong_sell:'Forte venda',
+  // consensus
+  uptrend:'Tendência de alta', bull_bias:'Viés comprador', downtrend:'Tendência de baixa',
+  bear_bias:'Viés vendedor', sideways:'Mercado lateral',
+  // signal names
+  sigPriceCloud:'Preço vs Kumo', sigTK:'Cruz Tenkan/Kijun', sigChikou:'Chikou Span',
+  sigFuture:'Nuvem futura', sigPriceKijun:'Preço vs Kijun',
+  // signal values
+  above_cloud:'acima da nuvem', below_cloud:'abaixo da nuvem', inside_cloud:'dentro da nuvem',
+  tenkan_above:'Tenkan acima', tenkan_below:'Tenkan abaixo', tk_aligned:'alinhadas',
+  chikou_free:'livre acima', chikou_trapped:'presa abaixo', chikou_neutral:'neutra',
+  cloud_green:'verde (altista)', cloud_red:'vermelha (baixista)', cloud_flat:'plana',
+  above_base:'acima da base', below_base:'abaixo da base', on_base:'na base',
+  // levels
+  lvTop:'Topo nuvem', lvBot:'Base nuvem',
+  // tooltip
+  tipFuture:'futuro', tipProj:'projeção',
+  // score
+  score:'pontuação', of:'de', tfBull:'tempos altistas', tfBear:'baixistas', avg:'média',
+  // narrative pieces
+  n_pos_above:'acima da nuvem, em território claramente comprador',
+  n_pos_below:'abaixo da nuvem, em território vendedor',
+  n_pos_inside:'dentro da nuvem — zona de indecisão e possível consolidação',
+  n_tk_above:'a Tenkan está acima da Kijun, sinalizando momento positivo de curto prazo',
+  n_tk_below:'a Tenkan está abaixo da Kijun, indicando momento negativo de curto prazo',
+  n_tk_eq:'Tenkan e Kijun praticamente coladas, sem direção definida',
+  n_fut_green:'a nuvem à frente é verde, o que favorece a continuidade altista',
+  n_fut_red:'a nuvem à frente é vermelha, sugerindo pressão vendedora adiante',
+  n_fut_flat:'a nuvem à frente está plana',
+  // how to read
+  howtoTitle:'Como ler em 4 passos', howtoLead:'do mais importante ao filtro final',
+  howto:[
+    {n:'1',c:'var(--jade)',t:'A Nuvem é a sua bússola',s:'Defina o viés antes de tudo. Preço <em>acima</em> da nuvem = comprador. <em>Abaixo</em> = vendedor. <em>Dentro</em> = indefinido, melhor não operar.'},
+    {n:'2',c:'var(--gold)',t:'Cruzamento Tenkan / Kijun',s:'A Tenkan (rápida) cruzando a Kijun (lenta) é o gatilho de momento. Só tem <em>alta convicção</em> quando ocorre a favor da nuvem.'},
+    {n:'3',c:'var(--purple)',t:'A Chikou Span confirma',s:'Compara o fechamento atual com o preço de <em>26 períodos atrás</em>. Só opere com a Chikou em campo aberto, longe das velas antigas.'},
+    {n:'4',c:'var(--blue)',t:'A Nuvem futura projeta',s:'Span A e B são plotadas <em>26 períodos à frente</em>, revelando suporte e resistência antes de o preço chegar lá.'}
+  ],
+  eduSummary:'O que é a nuvem de Ichimoku?',
+  eduBody:`
+    <p><strong>Ichimoku Kinkō Hyō</strong> ("gráfico de equilíbrio em um relance") foi criado pelo jornalista japonês Goichi Hosoda. Reúne tendência, momento e suporte/resistência num único quadro — por isso o "em um relance".</p>
+    <div class="edu-grid">
+      <div><h5 style="color:var(--gold)">Tenkan-sen</h5><p>Média dos extremos de 9 períodos. Linha de conversão, rápida.</p></div>
+      <div><h5 style="color:var(--blue)">Kijun-sen</h5><p>Média dos extremos de 26 períodos. Linha base, mais lenta.</p></div>
+      <div><h5 style="color:var(--jade)">Senkou Span A</h5><p>Média de Tenkan e Kijun, projetada 26 períodos à frente.</p></div>
+      <div><h5 style="color:var(--verm)">Senkou Span B</h5><p>Média dos extremos de 52 períodos, projetada à frente.</p></div>
+      <div><h5 style="color:var(--purple)">Chikou Span</h5><p>O fechamento atual deslocado 26 períodos para trás.</p></div>
+      <div><h5>Kumo (nuvem)</h5><p>Área entre Span A e B. Verde quando A&gt;B; vermelha quando B&gt;A.</p></div>
+    </div>
+
+    <h4>O elemento "viagem no tempo": a nuvem no futuro</h4>
+    <p>O diferencial mais poderoso do Ichimoku — algo que uma média móvel simples não faz — é <strong>projetar dados no tempo</strong>. A Nuvem, formada por Senkou Span A e B, é desenhada <strong>26 períodos à frente</strong>, criando um mapa antecipado de suporte e resistência <strong>antes</strong> de o preço chegar lá.</p>
+    <p>Enquanto muitos traders olham só para o passado, aqui você visualiza onde o mercado deve encontrar fricção adiante. Uma <strong>nuvem espessa</strong> indica suporte/resistência forte e maior volatilidade; uma <strong>nuvem fina</strong> sugere caminho livre para um rompimento iminente.</p>
+
+    <h4>A Chikou Span: a "memória do mercado"</h4>
+    <p>A Chikou (lagging span) é o componente mais subestimado. É o fechamento atual <strong>deslocado 26 períodos para trás</strong>. Sua função é verificar se o preço atual está lutando contra estruturas antigas: se a linha está emaranhada nas velas de 26 períodos atrás, o terreno é traiçoeiro e os rompimentos tendem a falhar.</p>
+    <div class="alert">
+      <div class="at">Alerta — zona de não-operar</div>
+      <p>Quando a Chikou está "presa" dentro das velas anteriores, o mercado está em congestão. Mesmo que o preço pareça romper a nuvem, se a Chikou não estiver em campo aberto o risco de <em>bull trap</em> é alto. Espere a Chikou se libertar do tráfego histórico para buscar um setup de risco-recompensa assimétrico.</p>
+    </div>
+    <p>Há quem defenda — e alguns estudos sugerem — que, isolada, a Chikou pode oferecer leituras mais limpas do que tentar validar as cinco linhas ao mesmo tempo. Trate isso como um argumento a favor do foco, não como garantia: backtests dependem muito de mercado e período.</p>
+
+    <h4>O paradoxo da complexidade: menos é mais</h4>
+    <p>Muitos falham com o Ichimoku por tentar confirmar todos os sinais de todas as linhas ao mesmo tempo, o que gera hesitação. Para filtrar o ruído, siga uma hierarquia clara:</p>
+    <ol class="ol">
+      <li><b>A Nuvem é a bússola.</b> Preço acima é viés de compra; abaixo, de venda.</li>
+      <li><b>O cruzamento TK é a entrada</b> — com alta convicção apenas a favor da nuvem.</li>
+      <li><b>A Chikou é o filtro final.</b> Se o caminho está limpo, a operação está validada.</li>
+    </ol>
+    <p><strong>Em resumo:</strong> o Ichimoku é menos sobre reagir a cada oscilação e mais sobre operar quando tempo e preço convergem. Estrutura da nuvem e Chikou primeiro; o resto é confirmação.</p>
+  `,
+  footer:'Dados: API pública da Binance (spot BTC/USDT), com Bybit como reserva · cálculo de Ichimoku no navegador, padrão 9 / 26 / 52 / 26.<br>Conteúdo educativo de análise técnica — não é recomendação de investimento. Cripto envolve risco elevado.'
+},
+en:{
+  title:'Bitcoin <em>Ichimoku</em> Kinkō Hyō Cloud',
+  subtitle:'Cloud (Kumo) and Ichimoku-line analysis across multiple timeframes, with live price data.',
+  waiting:'waiting for data…', updated:'updated ', loadingCandles:'loading candles…',
+  errLoad:'⚠ Could not load price data.<br>Check your connection or reload the page.',
+  refresh:'↻ refresh', footHint:'scroll to zoom · drag to pan',
+  legBull:'Bullish kumo', legBear:'Bearish kumo',
+  readH:'Cloud reading', selectTf:'Select a timeframe to see the interpretation.',
+  sigH:'Signals', sigSub:'system components',
+  candles:' candles · updated ', consCalc:'Calculating consensus…', consReading:'Reading 5 timeframes',
+  tf_15m:'15 minutes', tf_1h:'1 hour', tf_4h:'4 hours', tf_1d:'daily', tf_1w:'weekly',
+  strong_buy:'Strong buy', buy:'Buy', neutral:'Neutral', sell:'Sell', strong_sell:'Strong sell',
+  uptrend:'Uptrend', bull_bias:'Bullish bias', downtrend:'Downtrend', bear_bias:'Bearish bias', sideways:'Sideways market',
+  sigPriceCloud:'Price vs Kumo', sigTK:'Tenkan/Kijun cross', sigChikou:'Chikou Span',
+  sigFuture:'Future cloud', sigPriceKijun:'Price vs Kijun',
+  above_cloud:'above the cloud', below_cloud:'below the cloud', inside_cloud:'inside the cloud',
+  tenkan_above:'Tenkan above', tenkan_below:'Tenkan below', tk_aligned:'aligned',
+  chikou_free:'free above', chikou_trapped:'trapped below', chikou_neutral:'neutral',
+  cloud_green:'green (bullish)', cloud_red:'red (bearish)', cloud_flat:'flat',
+  above_base:'above base', below_base:'below base', on_base:'at base',
+  lvTop:'Cloud top', lvBot:'Cloud base',
+  tipFuture:'future', tipProj:'projection',
+  score:'score', of:'of', tfBull:'timeframes bullish', tfBear:'bearish', avg:'average',
+  n_pos_above:'above the cloud, in clearly bullish territory',
+  n_pos_below:'below the cloud, in bearish territory',
+  n_pos_inside:'inside the cloud — a zone of indecision and possible consolidation',
+  n_tk_above:'the Tenkan is above the Kijun, signaling positive short-term momentum',
+  n_tk_below:'the Tenkan is below the Kijun, indicating negative short-term momentum',
+  n_tk_eq:'Tenkan and Kijun are nearly flat, with no clear direction',
+  n_fut_green:'the cloud ahead is green, which favors continued upside',
+  n_fut_red:'the cloud ahead is red, suggesting selling pressure ahead',
+  n_fut_flat:'the cloud ahead is flat',
+  howtoTitle:'How to read in 4 steps', howtoLead:'from the most important to the final filter',
+  howto:[
+    {n:'1',c:'var(--jade)',t:'The Cloud is your compass',s:'Set the bias first. Price <em>above</em> the cloud = bullish. <em>Below</em> = bearish. <em>Inside</em> = undefined, best not to trade.'},
+    {n:'2',c:'var(--gold)',t:'Tenkan / Kijun cross',s:'The Tenkan (fast) crossing the Kijun (slow) is the momentum trigger. It only has <em>high conviction</em> when it happens in the direction of the cloud.'},
+    {n:'3',c:'var(--purple)',t:'The Chikou Span confirms',s:'It compares the current close with the price <em>26 periods ago</em>. Only trade when the Chikou is in open space, away from old candles.'},
+    {n:'4',c:'var(--blue)',t:'The future Cloud projects',s:'Span A and B are plotted <em>26 periods ahead</em>, revealing support and resistance before price gets there.'}
+  ],
+  eduSummary:'What is the Ichimoku cloud?',
+  eduBody:`
+    <p><strong>Ichimoku Kinkō Hyō</strong> ("one-glance equilibrium chart") was created by Japanese journalist Goichi Hosoda. It combines trend, momentum and support/resistance into a single picture — hence "at a glance".</p>
+    <div class="edu-grid">
+      <div><h5 style="color:var(--gold)">Tenkan-sen</h5><p>Midpoint of the 9-period range. Fast conversion line.</p></div>
+      <div><h5 style="color:var(--blue)">Kijun-sen</h5><p>Midpoint of the 26-period range. Slower base line.</p></div>
+      <div><h5 style="color:var(--jade)">Senkou Span A</h5><p>Average of Tenkan and Kijun, plotted 26 periods ahead.</p></div>
+      <div><h5 style="color:var(--verm)">Senkou Span B</h5><p>Midpoint of the 52-period range, plotted ahead.</p></div>
+      <div><h5 style="color:var(--purple)">Chikou Span</h5><p>The current close shifted 26 periods back.</p></div>
+      <div><h5>Kumo (cloud)</h5><p>Area between Span A and B. Green when A&gt;B; red when B&gt;A.</p></div>
+    </div>
+
+    <h4>The "time-travel" element: the cloud in the future</h4>
+    <p>Ichimoku's most powerful edge — something a simple moving average can't do — is to <strong>project data forward in time</strong>. The Cloud, formed by Senkou Span A and B, is drawn <strong>26 periods ahead</strong>, creating a map of support and resistance <strong>before</strong> price reaches it.</p>
+    <p>While many traders look only at the past, here you can see where the market should meet friction ahead. A <strong>thick cloud</strong> means strong support/resistance and higher volatility; a <strong>thin cloud</strong> suggests a clear path for an imminent breakout.</p>
+
+    <h4>The Chikou Span: the market's "memory"</h4>
+    <p>The Chikou (lagging span) is the most underrated component. It is the current close <strong>shifted 26 periods back</strong>. Its job is to check whether current price is fighting old structure: if the line is tangled in the candles of 26 periods ago, the ground is treacherous and breakouts tend to fail.</p>
+    <div class="alert">
+      <div class="at">Alert — no-trade zone</div>
+      <p>When the Chikou is "stuck" inside prior candles, the market is congested. Even if price seems to break the cloud, if the Chikou isn't in open space the risk of a <em>bull trap</em> is high. Wait for the Chikou to clear the historical traffic before seeking an asymmetric risk-reward setup.</p>
+    </div>
+    <p>Some argue — and a few studies suggest — that in isolation the Chikou can give cleaner reads than trying to validate all five lines at once. Treat that as a case for focus, not a guarantee: backtests depend heavily on market and period.</p>
+
+    <h4>The complexity paradox: less is more</h4>
+    <p>Many traders fail with Ichimoku by trying to confirm every signal on every line at once, which breeds hesitation. To filter the noise, follow a clear hierarchy:</p>
+    <ol class="ol">
+      <li><b>The Cloud is the compass.</b> Price above is a buy bias; below, a sell bias.</li>
+      <li><b>The TK cross is the entry</b> — high conviction only in the cloud's direction.</li>
+      <li><b>The Chikou is the final filter.</b> If the path is clear, the trade is validated.</li>
+    </ol>
+    <p><strong>In short:</strong> Ichimoku is less about reacting to every swing and more about acting when time and price converge. Cloud structure and Chikou first; the rest is confirmation.</p>
+  `,
+  footer:'Data: Binance public API (spot BTC/USDT), with Bybit as fallback · Ichimoku computed in the browser, standard 9 / 26 / 52 / 26.<br>Educational technical-analysis content — not investment advice. Crypto carries high risk.'
+}
+};
+function t(k){ return (I18N[lang] && I18N[lang][k]!=null) ? I18N[lang][k] : (I18N.pt[k]!=null?I18N.pt[k]:k); }
+function locale(){ return lang==="pt" ? "pt-BR" : "en-US"; }
+
+/* ============================================================
+   CONFIG
+============================================================ */
+const TFS = [
+  {key:"15m", binance:"15m", bybit:"15",  label:"15m"},
+  {key:"1h",  binance:"1h",  bybit:"60",  label:"1h"},
+  {key:"4h",  binance:"4h",  bybit:"240", label:"4h"},
+  {key:"1d",  binance:"1d",  bybit:"D",   label:"1D"},
+  {key:"1w",  binance:"1w",  bybit:"W",   label:"1S"},
+];
+const tfName = (key)=> t("tf_"+key);
+const P = {conv:9, base:26, span:52, disp:26};
+const LIMIT = 320;
+const COLORS = {
+  tenkan:"#e0b24a", kijun:"#5b8def", spanA:"#36b285", spanB:"#e2533c",
+  chikou:"#b07cff", bull:"#36b285", bear:"#e2533c",
+  cloudBull:"rgba(54,178,133,.18)", cloudBear:"rgba(226,83,60,.18)",
+  grid:"#1c2030", text:"#878c9c", faint:"#5a5f6e"
+};
+const store = {}; let current = "1d"; const view = {};
+let errored=false;
+
+/* ============================================================
+   DATA
+============================================================ */
+async function fetchBinance(tf){
+  const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${tf.binance}&limit=${LIMIT}`);
+  if(!r.ok) throw new Error("binance "+r.status);
+  return (await r.json()).map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
+}
+async function fetchBybit(tf){
+  const r = await fetch(`https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=${tf.bybit}&limit=1000`);
+  if(!r.ok) throw new Error("bybit "+r.status);
+  const j = await r.json();
+  return j.result.list.slice().reverse().map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
+}
+async function loadTF(tf){ try{ return await fetchBinance(tf); }catch(e){ return await fetchBybit(tf); } }
+
+/* ============================================================
+   ICHIMOKU
+============================================================ */
+function ichimoku(c){
+  const n=c.length, T=[],K=[],A=[],B=[],CH=[];
+  const win=(i,len,fn)=>{ if(i-len+1<0) return null; let hi=-Infinity,lo=Infinity;
+    for(let k=i-len+1;k<=i;k++){ if(c[k].h>hi)hi=c[k].h; if(c[k].l<lo)lo=c[k].l; } return fn(hi,lo); };
+  for(let i=0;i<n;i++){
+    T[i]=win(i,P.conv,(h,l)=>(h+l)/2);
+    K[i]=win(i,P.base,(h,l)=>(h+l)/2);
+    A[i]=(T[i]!=null&&K[i]!=null)?(T[i]+K[i])/2:null;
+    B[i]=win(i,P.span,(h,l)=>(h+l)/2);
+    CH[i]=c[i].c;
+  }
+  return {T,K,A,B,CH};
+}
+function signal(c, ich){
+  const L=c.length-1, d=P.disp;
+  const price=c[L].c, cloudA=ich.A[L-d], cloudB=ich.B[L-d], futA=ich.A[L], futB=ich.B[L];
+  const tk=ich.T[L], kj=ich.K[L], top=Math.max(cloudA,cloudB), bot=Math.min(cloudA,cloudB);
+  const s=[];
+  const c1 = price>top?1:price<bot?-1:0;
+  s.push({nm:"sigPriceCloud", v:c1, txt:c1>0?"above_cloud":c1<0?"below_cloud":"inside_cloud"});
+  const c2 = tk>kj?1:tk<kj?-1:0;
+  s.push({nm:"sigTK", v:c2, txt:c2>0?"tenkan_above":c2<0?"tenkan_below":"tk_aligned"});
+  const pago = c[L-d]?c[L-d].c:null;
+  const c3 = pago==null?0:price>pago?1:price<pago?-1:0;
+  s.push({nm:"sigChikou", v:c3, txt:c3>0?"chikou_free":c3<0?"chikou_trapped":"chikou_neutral"});
+  const c4 = futA>futB?1:futA<futB?-1:0;
+  s.push({nm:"sigFuture", v:c4, txt:c4>0?"cloud_green":c4<0?"cloud_red":"cloud_flat"});
+  const c5 = price>kj?1:price<kj?-1:0;
+  s.push({nm:"sigPriceKijun", v:c5, txt:c5>0?"above_base":c5<0?"below_base":"on_base"});
+  const sc=s.reduce((a,x)=>a+x.v,0);
+  let vkey,vclass;
+  if(sc>=3){vkey="strong_buy";vclass="v-2";}
+  else if(sc>=1){vkey="buy";vclass="v-1";}
+  else if(sc<=-3){vkey="strong_sell";vclass="v-neg2";}
+  else if(sc<=-1){vkey="sell";vclass="v-neg1";}
+  else {vkey="neutral";vclass="v0";}
+  return {price,cloudA,cloudB,futA,futB,tk,kj,top,bot,components:s,score:sc,vkey,vclass};
+}
+
+/* ============================================================
+   FORMAT
+============================================================ */
+const fmtUSD = (x)=> x==null?"—":"$"+x.toLocaleString("en-US",{minimumFractionDigits:x<10?4:2,maximumFractionDigits:x<10?4:2});
+const fmtUSD0= (x)=> x==null?"—":"$"+x.toLocaleString("en-US",{maximumFractionDigits:0});
+
+/* ============================================================
+   STATIC TEXT
+============================================================ */
+function applyStatic(){
+  document.documentElement.lang = lang==="pt"?"pt-BR":"en-US";
+  document.getElementById("h1").innerHTML = t("title");
+  document.getElementById("subtitle").textContent = t("subtitle");
+  document.getElementById("refresh").textContent = t("refresh");
+  document.getElementById("footL").textContent = t("footHint");
+  document.getElementById("legBull").textContent = t("legBull");
+  document.getElementById("legBear").textContent = t("legBear");
+  document.getElementById("readH").textContent = t("readH");
+  document.getElementById("sigH").textContent = t("sigH");
+  document.getElementById("sigSub").textContent = t("sigSub");
+  document.getElementById("eduSummary").textContent = t("eduSummary");
+  document.getElementById("eduBody").innerHTML = t("eduBody");
+  document.getElementById("footer").innerHTML = t("footer");
+  if(!errored) document.getElementById("veilTxt").textContent = t("loadingCandles");
+  if(!document.getElementById("px").textContent || document.getElementById("px").textContent==="—")
+    document.getElementById("upd").textContent = t("waiting");
+  // how to read
+  document.getElementById("howtoTitle").textContent = t("howtoTitle");
+  document.getElementById("howtoLead").textContent = t("howtoLead");
+  const hs=document.getElementById("howtoSteps"); hs.innerHTML="";
+  t("howto").forEach(st=>{
+    hs.innerHTML += `<div class="step"><div class="num" style="background:${st.c}">${st.n}</div>
+      <div class="stxt"><b>${st.t}</b><span>${st.s}</span></div></div>`;
+  });
+}
+
+/* ============================================================
+   RENDER cards + consensus + analysis
+============================================================ */
+function renderCards(){
+  const g=document.getElementById("tfGrid"); g.innerHTML="";
+  TFS.forEach(tf=>{
+    const st=store[tf.key], div=document.createElement("div");
+    div.className="tf-card"+(tf.key===current?" active":""); div.onclick=()=>selectTF(tf.key);
+    if(!st){ div.innerHTML=`<div class="tf-head"><span class="tf-name">${tf.label}</span></div>
+      <div class="verdict" style="color:var(--faint)"><span class="spin"></span></div>`; }
+    else{
+      const sg=st.signal;
+      const minis=sg.components.map(x=>`<i style="background:${x.v>0?'var(--bull)':x.v<0?'var(--bear)':'var(--line2)'}"></i>`).join("");
+      div.innerHTML=`<div class="tf-head"><span class="tf-name">${tf.label}</span><span class="tf-px">${fmtUSD0(sg.price)}</span></div>
+        <div class="verdict ${sg.vclass}">${t(sg.vkey)}</div>
+        <div class="score">${t("score")} ${sg.score>0?'+':''}${sg.score} / 5</div>
+        <div class="mini">${minis}</div>`;
+    }
+    g.appendChild(div);
+  });
+}
+function renderConsensus(){
+  const loaded=TFS.map(x=>store[x.key]).filter(Boolean);
+  if(loaded.length<TFS.length) return;
+  let bull=0,bear=0,sum=0;
+  loaded.forEach(s=>{ sum+=s.signal.score; if(s.signal.score>0)bull++; else if(s.signal.score<0)bear++; });
+  const a=sum/loaded.length;
+  let key,vclass,col;
+  if(a>=2){key="uptrend";vclass="v-2";col="var(--bull)";}
+  else if(a>=.6){key="bull_bias";vclass="v-1";col="#7fc9a6";}
+  else if(a<=-2){key="downtrend";vclass="v-neg2";col="var(--bear)";}
+  else if(a<=-.6){key="bear_bias";vclass="v-neg1";col="#e89a86";}
+  else {key="sideways";vclass="v0";col="var(--gold)";}
+  const pct=Math.round(((a+5)/10)*100);
+  document.getElementById("gauge").style.background=`conic-gradient(${col} 0 ${pct}%, var(--line2) ${pct}% 100%)`;
+  const gi=document.getElementById("gaugeIn"); gi.textContent=(a>0?"+":"")+a.toFixed(1); gi.style.color=col;
+  const ct=document.getElementById("consTitle"); ct.textContent=t(key); ct.className="t "+vclass;
+  document.getElementById("consSub").textContent=
+    `${bull} ${t("of")} ${loaded.length} ${t("tfBull")} · ${bear} ${t("tfBear")} · ${t("avg")} ${(a>0?'+':'')+a.toFixed(1)}/5`;
+  const bars=document.getElementById("consBars"); bars.innerHTML="";
+  TFS.forEach(x=>{ const sc=store[x.key].signal.score, sp=document.createElement("span");
+    sp.style.height=(20+Math.abs(sc)/5*26)+"px"; sp.style.background=sc>0?"var(--bull)":sc<0?"var(--bear)":"var(--gold)";
+    sp.title=x.label+": "+sc; bars.appendChild(sp); });
+}
+function renderAnalysis(){
+  const st=store[current], name=tfName(current);
+  document.getElementById("readTf").textContent=`${name} · Ichimoku 9 / 26 / 52`;
+  if(!st){ document.getElementById("readTxt").textContent=t("selectTf"); return; }
+  const sg=st.signal;
+  const pos = sg.price>sg.top?t("n_pos_above"):sg.price<sg.bot?t("n_pos_below"):t("n_pos_inside");
+  const tkTxt = sg.tk>sg.kj?t("n_tk_above"):sg.tk<sg.kj?t("n_tk_below"):t("n_tk_eq");
+  const futTxt = sg.futA>sg.futB?t("n_fut_green"):sg.futA<sg.futB?t("n_fut_red"):t("n_fut_flat");
+  let txt;
+  if(lang==="pt"){
+    txt=`No tempo gráfico <b>${name}</b>, o BTC negocia a <b>${fmtUSD0(sg.price)}</b>, ${pos}. `+
+        `No momento, ${tkTxt}. Olhando adiante, ${futTxt}. `+
+        `A leitura combinada dos cinco componentes resulta em <b class="${sg.vclass}">${t(sg.vkey)}</b> `+
+        `(${t("score")} ${sg.score>0?'+':''}${sg.score} / 5). `+
+        `A Kijun-sen, em <b>${fmtUSD0(sg.kj)}</b>, costuma atuar como suporte/resistência dinâmico.`;
+  } else {
+    txt=`On the <b>${name}</b> timeframe, BTC trades at <b>${fmtUSD0(sg.price)}</b>, ${pos}. `+
+        `Right now, ${tkTxt}. Looking ahead, ${futTxt}. `+
+        `The combined reading of the five components yields <b class="${sg.vclass}">${t(sg.vkey)}</b> `+
+        `(${t("score")} ${sg.score>0?'+':''}${sg.score} / 5). `+
+        `The Kijun-sen, at <b>${fmtUSD0(sg.kj)}</b>, often acts as dynamic support/resistance.`;
+  }
+  document.getElementById("readTxt").innerHTML=txt;
+  const sigEl=document.getElementById("signals"); sigEl.innerHTML="";
+  sg.components.forEach(x=>{ const col=x.v>0?"var(--bull)":x.v<0?"var(--bear)":"var(--gold)";
+    sigEl.innerHTML+=`<div class="sig"><span class="dot" style="background:${col}"></span>
+      <span class="nm">${t(x.nm)}</span><span class="vl" style="color:${col}">${t(x.txt)}</span></div>`; });
+  document.getElementById("levels").innerHTML=`
+    <div class="lv"><span class="k">Tenkan</span><span class="v" style="color:var(--gold)">${fmtUSD0(sg.tk)}</span></div>
+    <div class="lv"><span class="k">Kijun</span><span class="v" style="color:var(--blue)">${fmtUSD0(sg.kj)}</span></div>
+    <div class="lv"><span class="k">${t("lvTop")}</span><span class="v" style="color:var(--jade)">${fmtUSD0(sg.top)}</span></div>
+    <div class="lv"><span class="k">${t("lvBot")}</span><span class="v" style="color:var(--verm)">${fmtUSD0(sg.bot)}</span></div>`;
+}
+
+/* ============================================================
+   CHART
+============================================================ */
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d"), host=document.getElementById("host");
+let DPR=Math.max(1,window.devicePixelRatio||1); let hover=null;
+function resize(){ DPR=Math.max(1,window.devicePixelRatio||1);
+  cv.width=host.clientWidth*DPR; cv.height=host.clientHeight*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); draw(); }
+window.addEventListener("resize",resize);
+function getView(){ if(!view[current]){ const n=store[current]?store[current].candles.length:0;
+  view[current]={zoom:Math.min(110,n),scroll:n-1}; } return view[current]; }
+
+function draw(){
+  const st=store[current]; if(!st) return;
+  const W=host.clientWidth,H=host.clientHeight; ctx.clearRect(0,0,W,H);
+  const padL=8,padR=68,padT=12,padB=26, plotW=W-padL-padR, plotH=H-padT-padB;
+  const c=st.candles,ich=st.ich,n=c.length,d=P.disp, v=getView();
+  v.zoom=Math.max(30,Math.min(n,v.zoom)); v.scroll=Math.max(v.zoom-1,Math.min(n-1,v.scroll));
+  const S=v.scroll-v.zoom+1, E=v.scroll+d, slots=E-S+1, cw=plotW/slots;
+  const x=(s)=>padL+(s-S+0.5)*cw;
+  let mn=Infinity,mx=-Infinity; const upd=(val)=>{ if(val==null||!isFinite(val))return; if(val<mn)mn=val; if(val>mx)mx=val; };
+  for(let s=S;s<=E;s++){
+    if(s>=0&&s<=n-1){ upd(c[s].h);upd(c[s].l); if(ich.T[s]!=null)upd(ich.T[s]); if(ich.K[s]!=null)upd(ich.K[s]); }
+    const ai=s-d; if(ai>=0&&ai<=n-1){ upd(ich.A[ai]); upd(ich.B[ai]); }
+    const ci=s+d; if(ci>=0&&ci<=n-1) upd(c[ci].c);
+  }
+  if(!isFinite(mn)) return;
+  const pad=(mx-mn)*0.08||mx*0.02; mn-=pad; mx+=pad;
+  const y=(p)=>padT+(1-(p-mn)/(mx-mn))*plotH;
+  ctx.font='10px "IBM Plex Mono", monospace'; ctx.textBaseline="middle";
+  for(let i=0;i<=6;i++){ const p=mn+(mx-mn)*i/6, yy=y(p);
+    ctx.strokeStyle=COLORS.grid; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
+    ctx.fillStyle=COLORS.faint; ctx.textAlign="left"; ctx.fillText(fmtUSD0(p).replace("$",""), W-padR+6, yy); }
+  const liveX=x(v.scroll)+cw/2;
+  ctx.strokeStyle="rgba(224,178,74,.25)"; ctx.setLineDash([3,4]); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(liveX,padT); ctx.lineTo(liveX,padT+plotH); ctx.stroke(); ctx.setLineDash([]);
+  for(let s=S;s<E;s++){
+    const a1=ich.A[s-d],b1=ich.B[s-d],a2=ich.A[s+1-d],b2=ich.B[s+1-d];
+    if(a1==null||b1==null||a2==null||b2==null) continue;
+    const x1=x(s),x2=x(s+1), up=((a1+a2)/2)>=((b1+b2)/2);
+    ctx.fillStyle=up?COLORS.cloudBull:COLORS.cloudBear;
+    ctx.beginPath(); ctx.moveTo(x1,y(a1)); ctx.lineTo(x2,y(a2)); ctx.lineTo(x2,y(b2)); ctx.lineTo(x1,y(b1)); ctx.closePath(); ctx.fill();
+  }
+  function line(getter,color,lw){ ctx.strokeStyle=color; ctx.lineWidth=lw||1.4; ctx.lineJoin="round";
+    let started=false; ctx.beginPath();
+    for(let s=S;s<=E;s++){ const p=getter(s); if(p==null||!isFinite(p)){started=false;continue;}
+      const xx=x(s),yy=y(p); if(!started){ctx.moveTo(xx,yy);started=true;}else ctx.lineTo(xx,yy); } ctx.stroke(); }
+  line(s=>{const i=s-d;return i>=0&&i<=n-1?ich.A[i]:null;},COLORS.spanA,1.3);
+  line(s=>{const i=s-d;return i>=0&&i<=n-1?ich.B[i]:null;},COLORS.spanB,1.3);
+  line(s=>(s>=0&&s<=n-1)?ich.T[s]:null,COLORS.tenkan,1.5);
+  line(s=>(s>=0&&s<=n-1)?ich.K[s]:null,COLORS.kijun,1.5);
+  line(s=>{const i=s+d;return i>=0&&i<=n-1?c[i].c:null;},COLORS.chikou,1.3);
+  const bw=Math.max(1,Math.min(cw*0.62,14));
+  for(let s=Math.max(S,0);s<=Math.min(E,n-1);s++){
+    const k=c[s],xx=x(s),up=k.c>=k.o,col=up?COLORS.bull:COLORS.bear;
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(xx,y(k.h)); ctx.lineTo(xx,y(k.l)); ctx.stroke();
+    const yo=y(k.o),yc=y(k.c),top=Math.min(yo,yc),bh=Math.max(1,Math.abs(yc-yo)); ctx.fillRect(xx-bw/2,top,bw,bh);
+  }
+  ctx.fillStyle=COLORS.faint; ctx.textAlign="center"; ctx.textBaseline="top";
+  const labStep=Math.ceil(slots/7);
+  for(let s=S;s<=E;s+=labStep){ let tm = s<=n-1?c[s].t:c[n-1].t+(s-(n-1))*tfMs(current);
+    ctx.fillText(fmtTime(tm,current),x(s),padT+plotH+6); }
+  if(hover!=null){ const s=Math.round(hover);
+    if(s>=S&&s<=E){ const xx=x(s);
+      ctx.strokeStyle="rgba(236,232,223,.18)"; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke(); ctx.setLineDash([]);
+      drawTip(s,xx,W,padT,plotW,padL); } }
+}
+function drawTip(s,xx,W,padT,plotW,padL){
+  const st=store[current],c=st.candles,ich=st.ich,n=c.length,d=P.disp; const rows=[]; let tm;
+  if(s<=n-1){ const k=c[s]; tm=k.t;
+    rows.push(["O",fmtUSD0(k.o)],["H",fmtUSD0(k.h)],["L",fmtUSD0(k.l)],["C",fmtUSD0(k.c)]);
+    if(ich.T[s]!=null)rows.push(["Tenkan",fmtUSD0(ich.T[s]),COLORS.tenkan]);
+    if(ich.K[s]!=null)rows.push(["Kijun",fmtUSD0(ich.K[s]),COLORS.kijun]);
+  } else { tm=c[n-1].t+(s-(n-1))*tfMs(current); rows.push([t("tipFuture"),t("tipProj")]); }
+  const ai=s-d; if(ai>=0&&ai<=n-1){ if(ich.A[ai]!=null)rows.push(["Span A",fmtUSD0(ich.A[ai]),COLORS.spanA]);
+    if(ich.B[ai]!=null)rows.push(["Span B",fmtUSD0(ich.B[ai]),COLORS.spanB]); }
+  ctx.font='10px "IBM Plex Mono", monospace';
+  const bw=132,bh=22+rows.length*15; let bx=xx+12; if(bx+bw>padL+plotW) bx=xx-bw-12; const by=padT+8;
+  ctx.fillStyle="rgba(16,18,24,.94)"; ctx.strokeStyle="#2f3445"; roundRect(bx,by,bw,bh,7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#878c9c"; ctx.textAlign="left"; ctx.textBaseline="top"; ctx.fillText(fmtTime(tm,current,true),bx+10,by+8);
+  rows.forEach((r,i)=>{ const ry=by+24+i*15; ctx.fillStyle=r[2]||"#878c9c"; ctx.fillText(r[0],bx+10,ry);
+    ctx.fillStyle="#ece8df"; ctx.textAlign="right"; ctx.fillText(r[1],bx+bw-10,ry); ctx.textAlign="left"; });
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function tfMs(key){return {"15m":9e5,"1h":36e5,"4h":144e5,"1d":864e5,"1w":6048e5}[key];}
+function fmtTime(tm,key,full){
+  const dt=new Date(tm), dd=String(dt.getDate()).padStart(2,"0"), mm=String(dt.getMonth()+1).padStart(2,"0");
+  const hh=String(dt.getHours()).padStart(2,"0"), mi=String(dt.getMinutes()).padStart(2,"0");
+  const dayFirst = lang==="pt";
+  if(key==="1d"||key==="1w") return full?(dayFirst?`${dd}/${mm}/${dt.getFullYear()}`:`${mm}/${dd}/${dt.getFullYear()}`):(dayFirst?`${dd}/${mm}`:`${mm}/${dd}`);
+  return full?(dayFirst?`${dd}/${mm} ${hh}:${mi}`:`${mm}/${dd} ${hh}:${mi}`):(dayFirst?`${dd}/${mm} ${hh}h`:`${mm}/${dd} ${hh}h`);
+}
+function slotAtX(px){ const st=store[current]; if(!st)return null;
+  const W=host.clientWidth,padL=8,padR=68,plotW=W-padL-padR,v=getView(),d=P.disp;
+  const S=v.scroll-v.zoom+1,E=v.scroll+d,slots=E-S+1,cw=plotW/slots; return S+(px-padL)/cw-0.5; }
+cv.addEventListener("mousemove",e=>{ const r=cv.getBoundingClientRect(); hover=slotAtX(e.clientX-r.left); draw(); });
+cv.addEventListener("mouseleave",()=>{hover=null;draw();});
+host.addEventListener("wheel",e=>{ e.preventDefault(); const v=getView(); v.zoom=Math.round(v.zoom*(e.deltaY>0?1.12:0.89)); draw(); },{passive:false});
+let drag=null;
+cv.addEventListener("mousedown",e=>{drag={x:e.clientX,scroll:getView().scroll};});
+window.addEventListener("mouseup",()=>drag=null);
+window.addEventListener("mousemove",e=>{ if(!drag)return; const st=store[current];if(!st)return;
+  const W=host.clientWidth,plotW=W-76,v=getView(),slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.clientX-drag.x)/cw);
+  v.scroll=Math.max(v.zoom-1,Math.min(st.candles.length-1,drag.scroll-dd)); draw(); });
+cv.addEventListener("touchstart",e=>{if(e.touches[0])drag={x:e.touches[0].clientX,scroll:getView().scroll};},{passive:true});
+cv.addEventListener("touchmove",e=>{ if(!drag||!e.touches[0])return; const st=store[current];if(!st)return;
+  const W=host.clientWidth,plotW=W-76,v=getView(),slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.touches[0].clientX-drag.x)/cw);
+  v.scroll=Math.max(v.zoom-1,Math.min(st.candles.length-1,drag.scroll-dd)); draw(); },{passive:true});
+cv.addEventListener("touchend",()=>drag=null);
+
+/* ============================================================
+   SELECT TF + SEGMENTED
+============================================================ */
+function buildSeg(){ const seg=document.getElementById("seg"); seg.innerHTML="";
+  TFS.forEach(tf=>{ const b=document.createElement("button"); b.textContent=tf.label;
+    b.className=tf.key===current?"on":""; b.onclick=()=>selectTF(tf.key); seg.appendChild(b); }); }
+function setChartTitle(){
+  const name=tfName(current), cap=name.charAt(0).toUpperCase()+name.slice(1);
+  document.getElementById("chartTitle").innerHTML = lang==="pt" ? `Gráfico <span>${name}</span>` : `<span>${cap}</span> chart`;
+}
+function selectTF(key){
+  current=key; setChartTitle(); buildSeg(); renderCards();
+  const st=store[key], veil=document.getElementById("veil");
+  if(st && !errored){ veil.style.opacity=0; veil.style.pointerEvents="none";
+    document.getElementById("footR").textContent=st.candles.length+t("candles")+new Date(st.candles[st.candles.length-1].t).toLocaleString(locale());
+  } else if(!errored){ veil.style.opacity=1; veil.style.pointerEvents="auto"; }
+  renderAnalysis(); resize();
+}
+
+/* ============================================================
+   TICKER
+============================================================ */
+async function loadTicker(){
+  try{
+    const d=await (await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT")).json();
+    const px=+d.lastPrice, ch=+d.priceChangePercent;
+    document.getElementById("px").textContent=fmtUSD(px);
+    const chg=document.getElementById("chg");
+    chg.textContent=(ch>=0?"▲ +":"▼ ")+ch.toFixed(2)+"%  (24h)"; chg.className="chg "+(ch>=0?"pos":"neg");
+    document.getElementById("upd").textContent=t("updated")+new Date().toLocaleTimeString(locale());
+  }catch(e){}
+}
+
+/* ============================================================
+   LANGUAGE SWITCH
+============================================================ */
+function switchLang(l){
+  if(l===lang) return; lang=l;
+  document.querySelectorAll(".lang-toggle button").forEach(b=>b.classList.toggle("on",b.dataset.lang===l));
+  applyStatic(); buildSeg(); renderCards(); renderConsensus(); setChartTitle(); renderAnalysis();
+  // refresh ticker timestamp label + footR
+  const st=store[current];
+  if(st) document.getElementById("footR").textContent=st.candles.length+t("candles")+new Date(st.candles[st.candles.length-1].t).toLocaleString(locale());
+  loadTicker(); if(store[current]) draw();
+}
+document.querySelectorAll(".lang-toggle button").forEach(b=>b.onclick=()=>switchLang(b.dataset.lang));
+
+/* ============================================================
+   BOOT
+============================================================ */
+async function boot(){
+  applyStatic(); buildSeg(); renderCards(); setChartTitle(); renderAnalysis(); loadTicker();
+  await Promise.all(TFS.map(async tf=>{
+    try{ const candles=await loadTF(tf); store[tf.key]={candles,ich:ichimoku(candles),signal:null};
+      store[tf.key].signal=signal(candles,store[tf.key].ich); renderCards();
+      if(tf.key===current) selectTF(current);
+    }catch(e){ console.error(tf.key,e); }
+  }));
+  renderConsensus();
+  if(TFS.filter(x=>store[x.key]).length===0){ errored=true;
+    document.getElementById("veil").innerHTML='<span class="err">'+t("errLoad")+'</span>'; }
+  selectTF(current);
+}
+document.getElementById("refresh").onclick=()=>boot();
+boot();
+setInterval(loadTicker,30000);
+setInterval(async()=>{ for(const tf of TFS){ try{ const candles=await loadTF(tf);
+  store[tf.key]={candles,ich:ichimoku(candles),signal:null}; store[tf.key].signal=signal(candles,store[tf.key].ich);
+}catch(e){} } renderCards(); renderConsensus(); renderAnalysis(); if(store[current]) draw(); },120000);
+</script>
+</body>
+</html>
