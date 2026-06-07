@@ -577,22 +577,26 @@
   @media (max-width: 640px) {
     header {
       top: 12px;
-      gap: 10px;
-      padding: 8px 12px 8px 14px;
-      max-width: calc(100vw - 24px);
+      gap: 8px 10px;
+      padding: 9px 12px;
+      max-width: calc(100vw - 20px);
       flex-wrap: wrap;
       justify-content: center;
     }
-    .brand { font-size: 10px; padding-right: 10px; gap: 8px; }
+    .home-link { margin-right: 0; order: 0; }
+    .brand { font-size: 10px; padding-right: 0; border-right: 0; gap: 8px; order: 1; }
     .brand-mark { width: 18px; height: 18px; }
-    .filter-btn { padding: 7px 11px; font-size: 9.5px; }
+    .refresh-btn { order: 2; width: 34px; height: 34px; }
+    .filters { order: 3; }
+    .filter-btn { padding: 9px 14px; font-size: 10px; }
     .status {
+      order: 5;
       padding-left: 0;
       border-left: 0;
       font-size: 9.5px;
       width: 100%;
       justify-content: center;
-      padding-top: 4px;
+      padding-top: 6px;
       border-top: 1px solid var(--ink-faint);
     }
     .legend { display: none; }
@@ -745,8 +749,8 @@
 
   const SIZE_MIN_RATIO = 0.038;  // % of min(width, height)
   const SIZE_MAX_RATIO = 0.16;
-  const SIZE_MIN_PX    = 32;
-  const SIZE_MAX_PX    = 220;
+  let   SIZE_MIN_PX    = 32;     // floor — lowered on phones so 50–100 bubbles fit
+  let   SIZE_MAX_PX    = 220;
 
   // ─────────── STATE ───────────
   const canvas = document.getElementById('bubbleCanvas');
@@ -820,6 +824,16 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     CX = W / 2;
     CY = H / 2;
+    // Responsive size profile: phones are narrow, so key off width. On a phone
+    // the canvas is small — drop the pixel floor/ceiling so 50–100 bubbles don't
+    // overcrowd. Desktop (width ≥ 560) keeps its original generous sizing.
+    if (W < 560) {            // phones / narrow portrait
+      SIZE_MIN_PX = 15;
+      SIZE_MAX_PX = 120;
+    } else {
+      SIZE_MIN_PX = 32;
+      SIZE_MAX_PX = 220;
+    }
     if (bubbles.length) recalcSizes();
   }
 

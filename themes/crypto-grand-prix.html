@@ -787,25 +787,68 @@
   }
   .error-banner.hidden { opacity: 0; transform: translateX(-50%) translateY(-10px); pointer-events: none; }
 
-  /* Mobile / smaller screens */
+  /* ===== Tablet / stacked layout ===== */
   @media (max-width: 900px) {
     #main { flex-direction: column; }
     #leaderboard {
       width: 100%;
       max-width: none;
-      height: 45%;
+      height: 46%;
       border-left: none;
       border-top: 1px solid rgba(255,255,255,0.08);
     }
-    #stage { height: 55%; flex: none; }
-    .hud-center { gap: 10px; }
+    #stage { height: 54%; flex: none; }
+    .hud-center { gap: 12px; }
     .lap-display, .grid-control { display: none; }
     .logo-sub { display: none; }
   }
-  @media (max-width: 560px) {
-    .tf-btn { padding: 6px 10px; font-size: 10px; }
-    .logo-text { font-size: 14px; letter-spacing: 2px; }
-    .logo-mark { width: 32px; height: 32px; }
+
+  /* ===== Phones: HUD wraps to two rows, larger tap targets ===== */
+  @media (max-width: 640px) {
+    :root { --hud-h: 110px; }
+    #hud {
+      height: var(--hud-h);
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: space-between;
+      row-gap: 8px;
+      padding: 8px 14px;
+    }
+    .logo { order: 1; gap: 10px; }
+    .logo-mark { display: none; }              /* save width — home + title remain */
+    .logo-text { font-size: 15px; letter-spacing: 2px; }
+    .home-link { margin-right: 0; }
+
+    .hud-right { order: 2; gap: 10px; }
+    .status-text, .status-time { display: none; } /* keep just the live dot */
+    .status { gap: 0; }
+    .icon-btn { width: 40px; height: 40px; }
+    .icon-btn svg { width: 16px; height: 16px; }
+
+    /* time + day/night controls fill the centered second row */
+    .hud-center {
+      order: 3;
+      flex-basis: 100%;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .tf-btn { padding: 8px 13px; font-size: 11px; }
+    .mode-btn { padding: 7px 10px; gap: 5px; font-size: 10px; }
+    .mode-btn .mode-ico { width: 12px; height: 12px; }
+    .grid-btn { padding: 8px 14px; }
+
+    /* denser leaderboard so more rows show on the short panel */
+    #leaderboard { height: 50%; }
+    #stage { height: 50%; }
+  }
+
+  /* ===== Very narrow phones ===== */
+  @media (max-width: 380px) {
+    .logo-text { font-size: 13px; letter-spacing: 1px; }
+    .tf-btn { padding: 7px 10px; }
+    .mode-btn { padding: 6px 8px; letter-spacing: 1px; }
   }
 </style>
 </head>
@@ -2504,6 +2547,39 @@ canvas.addEventListener('mouseleave', () => {
   for (const child of lbList.children) child.classList.remove('highlighted');
   hideTooltip();
 });
+
+/* Touch: tap a car to inspect it (mobile). Auto-dismisses after a moment. */
+let touchInspectTimer = null;
+canvas.addEventListener('touchstart', (e) => {
+  if (!e.touches.length) return;
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  const mx = t.clientX - rect.left;
+  const my = t.clientY - rect.top;
+  let hovered = null;
+  let bestDist = 46 * 46;            // generous finger radius
+  for (const c of state.cars) {
+    const dx = c.x - mx, dy = c.y - my;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestDist) { bestDist = d2; hovered = c; }
+  }
+  if (hovered) {
+    clearTimeout(touchInspectTimer);
+    state.hoveredCarId = hovered.id;
+    for (const child of lbList.children) {
+      child.classList.toggle('highlighted', child.dataset.id === hovered.id);
+    }
+    showTooltip(hovered, mx, my);
+  }
+}, { passive: true });
+canvas.addEventListener('touchend', () => {
+  clearTimeout(touchInspectTimer);
+  touchInspectTimer = setTimeout(() => {
+    state.hoveredCarId = null;
+    for (const child of lbList.children) child.classList.remove('highlighted');
+    hideTooltip();
+  }, 2200);
+}, { passive: true });
 
 function showTooltip(car, x, y) {
   const c = car.coin;

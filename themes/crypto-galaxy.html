@@ -469,22 +469,66 @@
   }
 
   /* ─── Mobile ─── */
-  @media (max-width: 720px) {
-    #header { top: 18px; left: 18px; }
-    .title { font-size: 16px; letter-spacing: 0.25em; }
-    .subtitle { font-size: 8px; }
+  @media (max-width: 768px) {
+    #header { top: 14px; left: 16px; }
+    .title { font-size: 16px; letter-spacing: 0.24em; }
+    .subtitle { font-size: 8px; letter-spacing: 0.34em; }
+    .ornament { width: 42px; margin-top: 8px; }
+
+    /* Controls dock to the bottom, centered, wrapping into tidy rows */
     #controls {
-      top: 18px; right: 18px;
-      gap: 8px;
+      top: auto;
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
       flex-wrap: wrap;
-      justify-content: flex-end;
-      max-width: calc(100vw - 36px);
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      width: max-content;
+      max-width: calc(100vw - 24px);
     }
-    .btn { padding: 7px 12px; font-size: 9px; letter-spacing: 0.18em; }
-    .icon-btn { width: 34px; height: 34px; }
-    #status { bottom: 16px; left: 18px; font-size: 9px; }
+    .toggle-group { padding: 3px; }
+    .btn {
+      padding: 9px 15px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+    }
+    /* bigger, finger-friendly icon buttons; cancel hover-rotate on touch */
+    .icon-btn { width: 42px; height: 42px; }
+    .icon-btn:hover { transform: none; }
+    .icon-btn svg { width: 18px; height: 18px; }
+    .stars-toggle {
+      order: 3;
+      padding: 10px 14px;
+      font-size: 9px;
+    }
+    .stars-toggle .star-icon { width: 12px; height: 12px; }
+
+    /* status sits top-right, out of the way of the bottom dock */
+    #status {
+      top: 16px; right: 16px;
+      bottom: auto; left: auto;
+      text-align: right;
+      font-size: 9px;
+    }
+    .status-row { justify-content: flex-end; }
     #legend { display: none; }
-    #tooltip { min-width: 220px; padding: 12px 14px; }
+
+    /* tooltip fills most of the width and floats near the top */
+    #tooltip {
+      min-width: 0;
+      width: calc(100vw - 28px);
+      max-width: 340px;
+      padding: 14px 16px;
+    }
+  }
+
+  /* Short / landscape phones: keep header from crowding controls */
+  @media (max-width: 768px) and (max-height: 480px) {
+    #status { display: none; }
+    .subtitle, .ornament { display: none; }
   }
 </style>
 </head>
@@ -608,6 +652,7 @@ function init() {
     55, window.innerWidth / window.innerHeight, 0.1, 5000
   );
   camera.position.set(0, 65, 165);
+  applyResponsiveCamera();
 
   renderer = new THREE.WebGLRenderer({ 
     antialias: true, 
@@ -625,6 +670,12 @@ function init() {
   controls.target.set(0, 0, 0);
   controls.minDistance = 25;
   controls.maxDistance = 400;
+  // On phones / portrait, start further out and allow pulling back more so
+  // the outer orbits stay reachable on a small, narrow screen.
+  if (isNarrowViewport()) {
+    controls.maxDistance = 620;
+    controls.radius = 250;
+  }
   controls.update();
 
   raycaster = new THREE.Raycaster();
@@ -1841,9 +1892,32 @@ function toggleAmbience() {
 }
 
 function onResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  applyResponsiveCamera();
   renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// Treat narrow / portrait screens (phones) specially.
+function isNarrowViewport() {
+  return window.innerWidth < 768 || (window.innerWidth / window.innerHeight) < 0.85;
+}
+
+// Keep the horizontal framing comfortable on tall/narrow screens by widening
+// the vertical FOV as the aspect ratio drops. Desktop (aspect ≥ 1.25) keeps
+// the original 55° look exactly.
+function applyResponsiveCamera() {
+  if (!camera) return;
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+  const baseVFov = 55;
+  if (aspect < 1.25) {
+    // horizontal FOV that 55° gives at our reference desktop-ish aspect
+    const refH = 2 * Math.atan(Math.tan(baseVFov * Math.PI / 360) * 1.25);
+    const vFov = 2 * Math.atan(Math.tan(refH / 2) / aspect) * 180 / Math.PI;
+    camera.fov = Math.min(Math.max(vFov, baseVFov), 74); // cap to limit distortion
+  } else {
+    camera.fov = baseVFov;
+  }
+  camera.updateProjectionMatrix();
 }
 
 // ─────────────── Utils ───────────────
