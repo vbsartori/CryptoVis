@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Victor Bruno Sartori — Engenheiro Eletricista</title>
+<style>
+  :root{
+    --bg:#070b14;
+    --bg2:#0c1322;
+    --card:#10192c;
+    --card2:#141f36;
+    --line:#1e2c47;
+    --txt:#e7ecf5;
+    --muted:#8a9bbd;
+    --accent:#3b82f6;
+    --accent2:#22d3ee;
+    --accent3:#a855f7;
+    --grad:linear-gradient(120deg,#3b82f6,#22d3ee 55%,#a855f7);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--txt);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    line-height:1.65;
+    overflow-x:hidden;
+  }
+  /* animated background grid */
+  .bg-fx{position:fixed;inset:0;z-index:-2;background:
+    radial-gradient(900px 500px at 80% -10%,rgba(59,130,246,.18),transparent 60%),
+    radial-gradient(700px 500px at 0% 20%,rgba(168,85,247,.12),transparent 60%),
+    var(--bg);}
+  #fx{position:fixed;inset:0;z-index:-1;width:100%;height:100%;display:block}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);
+    background:rgba(7,11,20,.72);border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1080px;margin:0 auto;padding:14px 22px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px}
+  .logo{font-weight:700;letter-spacing:.5px;font-size:1.05rem}
+  .logo span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:.85rem;
+    padding:7px 12px;border-radius:8px;transition:.25s}
+  .nav-links a:hover{color:var(--txt);background:var(--card2)}
+
+  /* HERO */
+  header{padding:80px 0 70px;position:relative}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;
+    color:var(--accent2);border:1px solid var(--line);background:var(--card);
+    padding:6px 14px;border-radius:30px;margin-bottom:22px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent2);
+    box-shadow:0 0 10px var(--accent2);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  h1{font-size:clamp(2.2rem,6vw,4rem);line-height:1.08;font-weight:800;letter-spacing:-1px}
+  h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .role{font-size:clamp(1rem,2.4vw,1.35rem);color:var(--muted);margin-top:18px;font-weight:500}
+  .role b{color:var(--txt)}
+  .loc{margin-top:14px;color:var(--muted);font-size:.95rem}
+  .cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:12px;
+    text-decoration:none;font-weight:600;font-size:.92rem;transition:.25s;border:1px solid transparent}
+  .btn-p{background:var(--grad);color:#04111f}
+  .btn-p:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(59,130,246,.35)}
+  .btn-s{border-color:var(--line);color:var(--txt);background:var(--card)}
+  .btn-s:hover{border-color:var(--accent);background:var(--card2);transform:translateY(-2px)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:16px;margin-top:54px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .stat .n{font-size:1.9rem;font-weight:800;background:var(--grad);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .stat .l{font-size:.82rem;color:var(--muted);margin-top:4px}
+
+  /* SECTIONS */
+  section{padding:66px 0;border-top:1px solid var(--line)}
+  .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:38px}
+  .sec-num{font-size:.8rem;color:var(--accent2);font-family:monospace;border:1px solid var(--line);
+    border-radius:8px;padding:4px 10px}
+  h2{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.5px}
+
+  .about p{color:var(--muted);max-width:760px;font-size:1.05rem}
+  .about p b{color:var(--txt)}
+  .pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .pill{background:var(--card);border:1px solid var(--line);padding:9px 16px;border-radius:30px;
+    font-size:.85rem;color:var(--txt)}
+
+  /* TIMELINE */
+  .tl{position:relative;padding-left:32px}
+  .tl::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(var(--accent),var(--accent3));opacity:.5}
+  .job{position:relative;margin-bottom:30px}
+  .job::before{content:'';position:absolute;left:-32px;top:6px;width:16px;height:16px;
+    border-radius:50%;background:var(--bg);border:3px solid var(--accent);box-shadow:0 0 12px var(--accent)}
+  .job-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px;transition:.25s}
+  .job-card:hover{border-color:var(--accent);transform:translateX(4px)}
+  .job h3{font-size:1.15rem;font-weight:700}
+  .job .co{color:var(--accent2);font-weight:600;font-size:.95rem;margin-top:2px}
+  .job .when{color:var(--muted);font-size:.82rem;margin-top:4px;font-family:monospace}
+  .job ul{margin-top:14px;padding-left:18px;color:var(--muted);font-size:.92rem}
+  .job ul li{margin-bottom:6px}
+  .job ul li::marker{color:var(--accent)}
+  .more-co{background:var(--card2);border:1px dashed var(--line);border-radius:14px;
+    padding:20px 24px;margin-top:8px}
+  .more-co h4{font-size:.95rem;color:var(--txt);margin-bottom:10px}
+  .more-co .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;
+    border-bottom:1px solid var(--line);font-size:.88rem}
+  .more-co .row:last-child{border-bottom:none}
+  .more-co .row span{color:var(--muted)}
+
+  /* SKILLS GRID */
+  .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+  .skill-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;transition:.25s}
+  .skill-card:hover{transform:translateY(-4px);border-color:var(--accent2);box-shadow:0 14px 34px rgba(0,0,0,.4)}
+  .skill-card .ic{font-size:1.6rem;margin-bottom:12px}
+  .skill-card h3{font-size:1.05rem;margin-bottom:12px}
+  .skill-card .tags{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{background:var(--card2);border:1px solid var(--line);padding:5px 11px;border-radius:8px;
+    font-size:.78rem;color:var(--muted)}
+
+  /* EDUCATION */
+  .edu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .edu{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;
+    border-left:3px solid var(--accent3)}
+  .edu h3{font-size:1rem}
+  .edu .deg{color:var(--accent2);font-size:.85rem;margin:6px 0}
+  .edu .yr{color:var(--muted);font-size:.8rem;font-family:monospace}
+
+  /* AWARDS */
+  .aw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+  .aw{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);
+    border-radius:14px;padding:20px;display:flex;gap:14px;align-items:flex-start}
+  .aw .ic{font-size:1.4rem}
+  .aw p{font-size:.9rem;color:var(--muted)}
+  .aw p b{color:var(--txt)}
+
+  /* CONTACT */
+  .contact-box{background:linear-gradient(150deg,var(--card),var(--card2));
+    border:1px solid var(--line);border-radius:20px;padding:46px;text-align:center}
+  .contact-box h2{margin-bottom:12px}
+  .contact-box p{color:var(--muted);max-width:520px;margin:0 auto 28px}
+
+  footer{padding:34px 0;text-align:center;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line)}
+
+  /* reveal anim */
+  .reveal{opacity:0;transform:translateY(28px);transition:.7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.on{opacity:1;transform:none}
+
+  @media(max-width:560px){
+    .nav-links{display:none}
+    header{padding:54px 0 50px}
+    .contact-box{padding:30px 20px}
+  }
+</style>
+</head>
+<body>
+<div class="bg-fx"></div>
+<canvas id="fx"></canvas>
+
+<nav>
+  <div class="nav-in">
+    <div class="logo">VB<span>S</span></div>
+    <div class="nav-links">
+      <a href="#sobre">Sobre</a>
+      <a href="#experiencia">Experiência</a>
+      <a href="#skills">Competências</a>
+      <a href="#formacao">Formação</a>
+      <a href="#premios">Reconhecimentos</a>
+      <a href="#contato">Contato</a>
+    </div>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="badge reveal"><span class="dot"></span> Disponível para projetos e conexões</div>
+    <h1 class="reveal">Victor Bruno <span class="g">Sartori</span></h1>
+    <p class="role reveal"><b>Engenheiro Eletricista</b> · Regulação de Energia · Inteligência de Mercado · <b>Data Scientist</b> · A.I. · DeFi</p>
+    <p class="loc reveal">📍 Curitiba, Paraná, Brasil</p>
+    <div class="cta reveal">
+      <a class="btn btn-p" href="/cdn-cgi/l/email-protection#86f0e4f5e7f4f2e9f4efc6e1ebe7efeaa8e5e9eb">✉️ Entrar em contato</a>
+      <a class="btn btn-s" href="https://www.linkedin.com/in/bruno-sartori-18ba45" target="_blank">in LinkedIn</a>
+    </div>
+    <div class="stats">
+      <div class="stat reveal"><div class="n">17+</div><div class="l">anos na Copel</div></div>
+      <div class="stat reveal"><div class="n">25+</div><div class="l">anos de carreira</div></div>
+      <div class="stat reveal"><div class="n">R$5M</div><div class="l">economia gerada (DIC/FIC/DMIC)</div></div>
+      <div class="stat reveal"><div class="n">4</div><div class="l">formações / pós</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="sobre" class="about">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="sec-num">01</span><h2>Sobre</h2></div>
+    <p class="reveal">⚡ Especialista em <b>Regulação de Energia</b>, Mercado de Energia, Comercialização, Geração, Transmissão e Distribuição. Une visão técnica de engenharia elétrica com análise econômica, financeira e regulatória de alto nível para os negócios do setor.</p>
+    <p class="reveal" style="margin-top:16px">📊 <b>Data Scientist</b> e entusiasta de A.I., aplicando Python, RPA e Power BI para automação de processos regulatórios e inteligência de mercado. Também atua como <b>Market Maker em DeFi</b> — operações estruturadas de Staking/Restaking, pools de liquidez, empréstimos colateralizados (estratégia "buy, borrow, die") e Delta Neutro, com gestão ativa de portfólio.</p>
+    <div class="pills">
+      <span class="pill reveal">Regulação de Energia</span>
+      <span class="pill reveal">Inteligência de Mercado</span>
+      <span class="pill reveal">Data Science</span>
+      <span class="pill reveal">Inteligência Artificial</span>
+      <span class="pill reveal">DeFi · Market Making</span>
+      <span class="pill reveal">Gestão de Portfólio</span>
+    </div>
+  </div>
+</section>
+
+<section id="experiencia">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="sec-num">02</span><h2>Experiência</h2></div>
+    <div class="tl">
+
+      <div class="job reveal">
+        <div class="job-card">
+          <h3>Senior Electrical Engineer</h3>
+          <div class="co">Copel · Diretoria de Mercado e Regulação (Holding)</div>
+          <div class="when">mar 2023 — atual</div>
+          <ul>
+            <li>Avaliação técnica, econômica e financeira dos impactos das revisões regulatórias nos negócios da Companhia.</li>
+            <li>Análise estratégica do Grupo Copel (Holding, subsidiárias e participações societárias).</li>
+            <li>Defesa em processos administrativos punitivos (notificações e autos de infração) e requerimentos junto ao órgão regulador.</li>
+            <li>Automação de processos (RPA) em Python / Webscrapping regulatório · Power BI e Data Science.</li>
+            <li>Coordenação de grupos de trabalho em consultas públicas e tomadas de subsídio; condução de alterações em contratos de concessão.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job reveal">
+        <div class="job-card">
+          <h3>Senior Electrical Engineer</h3>
+          <div class="co">Copel · Mercado Livre de Energia (Comercialização)</div>
+          <div class="when">set 2016 — fev 2023 · 6 anos 6 meses</div>
+          <ul>
+            <li>Planejamento do Mercado de Energia e análise de balanço energético.</li>
+            <li>Análise de tendências de preços e cálculo de riscos financeiros (VAR / CVAR).</li>
+            <li>Análise de impacto financeiro em situações de default (risco de crédito) e controle do lastro energético.</li>
+            <li>Gestão de portfólio.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job reveal">
+        <div class="job-card">
+          <h3>Senior Electrical Engineer</h3>
+          <div class="co">Copel · Distribuição</div>
+          <div class="when">jun 2009 — set 2016 · 7 anos 4 meses</div>
+          <ul>
+            <li>Gestão dos indicadores de continuidade individuais e coletivos (DEC/FEC e DIC/FIC/DMIC/DICRI).</li>
+            <li>Idealizador e desenvolvedor do sistema IQS (Índices de Qualidade do Sistema).</li>
+            <li>Estudo dos limites DEC/FEC e elaboração do Mapa dos Conjuntos ANEEL (2013–2016).</li>
+            <li>Correção do método de apuração do DIC/FIC/DMIC com economia de R$ 5 milhões (2010).</li>
+            <li>Automatização de expurgos, integração de sistemas (SOD, IQS, CIS, ArcGIS) e regras de zoneamento elétrico no WEBGEO.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job reveal">
+        <div class="job-card">
+          <h3>Electrical Engineer</h3>
+          <div class="co">Celesc — Centrais Elétricas de Santa Catarina</div>
+          <div class="when">jun 2006 — jun 2009 · 3 anos 1 mês · Florianópolis/SC</div>
+          <ul>
+            <li>Gestão dos indicadores de continuidade (DEC, FEC, DIC, FIC, DMIC) e estudo de metas (revisão 2009–2012).</li>
+            <li>Mineração e extração de dados, planejamento e estudos da operação; análise de ocorrências do sistema elétrico.</li>
+            <li>Gerente do grupo de trabalho do novo Sistema Integrado de Manutenção e Operação (SIMO).</li>
+            <li>Responsável pela certificação ISO 9001:2000 na gestão dos indicadores e atendimento à ANEEL.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job reveal">
+        <div class="job-card">
+          <h3>Electrical Engineer</h3>
+          <div class="co">Motorola Solutions</div>
+          <div class="when">mar 2005 — abr 2006 · 1 ano 2 meses</div>
+          <ul>
+            <li>Controle de projetos de implantação e expansão de BTS's (gerenciamento de ~1500 ERBs).</li>
+            <li>Configuração de ERBs via terminal UNIX, drive test, estatísticas de desempenho e interface com cliente (VIVO PR/SC).</li>
+            <li>Tecnologias CDMA: 1x (3G) / EVDO · uso de Clarity, OpenWorkbench e MS Project · inglês técnico (Motorola Inglaterra).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="job reveal">
+        <div class="more-co">
+          <h4>Início de carreira — Engenharia, Eletrônica & Qualidade</h4>
+          <div class="row"><b>Kromberg &amp; Schubert</b> — Técnico em Eletrônica <span>2005</span></div>
+          <div class="row"><b>Electrolux</b> — Técnico em Eletrônica <span>2003 — 2005</span></div>
+          <div class="row"><b>Allen Decibel / Andrew Corporation</b> — Estagiário de Eng. Elétrica <span>2003</span></div>
+          <div class="row"><b>Quantum (Divisão Eletrônica da Kabel)</b> — Estagiário de Engenharia <span>2000 — 2002</span></div>
+          <div class="row"><b>EZAVEL S/A</b> — Estagiário de Eng. Elétrica <span>2001</span></div>
+          <div class="row"><b>UTFPR</b> — Estagiário em Engenharia (Gestão Energética) <span>2000</span></div>
+          <div class="row"><b>Henry Equipamentos</b> — Técnico em Eletrônica <span>2000</span></div>
+          <div class="row"><b>Bematech</b> — Técnico em Eletrônica / Qualidade <span>1999 — 2000</span></div>
+          <div class="row"><b>Siproel Indústria Eletrônica S/A</b> — Estagiário / Téc. Eletrônica <span>1998 — 1999</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="sec-num">03</span><h2>Competências</h2></div>
+    <div class="skills-grid">
+      <div class="skill-card reveal">
+        <div class="ic">⚡</div>
+        <h3>Setor Elétrico &amp; Regulação</h3>
+        <div class="tags">
+          <span class="tag">Regulação de Energia</span>
+          <span class="tag">Mercado de Energia</span>
+          <span class="tag">Comercialização</span>
+          <span class="tag">DEC/FEC · DIC/FIC/DMIC</span>
+          <span class="tag">ANEEL · Prodist</span>
+          <span class="tag">Risco VAR / CVAR</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="ic">🤖</div>
+        <h3>Data Science &amp; A.I.</h3>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">RPA / Webscrapping</span>
+          <span class="tag">Power BI</span>
+          <span class="tag">Google Gemini</span>
+          <span class="tag">Anthropic Claude</span>
+          <span class="tag">Vibe Coding</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="ic">💠</div>
+        <h3>DeFi &amp; Mercado</h3>
+        <div class="tags">
+          <span class="tag">Market Making</span>
+          <span class="tag">Staking / Restaking</span>
+          <span class="tag">Pools de Liquidez</span>
+          <span class="tag">Delta Neutro</span>
+          <span class="tag">Buy, Borrow, Die</span>
+          <span class="tag">Gestão de Portfólio</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="ic">🌐</div>
+        <h3>Idiomas</h3>
+        <div class="tags">
+          <span class="tag">Português — Nativo</span>
+          <span class="tag">Inglês — Profissional pleno</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="formacao">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="sec-num">04</span><h2>Formação</h2></div>
+    <div class="edu-grid">
+      <div class="edu reveal">
+        <h3>Escola da Magistratura Federal</h3>
+        <div class="deg">Pós-graduação — Direito de Energia e Aspectos Estratégicos do Setor Elétrico</div>
+        <div class="yr">2023 — 2024</div>
+      </div>
+      <div class="edu reveal">
+        <h3>FAE Centro Universitário</h3>
+        <div class="deg">Pós-graduação — Tecnologia da Informação</div>
+        <div class="yr">2019 — 2020</div>
+      </div>
+      <div class="edu reveal">
+        <h3>UTFPR — Univ. Tecnológica Federal do Paraná</h3>
+        <div class="deg">Engenharia Elétrica / Eletrônica</div>
+        <div class="yr">2000 — 2005</div>
+      </div>
+      <div class="edu reveal">
+        <h3>UTFPR — Univ. Tecnológica Federal do Paraná</h3>
+        <div class="deg">Técnico em Eletrônica Industrial</div>
+        <div class="yr">1994 — 1998</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="premios">
+  <div class="wrap">
+    <div class="sec-head reveal"><span class="sec-num">05</span><h2>Reconhecimentos &amp; Publicações</h2></div>
+    <div class="aw-grid">
+      <div class="aw reveal"><div class="ic">🏆</div><p><b>Economia de R$ 5 milhões</b> — elogio pelo ajuste no cálculo que reduziu compensações DIC/FIC/DMIC (Copel).</p></div>
+      <div class="aw reveal"><div class="ic">🥇</div><p><b>Melhor Trabalho Técnico do XX SENDI</b> (Rio de Janeiro).</p></div>
+      <div class="aw reveal"><div class="ic">⚖️</div><p><b>Juiz de Rodeio de Eletricistas</b> — etapa Nacional (Santos/SP) e COPEL.</p></div>
+      <div class="aw reveal"><div class="ic">🎤</div><p><b>Apresentador de Trabalho Técnico</b> no IX e XX SENDI.</p></div>
+      <div class="aw reveal"><div class="ic">🌎</div><p><b>Palestrante</b> no Congresso Latino-americano de Distribuição Elétrica.</p></div>
+      <div class="aw reveal"><div class="ic">🔬</div><p><b>Gerente de Projeto</b> de Pesquisa e Desenvolvimento (P&amp;D).</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contato">
+  <div class="wrap">
+    <div class="contact-box reveal">
+      <h2>Vamos conversar</h2>
+      <p>Aberto a oportunidades, parcerias e trocas sobre energia, dados, A.I. e DeFi.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn btn-p" href="/cdn-cgi/l/email-protection#3c4a5e4f5d4e48534e557c5b515d5550125f5351">✉️ <span class="__cf_email__" data-cfemail="3741554456454358455e77505a565e5b1954585a">[email&#160;protected]</span></a>
+        <a class="btn btn-s" href="https://www.linkedin.com/in/bruno-sartori-18ba45" target="_blank">in LinkedIn</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © <span id="yr"></span> Victor Bruno Sartori · Curitiba, PR · Engenheiro Eletricista
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  /* ===== Fundo dinâmico: rede de partículas interativa ===== */
+  (function(){
+    const cv = document.getElementById('fx');
+    const ctx = cv.getContext('2d');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W, H, DPR, particles = [], raf = null, running = true;
+    const mouse = {x:-9999, y:-9999, active:false};
+    const palette = ['59,130,246','34,211,238','168,85,247'];
+
+    function size(){
+      DPR = Math.min(window.devicePixelRatio || 1, 2); // nítido em retina, sem exagerar
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+      // densidade proporcional à área (limitada p/ performance no Mac)
+      const target = Math.min(Math.round((W*H)/13000), 140);
+      particles = [];
+      for(let i=0;i<target;i++){
+        particles.push({
+          x: Math.random()*W,
+          y: Math.random()*H,
+          vx: (Math.random()-.5)*0.4,
+          vy: (Math.random()-.5)*0.4,
+          r: Math.random()*1.8 + 0.8,
+          c: palette[i % palette.length]
+        });
+      }
+    }
+
+    const LINK = 130;        // distância máx p/ ligar pontos
+    const LINK2 = LINK*LINK;
+    const MR = 150, MR2 = MR*MR; // raio de influência do mouse
+
+    function frame(){
+      ctx.clearRect(0,0,W,H);
+
+      for(let i=0;i<particles.length;i++){
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+
+        // interação suave com o mouse (leve atração)
+        if(mouse.active){
+          const dx = mouse.x - p.x, dy = mouse.y - p.y;
+          const d2 = dx*dx + dy*dy;
+          if(d2 < MR2 && d2 > 1){
+            const f = (1 - d2/MR2) * 0.6;
+            const d = Math.sqrt(d2);
+            p.vx += (dx/d) * f * 0.04;
+            p.vy += (dy/d) * f * 0.04;
+          }
+        }
+
+        // atrito + limite de velocidade
+        p.vx *= 0.992; p.vy *= 0.992;
+        const sp = Math.hypot(p.vx,p.vy);
+        if(sp > 1.1){ p.vx = p.vx/sp*1.1; p.vy = p.vy/sp*1.1; }
+
+        // bordas (wrap)
+        if(p.x < -10) p.x = W+10; else if(p.x > W+10) p.x = -10;
+        if(p.y < -10) p.y = H+10; else if(p.y > H+10) p.y = -10;
+
+        // ponto
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba('+p.c+',0.85)';
+        ctx.fill();
+      }
+
+      // linhas entre pontos próximos
+      for(let i=0;i<particles.length;i++){
+        const a = particles[i];
+        for(let j=i+1;j<particles.length;j++){
+          const b = particles[j];
+          const dx = a.x-b.x, dy = a.y-b.y;
+          const d2 = dx*dx+dy*dy;
+          if(d2 < LINK2){
+            const o = (1 - d2/LINK2) * 0.5;
+            ctx.strokeStyle = 'rgba('+a.c+','+o.toFixed(3)+')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+          }
+        }
+        // linha do mouse para pontos próximos (destaque)
+        if(mouse.active){
+          const dx = a.x-mouse.x, dy = a.y-mouse.y;
+          const d2 = dx*dx+dy*dy;
+          if(d2 < MR2){
+            const o = (1 - d2/MR2) * 0.6;
+            ctx.strokeStyle = 'rgba(34,211,238,'+o.toFixed(3)+')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x,a.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
+          }
+        }
+      }
+
+      if(running) raf = requestAnimationFrame(frame);
+    }
+
+    function start(){ if(!raf && running){ raf = requestAnimationFrame(frame); } }
+    function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; } }
+
+    window.addEventListener('resize', size, {passive:true});
+    window.addEventListener('mousemove', e=>{ mouse.x=e.clientX; mouse.y=e.clientY; mouse.active=true; }, {passive:true});
+    window.addEventListener('mouseout', ()=>{ mouse.active=false; mouse.x=-9999; mouse.y=-9999; });
+    window.addEventListener('touchmove', e=>{ if(e.touches[0]){ mouse.x=e.touches[0].clientX; mouse.y=e.touches[0].clientY; mouse.active=true; } }, {passive:true});
+    window.addEventListener('touchend', ()=>{ mouse.active=false; });
+
+    // pausa quando a aba não está visível (economiza bateria no Mac)
+    document.addEventListener('visibilitychange', ()=>{
+      running = !document.hidden;
+      if(running) start(); else stop();
+    });
+
+    size();
+    if(reduce){
+      // se o usuário pede menos movimento: desenha um quadro estático
+      frame(); stop();
+    } else {
+      start();
+    }
+  })();
+
+  /* ===== scroll reveal ===== */
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach((e,i)=>{
+      if(e.isIntersecting){
+        setTimeout(()=>e.target.classList.add('on'), (i%6)*60);
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

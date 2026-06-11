@@ -15,12 +15,9 @@
   --green-dim: #008833;
   --red: #ff2855;
   --red-dim: #aa1a36;
-  --amber: #ffb300;
   --white-glow: #d8ffe5;
   --border: rgba(0, 255, 102, 0.22);
   --border-bright: rgba(0, 255, 102, 0.55);
-  --shift-x: 0px;
-  --shift-y: 0px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,8 +38,6 @@ html, body {
   inset: 0;
   z-index: 1;
   display: block;
-  width: 100vw;
-  height: 100vh;
 }
 
 /* Scanlines */
@@ -69,10 +64,6 @@ body::before {
   100% { background-position: 0 100px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  body::before { animation: none; }
-}
-
 /* Vignette */
 body::after {
   content: '';
@@ -94,9 +85,7 @@ body::after {
   flex-direction: column;
   justify-content: space-between;
   pointer-events: none;
-  transition: opacity 0.4s ease, transform 2.5s ease-in-out;
-  /* OLED anti burn-in: gentle pixel drift, see pixelShift() */
-  transform: translate(var(--shift-x), var(--shift-y));
+  transition: opacity 0.4s ease;
 }
 
 .hud > *, .hud * { pointer-events: auto; }
@@ -248,11 +237,6 @@ footer {
   box-shadow: 0 0 10px var(--red);
 }
 
-.dot.stale {
-  background: var(--amber);
-  box-shadow: 0 0 10px var(--amber);
-}
-
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.35; transform: scale(0.85); }
@@ -293,28 +277,11 @@ footer {
   box-shadow: 0 0 12px var(--red), 0 0 24px rgba(255,40,85,0.4);
 }
 
-.card.nodata::before {
-  background: var(--amber);
-  box-shadow: 0 0 12px var(--amber);
-}
-
 .card.primary {
   border-color: var(--border-bright);
   padding: 12px 18px 14px;
 }
 .card.primary::before { width: 7px; }
-
-/* Price-update flash */
-@keyframes flashUp {
-  0%   { background: rgba(0,255,102,0.20); }
-  100% { background: rgba(0,0,0,0.78); }
-}
-@keyframes flashDown {
-  0%   { background: rgba(255,40,85,0.20); }
-  100% { background: rgba(0,0,0,0.78); }
-}
-.card.flash-up   { animation: flashUp 0.9s ease-out; }
-.card.flash-down { animation: flashDown 0.9s ease-out; }
 
 .card .corner {
   position: absolute;
@@ -343,7 +310,6 @@ footer {
   color: var(--red);
   text-shadow: 0 0 4px rgba(255,40,85,0.4);
 }
-.card.nodata .sym { color: var(--amber); text-shadow: 0 0 4px rgba(255,179,0,0.4); }
 
 .card.primary .sym {
   font-size: 13px;
@@ -373,12 +339,6 @@ footer {
 }
 .card.down .price {
   text-shadow: 0 0 8px rgba(255,40,85,0.55);
-}
-.card.nodata .price {
-  font-size: 22px;
-  color: var(--amber);
-  text-shadow: 0 0 8px rgba(255,179,0,0.4);
-  opacity: 0.8;
 }
 
 .price .currency {
@@ -411,15 +371,6 @@ footer {
   margin-left: auto;
 }
 .card.down .change .period-tag { color: var(--red-dim); }
-
-.spark {
-  width: 100%;
-  height: 26px;
-  display: block;
-  margin-top: 4px;
-  opacity: 0.9;
-}
-.card.primary .spark { height: 34px; }
 
 /* === Boot === */
 .boot {
@@ -486,6 +437,8 @@ footer {
   .status-line { font-size: 10px; }
 }
 </style>
+</head>
+<body>
 <style>
 .home-link{--hl:#00ff66;display:inline-flex;align-items:center;height:40px;min-width:40px;border-radius:999px;background:rgba(8,9,14,.55);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;flex:0 0 auto;margin-right:8px;align-self:center;backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'Share Tech Mono',monospace;}
 .home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
@@ -495,8 +448,6 @@ footer {
 .home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
 .home-link:active{transform:scale(.94);}
 </style>
-</head>
-<body>
   <canvas id="matrix"></canvas>
 
   <div class="boot" id="boot">
@@ -519,7 +470,6 @@ footer {
           <button class="btn period active" data-period="24h">24H</button>
           <button class="btn period" data-period="7d">7D</button>
         </div>
-        <button class="btn" id="rainBtn" title="Rain speed (S)">RAIN: NORM</button>
         <button class="btn" id="kioskBtn" title="Kiosk Mode (K)">KIOSK</button>
         <button class="btn" id="fsBtn" title="Fullscreen (F)">FULL</button>
       </div>
@@ -529,7 +479,7 @@ footer {
       <div class="status-line">
         <div><span class="dot" id="statusDot"></span><span id="statusText">LINK ESTABLISHED</span></div>
         <div id="updateText">SYNC :: --:--:--</div>
-        <div class="keys"><span>[ <b>K</b> · KIOSK ]&nbsp;&nbsp;[ <b>F</b> · FULLSCREEN ]&nbsp;&nbsp;[ <b>S</b> · RAIN SPEED ]&nbsp;&nbsp;[ <b>ESC</b> · EXIT ]</span></div>
+        <div class="keys"><span>[ <b>K</b> · KIOSK ]&nbsp;&nbsp;[ <b>F</b> · FULLSCREEN ]&nbsp;&nbsp;[ <b>ESC</b> · EXIT ]</span></div>
       </div>
       <div class="ticker" id="ticker"></div>
     </footer>
@@ -546,38 +496,18 @@ const COINS = [
   { id: 'chainlink',    sym: 'LINK', name: 'Chainlink' },
   { id: 'hyperliquid',  sym: 'HYPE', name: 'Hyperliquid' },
 ];
-const API_URL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${COINS.map(c=>c.id).join(',')}&price_change_percentage=24h,7d&sparkline=true`;
-
-const REFRESH_MS      = 45000;   // normal cadence
-const BACKOFF_BASE_MS = 15000;   // first retry after failure
-const BACKOFF_MAX_MS  = 300000;  // cap: 5 min
-const STALE_MS        = 180000;  // data older than 3 min => stale warning
-
-const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const API_URL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${COINS.map(c=>c.id).join(',')}&price_change_percentage=24h,7d`;
+const REFRESH_MS = 45000;
 
 // === STATE ===
 let coinData = {};
-let prevPrices = {};
 let currentPeriod = '24h';
-let lastSyncAt = 0;
-let failCount = 0;
-let fetchTimer = null;
 
 // === CANVAS / MATRIX RAIN ===
 const canvas = document.getElementById('matrix');
 const ctx = canvas.getContext('2d');
 const FONT_SIZE = 16;
 let columns = [];
-let cssW = 0, cssH = 0;
-
-// Frame-rate-independent rain: fixed logical tick rate, regardless of display Hz
-const RAIN_SPEEDS = [
-  { label: 'SLOW', fps: 18 },
-  { label: 'NORM', fps: 30 },
-  { label: 'FAST', fps: 45 },
-];
-let rainSpeedIdx = REDUCED_MOTION ? 0 : 1;
-let lastTickTime = 0;
 
 const KATAKANA = 'ｦｱｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
 const RAND_POOL = KATAKANA + '0123456789#$%&*+=<>?/';
@@ -614,6 +544,7 @@ function tickerStringFor(coin) {
 }
 
 function pickTickerString() {
+  // Bitcoin gets weighted higher (primary)
   const pool = [];
   for (const c of COINS) {
     const t = tickerStringFor(c);
@@ -625,36 +556,24 @@ function pickTickerString() {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-function clearCanvas() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, cssW, cssH);
-}
-
 function resize() {
-  // HiDPI-aware sizing: render at native pixel density, lay out in CSS pixels
-  const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap at 2x: 4K TVs don't need more for rain
-  cssW = window.innerWidth;
-  cssH = window.innerHeight;
-  canvas.width = Math.round(cssW * dpr);
-  canvas.height = Math.round(cssH * dpr);
-  canvas.style.width = cssW + 'px';
-  canvas.style.height = cssH + 'px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  const colCount = Math.ceil(cssW / FONT_SIZE);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colCount = Math.ceil(canvas.width / FONT_SIZE);
   const old = columns;
   columns = [];
   for (let i = 0; i < colCount; i++) {
     columns.push(makeColumn(i, old[i]));
   }
-  clearCanvas();
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function makeColumn(i, prev) {
   return {
     x: i * FONT_SIZE,
-    y: prev ? prev.y : Math.random() * cssH,
-    speed: 1 + Math.floor(Math.random() * 4), // 1..4 (ticks per advance)
+    y: prev ? prev.y : Math.random() * canvas.height,
+    speed: 1 + Math.floor(Math.random() * 4), // 1..4 (frames per advance)
     frame: Math.floor(Math.random() * 4),
     lastChar: null,
     lastWasTicker: false,
@@ -684,8 +603,9 @@ function resetColumn(col) {
 }
 
 function tick() {
+  // Fade overlay
   ctx.fillStyle = 'rgba(0, 0, 0, 0.075)';
-  ctx.fillRect(0, 0, cssW, cssH);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.font = `${FONT_SIZE}px "Share Tech Mono", monospace`;
   ctx.textBaseline = 'top';
@@ -695,6 +615,7 @@ function tick() {
     if (col.frame < col.speed) continue;
     col.frame = 0;
 
+    // Determine the char and whether it belongs to a ticker
     const thisIsTicker = col.tickerMode;
     const thisIsPositive = col.tickerPositive;
 
@@ -710,6 +631,7 @@ function tick() {
       char = randomChar();
     }
 
+    // Stamp the previous head as fully-saturated trail color
     if (col.lastChar !== null) {
       let trailColor;
       if (col.lastWasTicker) {
@@ -723,6 +645,7 @@ function tick() {
       ctx.fillText(col.lastChar, col.x, col.y - FONT_SIZE);
     }
 
+    // Bright "head"
     ctx.fillStyle = 'rgba(224, 255, 232, 0.98)';
     ctx.fillText(char, col.x, col.y);
 
@@ -732,86 +655,45 @@ function tick() {
 
     col.y += FONT_SIZE;
 
-    if (col.y > cssH && Math.random() > col.resetChance) {
+    if (col.y > canvas.height && Math.random() > col.resetChance) {
       resetColumn(col);
     }
   }
 }
 
-function loop(ts) {
-  const interval = 1000 / RAIN_SPEEDS[rainSpeedIdx].fps;
-  if (ts - lastTickTime >= interval) {
-    // Catch up at most one tick — avoids burst after tab switch
-    lastTickTime = ts - ((ts - lastTickTime) % interval);
-    tick();
-  }
+function loop() {
+  tick();
   requestAnimationFrame(loop);
 }
 
-// Clear stale frozen trails when tab becomes visible again
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    clearCanvas();
-    lastTickTime = performance.now();
-    reacquireWakeLock();
-  }
-});
-
-// === DATA FETCH (with exponential backoff) ===
-function scheduleFetch(delay) {
-  clearTimeout(fetchTimer);
-  fetchTimer = setTimeout(fetchData, delay);
-}
-
+// === DATA FETCH ===
 async function fetchData() {
   try {
     const r = await fetch(API_URL, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const arr = await r.json();
-
-    prevPrices = {};
-    for (const id in coinData) prevPrices[id] = coinData[id].current_price;
-
     coinData = {};
     for (const item of arr) coinData[item.id] = item;
-
-    failCount = 0;
-    lastSyncAt = Date.now();
-    setStatus('ok');
+    setStatus(true);
     stampSync();
     renderTicker();
-    scheduleFetch(REFRESH_MS);
   } catch (e) {
-    failCount++;
-    setStatus('fail');
+    setStatus(false);
     console.error('[fetch]', e);
-    // Exponential backoff: 15s, 30s, 60s, 120s, 240s, capped at 5 min.
-    // Plays nice with CoinGecko free-tier 429s instead of hammering it.
-    const delay = Math.min(BACKOFF_BASE_MS * Math.pow(2, failCount - 1), BACKOFF_MAX_MS);
-    scheduleFetch(delay);
   }
 }
 
-function setStatus(mode) {
+function setStatus(ok) {
   const dot = document.getElementById('statusDot');
   const txt = document.getElementById('statusText');
-  dot.classList.remove('warn', 'stale');
-  if (mode === 'ok') {
+  if (ok) {
+    dot.classList.remove('warn');
     txt.textContent = 'LINK ESTABLISHED';
-  } else if (mode === 'stale') {
-    dot.classList.add('stale');
-    const age = Math.round((Date.now() - lastSyncAt) / 60000);
-    txt.textContent = `DATA STALE · ${age}M OLD`;
   } else {
     dot.classList.add('warn');
-    txt.textContent = `LINK DEGRADED · RETRY ${failCount}`;
+    txt.textContent = 'LINK DEGRADED · RETRY';
   }
 }
-
-// Watchdog: flag data as stale if the last good sync is too old
-setInterval(() => {
-  if (lastSyncAt && Date.now() - lastSyncAt > STALE_MS) setStatus('stale');
-}, 30000);
 
 function stampSync() {
   const now = new Date();
@@ -821,100 +703,21 @@ function stampSync() {
   document.getElementById('updateText').textContent = `SYNC :: ${hh}:${mm}:${ss}`;
 }
 
-// === SPARKLINES ===
-function drawSpark(canvasEl, points, up) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const w = canvasEl.clientWidth || 120;
-  const h = canvasEl.clientHeight || 26;
-  canvasEl.width = Math.round(w * dpr);
-  canvasEl.height = Math.round(h * dpr);
-  const c = canvasEl.getContext('2d');
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  if (!points || points.length < 2) return;
-
-  let min = Infinity, max = -Infinity;
-  for (const p of points) { if (p < min) min = p; if (p > max) max = p; }
-  const range = (max - min) || 1;
-  const pad = 2;
-  const stepX = (w - pad * 2) / (points.length - 1);
-  const yFor = v => pad + (1 - (v - min) / range) * (h - pad * 2);
-
-  const color = up ? 'rgba(0,255,102,' : 'rgba(255,50,90,';
-
-  // Filled glow under the line
-  c.beginPath();
-  c.moveTo(pad, yFor(points[0]));
-  for (let i = 1; i < points.length; i++) c.lineTo(pad + i * stepX, yFor(points[i]));
-  c.lineTo(pad + (points.length - 1) * stepX, h);
-  c.lineTo(pad, h);
-  c.closePath();
-  const grad = c.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, color + '0.22)');
-  grad.addColorStop(1, color + '0)');
-  c.fillStyle = grad;
-  c.fill();
-
-  // Line
-  c.beginPath();
-  c.moveTo(pad, yFor(points[0]));
-  for (let i = 1; i < points.length; i++) c.lineTo(pad + i * stepX, yFor(points[i]));
-  c.strokeStyle = color + '0.9)';
-  c.lineWidth = 1.4;
-  c.shadowColor = color + '0.8)';
-  c.shadowBlur = 4;
-  c.stroke();
-  c.shadowBlur = 0;
-}
-
-function sparkPointsFor(d) {
-  const all = d.sparkline_in_7d && d.sparkline_in_7d.price;
-  if (!all || !all.length) return null;
-  // sparkline_in_7d = hourly points for 7 days (~168). 24H view = last 24 points.
-  return currentPeriod === '24h' ? all.slice(-24) : all;
-}
-
 // === RENDER TICKER ===
 function renderTicker() {
   const ticker = document.getElementById('ticker');
   ticker.innerHTML = '';
-  const sparkJobs = [];
-
   for (const c of COINS) {
     const d = coinData[c.id];
-    const card = document.createElement('div');
-
-    if (!d) {
-      // Coin missing from the API response: show it explicitly instead of vanishing
-      card.className = `card nodata ${c.primary ? 'primary' : ''}`;
-      card.innerHTML = `
-        <span class="corner tr"></span>
-        <span class="corner bl"></span>
-        <div class="row1">
-          <span class="sym">[ ${c.sym} ]</span>
-          <span class="name">${c.name.toUpperCase()}</span>
-        </div>
-        <div class="price">NO SIGNAL</div>
-        <div class="change"><span class="period-tag">AWAITING FEED</span></div>
-      `;
-      ticker.appendChild(card);
-      continue;
-    }
-
+    if (!d) continue;
     const change = changeFor(d);
     const up = change == null ? true : change >= 0;
     const changeStr = (change == null || isNaN(change))
       ? '--'
       : `${up ? '+' : ''}${change.toFixed(2)}%`;
 
-    // Flash when price moved since the previous sync
-    let flashClass = '';
-    const prev = prevPrices[c.id];
-    if (prev != null && d.current_price !== prev) {
-      flashClass = d.current_price > prev ? 'flash-up' : 'flash-down';
-    }
-
-    card.className = `card ${up ? 'up' : 'down'} ${c.primary ? 'primary' : ''} ${flashClass}`;
+    const card = document.createElement('div');
+    card.className = `card ${up ? 'up' : 'down'} ${c.primary ? 'primary' : ''}`;
     card.innerHTML = `
       <span class="corner tr"></span>
       <span class="corner bl"></span>
@@ -928,51 +731,9 @@ function renderTicker() {
         <span>${changeStr}</span>
         <span class="period-tag">${currentPeriod.toUpperCase()}</span>
       </div>
-      <canvas class="spark"></canvas>
     `;
     ticker.appendChild(card);
-
-    const pts = sparkPointsFor(d);
-    if (pts) sparkJobs.push([card.querySelector('.spark'), pts, up]);
   }
-
-  // Draw sparklines after layout so clientWidth is real
-  requestAnimationFrame(() => {
-    for (const [el, pts, up] of sparkJobs) drawSpark(el, pts, up);
-  });
-}
-
-// === OLED ANTI BURN-IN: subtle HUD pixel drift ===
-// Shifts the static HUD by up to ±3px every 60s (same trick OLED TVs use).
-// Imperceptible to viewers, but no pixel holds the same bright content for hours.
-setInterval(() => {
-  const x = (Math.random() * 6 - 3).toFixed(1);
-  const y = (Math.random() * 6 - 3).toFixed(1);
-  document.documentElement.style.setProperty('--shift-x', x + 'px');
-  document.documentElement.style.setProperty('--shift-y', y + 'px');
-}, 60000);
-
-// === WAKE LOCK: keep the screen on in kiosk / fullscreen (TV mode) ===
-let wakeLock = null;
-async function requestWakeLock() {
-  if (!('wakeLock' in navigator)) return;
-  try {
-    wakeLock = await navigator.wakeLock.request('screen');
-  } catch (e) { /* denied (battery saver etc.) — fail silently */ }
-}
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-}
-function reacquireWakeLock() {
-  // Wake locks auto-release when the tab hides; re-grab on return if still needed
-  if ((document.body.classList.contains('kiosk') || document.fullscreenElement) && !wakeLock) {
-    requestWakeLock();
-  }
-}
-function syncWakeLock() {
-  const need = document.body.classList.contains('kiosk') || !!document.fullscreenElement;
-  if (need && !wakeLock) requestWakeLock();
-  if (!need && wakeLock) releaseWakeLock();
 }
 
 // === CONTROLS ===
@@ -987,7 +748,6 @@ document.querySelectorAll('.period').forEach(b => {
 
 function toggleKiosk() {
   document.body.classList.toggle('kiosk');
-  syncWakeLock();
 }
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
@@ -996,51 +756,30 @@ function toggleFullscreen() {
     document.exitFullscreen().catch(() => {});
   }
 }
-document.addEventListener('fullscreenchange', syncWakeLock);
-
-function cycleRainSpeed() {
-  rainSpeedIdx = (rainSpeedIdx + 1) % RAIN_SPEEDS.length;
-  document.getElementById('rainBtn').textContent = 'RAIN: ' + RAIN_SPEEDS[rainSpeedIdx].label;
-}
 
 document.getElementById('kioskBtn').addEventListener('click', toggleKiosk);
 document.getElementById('fsBtn').addEventListener('click', toggleFullscreen);
-document.getElementById('rainBtn').addEventListener('click', cycleRainSpeed);
-
-// Double-click anywhere on the rain toggles kiosk — handy on a TV with no keyboard
-canvas.addEventListener('dblclick', toggleKiosk);
 
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'k' || e.key === 'K') toggleKiosk();
   if (e.key === 'f' || e.key === 'F') toggleFullscreen();
-  if (e.key === 's' || e.key === 'S') cycleRainSpeed();
   if (e.key === 'Escape' && document.body.classList.contains('kiosk')) {
     document.body.classList.remove('kiosk');
-    syncWakeLock();
   }
 });
 
-// Redraw sparklines on resize (card widths change)
-let resizeT = null;
-window.addEventListener('resize', () => {
-  resize();
-  clearTimeout(resizeT);
-  resizeT = setTimeout(renderTicker, 250);
-});
-
 // === INIT ===
-if (REDUCED_MOTION) {
-  document.getElementById('rainBtn').textContent = 'RAIN: ' + RAIN_SPEEDS[rainSpeedIdx].label;
-}
+window.addEventListener('resize', resize);
 resize();
-requestAnimationFrame(loop);
+loop();
 
 setTimeout(() => {
   document.getElementById('boot').classList.add('hidden');
 }, 2100);
 
 fetchData();
+setInterval(fetchData, REFRESH_MS);
 </script>
 </body>
 </html>

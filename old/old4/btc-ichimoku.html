@@ -4,17 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BTC · Ichimoku Kinkō Hyō</title>
-<!-- ============================================================
-     BTC · Ichimoku Kinkō Hyō — revisão Claude Fable 5
-     Principais melhorias desta versão:
-     · Medidor de consenso em SVG (arco + agulha animada)
-     · Sparklines nos cartões de timeframe
-     · Zoom ancorado no cursor, pinch-zoom, duplo clique reseta
-     · Crosshair completo + linha do último preço com etiqueta
-     · Espessura do Kumo e distância à Kijun como métricas
-     · Timeout/abort nas APIs, atualização atômica, pausa em aba oculta
-     · Acessibilidade por teclado e prefers-reduced-motion
-============================================================ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -29,7 +18,7 @@
   html,body{height:100%}
   body{
     background:
-      radial-gradient(1200px 700px at 78% -8%, rgba(224,178,74,.08), transparent 60%),
+      radial-gradient(1200px 700px at 78% -8%, rgba(224,178,74,.07), transparent 60%),
       radial-gradient(900px 600px at 8% 110%, rgba(91,141,239,.06), transparent 55%),
       var(--bg);
     color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-weight:300;
@@ -39,14 +28,7 @@
     content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.035;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
-  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:6px}
   .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:34px 22px 80px}
-
-  /* kanji watermark — assinatura visual */
-  .watermark{position:fixed;right:-6px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;
-    font-family:"Instrument Serif",serif;font-size:clamp(90px,11vw,150px);letter-spacing:.16em;
-    color:var(--gold);opacity:.05;pointer-events:none;z-index:0;user-select:none;line-height:1}
-  @media(max-width:980px){.watermark{display:none}}
 
   /* language toggle */
   .lang-toggle{position:absolute;top:18px;right:22px;display:inline-flex;background:var(--bg2);
@@ -66,52 +48,37 @@
   .brand h1 em{font-style:italic;color:var(--gold)}
   .brand p{color:var(--muted);font-size:13.5px;margin-top:10px;max-width:50ch}
 
-  .ticker{text-align:right;min-width:240px}
-  .ticker .lab{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
-  .ticker .price{font-family:"IBM Plex Mono",monospace;font-size:clamp(28px,3.4vw,36px);font-weight:600;letter-spacing:-.01em;margin-top:2px}
-  .ticker .price.up{animation:flashUp .8s ease}
-  .ticker .price.dn{animation:flashDn .8s ease}
-  @keyframes flashUp{0%{color:var(--bull);text-shadow:0 0 18px rgba(54,178,133,.55)}100%{color:var(--ink)}}
-  @keyframes flashDn{0%{color:var(--bear);text-shadow:0 0 18px rgba(226,83,60,.55)}100%{color:var(--ink)}}
-  .ticker .chg{font-family:"IBM Plex Mono",monospace;font-size:13px;margin-top:3px}
-  .chg.pos{color:var(--bull)} .chg.neg{color:var(--bear)}
-  .range{display:flex;align-items:center;gap:8px;margin-top:9px;justify-content:flex-end}
-  .range .rb{position:relative;width:118px;height:4px;border-radius:2px;
-    background:linear-gradient(90deg,rgba(226,83,60,.55),var(--line2) 40%,var(--line2) 60%,rgba(54,178,133,.55))}
-  .range .rb i{position:absolute;top:-3px;left:50%;width:10px;height:10px;border-radius:50%;background:var(--gold);
-    transform:translateX(-50%);transition:left .6s ease;box-shadow:0 0 10px rgba(224,178,74,.65)}
-  .range .rl{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--faint)}
-  .upd{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:6px}
+  .ticker{text-align:right;min-width:210px}
+  .ticker .lab{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+  .ticker .price{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:clamp(26px,4vw,38px);letter-spacing:-.01em;margin-top:2px;line-height:1}
+  .ticker .chg{font-family:"IBM Plex Mono",monospace;font-size:14px;margin-top:6px;font-weight:500}
+  .ticker .upd{font-size:11px;color:var(--faint);margin-top:8px;font-family:"IBM Plex Mono",monospace}
+  .pos{color:var(--bull)} .neg{color:var(--bear)}
 
   /* consensus */
-  .consensus{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;background:linear-gradient(160deg,var(--panel2),var(--panel) 60%);
-    border:1px solid var(--line);border-radius:16px;padding:16px 24px;margin-bottom:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-  .consensus::after{content:"";position:absolute;inset:-40% 60% auto -10%;height:120%;
-    background:radial-gradient(closest-side,rgba(224,178,74,.06),transparent);pointer-events:none}
-  .gauge-wrap{flex:none;width:188px}
-  .gsvg{display:block;width:100%;height:auto;font-family:"IBM Plex Mono",monospace}
-  #gArc{transition:stroke-dashoffset .9s cubic-bezier(.3,.9,.3,1)}
-  #gNeedle{transform-box:view-box;transform-origin:100px 100px;transition:transform .9s cubic-bezier(.3,1.35,.4,1)}
-  .consensus .ctxt .t{font-family:"Instrument Serif",serif;font-size:25px;line-height:1.1}
-  .consensus .ctxt .s{color:var(--muted);font-size:13px;margin-top:4px}
-  .consensus .bars{flex:1;display:flex;gap:5px;align-items:flex-end;height:50px;min-width:130px}
+  .consensus{display:flex;align-items:center;gap:18px;background:linear-gradient(120deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .consensus .gauge{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+    font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:20px;position:relative}
+  .consensus .ctxt .t{font-family:"Instrument Serif",serif;font-size:23px;line-height:1.1}
+  .consensus .ctxt .s{color:var(--muted);font-size:13px;margin-top:3px}
+  .consensus .bars{flex:1;display:flex;gap:4px;align-items:flex-end;height:46px;min-width:120px}
   .consensus .bars span{flex:1;border-radius:3px 3px 0 0;background:var(--line2);transition:height .5s ease,background .5s}
 
   /* tf cards */
   .tf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:26px}
-  .tf-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px 12px;cursor:pointer;
-    position:relative;overflow:hidden;transition:transform .18s ease,border-color .18s ease,background .18s,box-shadow .25s}
+  .tf-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;cursor:pointer;
+    position:relative;overflow:hidden;transition:transform .18s ease,border-color .18s ease,background .18s}
   .tf-card::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2);transition:width .18s}
-  .tf-card:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 14px 30px -16px rgba(0,0,0,.8)}
-  .tf-card.active{background:var(--panel2);border-color:var(--gold);box-shadow:0 14px 34px -16px rgba(224,178,74,.25)}
+  .tf-card:hover{transform:translateY(-3px);border-color:var(--line2)}
+  .tf-card.active{background:var(--panel2);border-color:var(--gold)}
   .tf-card.active::after{width:4px;background:var(--gold)}
   .tf-card .tf-head{display:flex;justify-content:space-between;align-items:baseline}
   .tf-card .tf-name{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:16px;letter-spacing:.04em}
   .tf-card .tf-px{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
-  .tf-card .verdict{margin-top:10px;font-family:"Instrument Serif",serif;font-size:21px;line-height:1}
-  .tf-card .score{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:5px;letter-spacing:.05em}
-  .tf-card canvas.spark{display:block;width:100%;height:34px;margin-top:9px}
-  .tf-card .mini{display:flex;gap:5px;margin-top:9px}
+  .tf-card .verdict{margin-top:12px;font-family:"Instrument Serif",serif;font-size:21px;line-height:1}
+  .tf-card .score{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint);margin-top:6px;letter-spacing:.05em}
+  .tf-card .mini{display:flex;gap:5px;margin-top:11px}
   .tf-card .mini i{flex:1;height:5px;border-radius:3px;background:var(--line2)}
   .v-2{color:var(--bull)} .v-1{color:#7fc9a6} .v0{color:var(--gold)} .v-neg1{color:#e89a86} .v-neg2{color:var(--bear)}
 
@@ -128,8 +95,8 @@
   .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
   .legend .sw{width:13px;height:9px;border-radius:2px}
   .canvas-host{position:relative;width:100%;height:440px;touch-action:none}
-  canvas#cv{width:100%;height:100%;display:block;cursor:crosshair}
-  .chart-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--faint);font-size:11px;font-family:"IBM Plex Mono",monospace;padding:8px 2px 2px}
+  canvas{width:100%;height:100%;display:block;cursor:crosshair}
+  .chart-foot{display:flex;justify-content:space-between;color:var(--faint);font-size:11px;font-family:"IBM Plex Mono",monospace;padding:8px 2px 2px}
 
   /* HOW TO READ — destaque */
   .howto{background:linear-gradient(135deg,rgba(224,178,74,.07),var(--panel) 45%);
@@ -196,28 +163,23 @@
   @keyframes sp{to{transform:rotate(360deg)}}
   .loading-veil{position:absolute;inset:0;display:grid;place-items:center;background:rgba(11,12,16,.55);backdrop-filter:blur(2px);border-radius:12px;font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:13px;z-index:5;transition:opacity .3s;text-align:center;padding:20px}
   .err{color:var(--bear);font-size:13px;font-family:"IBM Plex Mono",monospace}
-  .fade-in{animation:fade .55s ease both}
-  .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.2s}.d4{animation-delay:.28s}
+  .fade-in{animation:fade .5s ease both}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-
-  .home-link{--hl:#e0b24a;display:inline-flex;align-items:center;width:max-content;height:40px;min-width:40px;margin-bottom:14px;border-radius:999px;background:rgba(16,18,24,.7);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'IBM Plex Mono',monospace}
-  .home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center}
-  .home-link .hl-ico svg{width:17px;height:17px;display:block}
-  .home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s}
-  .home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(16,18,24,.7));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl)}
-  .home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px}
-  .home-link:active{transform:scale(.94)}
-
-  @media(prefers-reduced-motion:reduce){
-    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
-  }
 </style>
 </head>
 <body>
-<div class="watermark" aria-hidden="true">一目均衡表</div>
+<style>
+.home-link{--hl:#e0b24a;display:inline-flex;align-items:center;width:max-content;height:40px;min-width:40px;margin-bottom:14px;border-radius:999px;background:rgba(16,18,24,.7);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'IBM Plex Mono',monospace;}
+.home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
+.home-link .hl-ico svg{width:17px;height:17px;display:block;}
+.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
+.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(16,18,24,.7));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl);}
+.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
+.home-link:active{transform:scale(.94);}
+</style>
 <div class="wrap">
 
-  <div class="lang-toggle" role="group" aria-label="Language">
+  <div class="lang-toggle">
     <button data-lang="pt" class="on">PT</button>
     <button data-lang="en">EN</button>
   </div>
@@ -233,34 +195,13 @@
       <div class="lab">BTC / USDT · spot</div>
       <div class="price" id="px">—</div>
       <div class="chg" id="chg">—</div>
-      <div class="range" id="rangeRow" style="visibility:hidden">
-        <span class="rl" id="rlo">—</span>
-        <div class="rb"><i id="rpos"></i></div>
-        <span class="rl" id="rhi">—</span>
-      </div>
       <div class="upd" id="upd"></div>
     </div>
   </header>
 
-  <div class="consensus fade-in d1">
-    <div class="gauge-wrap">
-      <svg class="gsvg" viewBox="0 0 200 122" aria-hidden="true">
-        <defs>
-          <linearGradient id="garc" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stop-color="#e2533c"/>
-            <stop offset=".5" stop-color="#e0b24a"/>
-            <stop offset="1" stop-color="#36b285"/>
-          </linearGradient>
-        </defs>
-        <path d="M 22 100 A 78 78 0 0 1 178 100" stroke="#242837" stroke-width="9" fill="none" stroke-linecap="round"/>
-        <path id="gArc" d="M 22 100 A 78 78 0 0 1 178 100" stroke="url(#garc)" stroke-width="9" fill="none" stroke-linecap="round"/>
-        <g id="gTicks" stroke="#3a4052" stroke-width="1"></g>
-        <line id="gNeedle" x1="100" y1="100" x2="100" y2="40" stroke="#878c9c" stroke-width="2.2" stroke-linecap="round"/>
-        <circle cx="100" cy="100" r="4.5" fill="#ece8df"/>
-        <text x="20" y="117" text-anchor="middle" font-size="9" fill="#5a5f6e">−5</text>
-        <text id="gVal" x="100" y="118" text-anchor="middle" font-size="17" font-weight="600" fill="#878c9c">—</text>
-        <text x="180" y="117" text-anchor="middle" font-size="9" fill="#5a5f6e">+5</text>
-      </svg>
+  <div class="consensus fade-in">
+    <div class="gauge" id="gauge" style="background:conic-gradient(var(--line2) 0 100%);">
+      <div style="position:absolute;inset:5px;border-radius:50%;background:var(--panel);display:grid;place-items:center" id="gaugeIn">—</div>
     </div>
     <div class="ctxt">
       <div class="t" id="consTitle"></div>
@@ -269,9 +210,9 @@
     <div class="bars" id="consBars"></div>
   </div>
 
-  <div class="tf-grid fade-in d2" id="tfGrid"></div>
+  <div class="tf-grid" id="tfGrid"></div>
 
-  <div class="chart-panel fade-in d3">
+  <div class="chart-panel fade-in">
     <div class="chart-top">
       <div class="title" id="chartTitle"></div>
       <div class="toolbar">
@@ -299,7 +240,7 @@
   </div>
 
   <!-- HOW TO READ -->
-  <div class="howto fade-in d4">
+  <div class="howto fade-in">
     <h2 id="howtoTitle"></h2>
     <div class="lead" id="howtoLead"></div>
     <div class="howto-steps" id="howtoSteps"></div>
@@ -326,6 +267,7 @@
 
   <footer id="footer"></footer>
 </div>
+
 <script>
 /* ============================================================
    I18N
@@ -337,25 +279,34 @@ pt:{
   subtitle:'Análise da nuvem (Kumo) e das linhas de Ichimoku em vários tempos gráficos, com preço ao vivo.',
   waiting:'aguardando dados…', updated:'atualizado ', loadingCandles:'carregando velas…',
   errLoad:'⚠ Não foi possível carregar os dados de preço.<br>Verifique a conexão ou recarregue a página.',
-  refresh:'↻ atualizar', footHint:'role para zoom · arraste para navegar · duplo clique reinicia a vista',
+  refresh:'↻ atualizar', footHint:'role para zoom · arraste para navegar',
   legBull:'Kumo altista', legBear:'Kumo baixista',
   readH:'Leitura da nuvem', selectTf:'Selecione um tempo gráfico para ver a interpretação.',
   sigH:'Sinais', sigSub:'componentes do sistema',
   candles:' velas · atualizado ', consCalc:'Calculando consenso…', consReading:'Lendo 5 tempos gráficos',
+  // tf names
   tf_15m:'15 minutos', tf_1h:'1 hora', tf_4h:'4 horas', tf_1d:'diário', tf_1w:'semanal',
+  // verdicts
   strong_buy:'Forte compra', buy:'Compra', neutral:'Neutro', sell:'Venda', strong_sell:'Forte venda',
+  // consensus
   uptrend:'Tendência de alta', bull_bias:'Viés comprador', downtrend:'Tendência de baixa',
   bear_bias:'Viés vendedor', sideways:'Mercado lateral',
+  // signal names
   sigPriceCloud:'Preço vs Kumo', sigTK:'Cruz Tenkan/Kijun', sigChikou:'Chikou Span',
   sigFuture:'Nuvem futura', sigPriceKijun:'Preço vs Kijun',
+  // signal values
   above_cloud:'acima da nuvem', below_cloud:'abaixo da nuvem', inside_cloud:'dentro da nuvem',
   tenkan_above:'Tenkan acima', tenkan_below:'Tenkan abaixo', tk_aligned:'alinhadas',
   chikou_free:'livre acima', chikou_trapped:'presa abaixo', chikou_neutral:'neutra',
   cloud_green:'verde (altista)', cloud_red:'vermelha (baixista)', cloud_flat:'plana',
   above_base:'acima da base', below_base:'abaixo da base', on_base:'na base',
-  lvTop:'Topo nuvem', lvBot:'Base nuvem', lvThick:'Espessura Kumo', lvDist:'Dist. à Kijun',
+  // levels
+  lvTop:'Topo nuvem', lvBot:'Base nuvem',
+  // tooltip
   tipFuture:'futuro', tipProj:'projeção',
+  // score
   score:'pontuação', of:'de', tfBull:'tempos altistas', tfBear:'baixistas', avg:'média',
+  // narrative pieces
   n_pos_above:'acima da nuvem, em território claramente comprador',
   n_pos_below:'abaixo da nuvem, em território vendedor',
   n_pos_inside:'dentro da nuvem — zona de indecisão e possível consolidação',
@@ -365,6 +316,7 @@ pt:{
   n_fut_green:'a nuvem à frente é verde, o que favorece a continuidade altista',
   n_fut_red:'a nuvem à frente é vermelha, sugerindo pressão vendedora adiante',
   n_fut_flat:'a nuvem à frente está plana',
+  // how to read
   howtoTitle:'Como ler em 4 passos', howtoLead:'do mais importante ao filtro final',
   howto:[
     {n:'1',c:'var(--jade)',t:'A Nuvem é a sua bússola',s:'Defina o viés antes de tudo. Preço <em>acima</em> da nuvem = comprador. <em>Abaixo</em> = vendedor. <em>Dentro</em> = indefinido, melhor não operar.'},
@@ -405,14 +357,14 @@ pt:{
     </ol>
     <p><strong>Em resumo:</strong> o Ichimoku é menos sobre reagir a cada oscilação e mais sobre operar quando tempo e preço convergem. Estrutura da nuvem e Chikou primeiro; o resto é confirmação.</p>
   `,
-  footer:'Dados: API pública da Binance (spot BTC/USDT), com Bybit como reserva · cálculo de Ichimoku no navegador, padrão 9 / 26 / 52 / 26.<br>Conteúdo educativo de análise técnica — não é recomendação de investimento. Cripto envolve risco elevado.<br>Revisado e otimizado com Claude Fable 5 · Anthropic.'
+  footer:'Dados: API pública da Binance (spot BTC/USDT), com Bybit como reserva · cálculo de Ichimoku no navegador, padrão 9 / 26 / 52 / 26.<br>Conteúdo educativo de análise técnica — não é recomendação de investimento. Cripto envolve risco elevado.'
 },
 en:{
   title:'Bitcoin <em>Ichimoku</em> Kinkō Hyō Cloud',
   subtitle:'Cloud (Kumo) and Ichimoku-line analysis across multiple timeframes, with live price data.',
   waiting:'waiting for data…', updated:'updated ', loadingCandles:'loading candles…',
   errLoad:'⚠ Could not load price data.<br>Check your connection or reload the page.',
-  refresh:'↻ refresh', footHint:'scroll to zoom · drag to pan · double-click resets the view',
+  refresh:'↻ refresh', footHint:'scroll to zoom · drag to pan',
   legBull:'Bullish kumo', legBear:'Bearish kumo',
   readH:'Cloud reading', selectTf:'Select a timeframe to see the interpretation.',
   sigH:'Signals', sigSub:'system components',
@@ -427,7 +379,7 @@ en:{
   chikou_free:'free above', chikou_trapped:'trapped below', chikou_neutral:'neutral',
   cloud_green:'green (bullish)', cloud_red:'red (bearish)', cloud_flat:'flat',
   above_base:'above base', below_base:'below base', on_base:'at base',
-  lvTop:'Cloud top', lvBot:'Cloud base', lvThick:'Kumo thickness', lvDist:'Dist. to Kijun',
+  lvTop:'Cloud top', lvBot:'Cloud base',
   tipFuture:'future', tipProj:'projection',
   score:'score', of:'of', tfBull:'timeframes bullish', tfBear:'bearish', avg:'average',
   n_pos_above:'above the cloud, in clearly bullish territory',
@@ -479,14 +431,14 @@ en:{
     </ol>
     <p><strong>In short:</strong> Ichimoku is less about reacting to every swing and more about acting when time and price converge. Cloud structure and Chikou first; the rest is confirmation.</p>
   `,
-  footer:'Data: Binance public API (spot BTC/USDT), with Bybit as fallback · Ichimoku computed in the browser, standard 9 / 26 / 52 / 26.<br>Educational technical-analysis content — not investment advice. Crypto carries high risk.<br>Revised and optimized with Claude Fable 5 · Anthropic.'
+  footer:'Data: Binance public API (spot BTC/USDT), with Bybit as fallback · Ichimoku computed in the browser, standard 9 / 26 / 52 / 26.<br>Educational technical-analysis content — not investment advice. Crypto carries high risk.'
 }
 };
 function t(k){ return (I18N[lang] && I18N[lang][k]!=null) ? I18N[lang][k] : (I18N.pt[k]!=null?I18N.pt[k]:k); }
 function locale(){ return lang==="pt" ? "pt-BR" : "en-US"; }
 
 /* ============================================================
-   CONFIG + STATE
+   CONFIG
 ============================================================ */
 const TFS = [
   {key:"15m", binance:"15m", bybit:"15",  label:"15m"},
@@ -505,25 +457,20 @@ const COLORS = {
   grid:"#1c2030", text:"#878c9c", faint:"#5a5f6e"
 };
 const store = {}; let current = "1d"; const view = {};
-let errored=false, lastTickerPx=null;
+let errored=false;
 
 /* ============================================================
-   DATA  (timeout + abort para acionar o fallback rapidamente)
+   DATA
 ============================================================ */
-async function jget(url, ms=9000){
-  const ac=new AbortController(); const id=setTimeout(()=>ac.abort(), ms);
-  try{
-    const r=await fetch(url,{signal:ac.signal});
-    if(!r.ok) throw new Error("http "+r.status);
-    return await r.json();
-  } finally { clearTimeout(id); }
-}
 async function fetchBinance(tf){
-  const j=await jget(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${tf.binance}&limit=${LIMIT}`);
-  return j.map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
+  const r = await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${tf.binance}&limit=${LIMIT}`);
+  if(!r.ok) throw new Error("binance "+r.status);
+  return (await r.json()).map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
 }
 async function fetchBybit(tf){
-  const j=await jget(`https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=${tf.bybit}&limit=1000`);
+  const r = await fetch(`https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=${tf.bybit}&limit=1000`);
+  if(!r.ok) throw new Error("bybit "+r.status);
+  const j = await r.json();
   return j.result.list.slice().reverse().map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}));
 }
 async function loadTF(tf){ try{ return await fetchBinance(tf); }catch(e){ return await fetchBybit(tf); } }
@@ -547,20 +494,18 @@ function ichimoku(c){
 function signal(c, ich){
   const L=c.length-1, d=P.disp;
   const price=c[L].c, cloudA=ich.A[L-d], cloudB=ich.B[L-d], futA=ich.A[L], futB=ich.B[L];
-  const tk=ich.T[L], kj=ich.K[L];
-  const top=(cloudA!=null&&cloudB!=null)?Math.max(cloudA,cloudB):null;
-  const bot=(cloudA!=null&&cloudB!=null)?Math.min(cloudA,cloudB):null;
+  const tk=ich.T[L], kj=ich.K[L], top=Math.max(cloudA,cloudB), bot=Math.min(cloudA,cloudB);
   const s=[];
-  const c1 = top==null?0:price>top?1:price<bot?-1:0;
+  const c1 = price>top?1:price<bot?-1:0;
   s.push({nm:"sigPriceCloud", v:c1, txt:c1>0?"above_cloud":c1<0?"below_cloud":"inside_cloud"});
-  const c2 = (tk==null||kj==null)?0:tk>kj?1:tk<kj?-1:0;
+  const c2 = tk>kj?1:tk<kj?-1:0;
   s.push({nm:"sigTK", v:c2, txt:c2>0?"tenkan_above":c2<0?"tenkan_below":"tk_aligned"});
   const pago = c[L-d]?c[L-d].c:null;
   const c3 = pago==null?0:price>pago?1:price<pago?-1:0;
   s.push({nm:"sigChikou", v:c3, txt:c3>0?"chikou_free":c3<0?"chikou_trapped":"chikou_neutral"});
-  const c4 = (futA==null||futB==null)?0:futA>futB?1:futA<futB?-1:0;
+  const c4 = futA>futB?1:futA<futB?-1:0;
   s.push({nm:"sigFuture", v:c4, txt:c4>0?"cloud_green":c4<0?"cloud_red":"cloud_flat"});
-  const c5 = kj==null?0:price>kj?1:price<kj?-1:0;
+  const c5 = price>kj?1:price<kj?-1:0;
   s.push({nm:"sigPriceKijun", v:c5, txt:c5>0?"above_base":c5<0?"below_base":"on_base"});
   const sc=s.reduce((a,x)=>a+x.v,0);
   let vkey,vclass;
@@ -569,9 +514,7 @@ function signal(c, ich){
   else if(sc<=-3){vkey="strong_sell";vclass="v-neg2";}
   else if(sc<=-1){vkey="sell";vclass="v-neg1";}
   else {vkey="neutral";vclass="v0";}
-  const thick=(top!=null&&bot!=null&&price)?(top-bot)/price*100:null;
-  const dist=(kj!=null&&kj!==0)?(price-kj)/kj*100:null;
-  return {price,cloudA,cloudB,futA,futB,tk,kj,top,bot,thick,dist,components:s,score:sc,vkey,vclass};
+  return {price,cloudA,cloudB,futA,futB,tk,kj,top,bot,components:s,score:sc,vkey,vclass};
 }
 
 /* ============================================================
@@ -579,7 +522,6 @@ function signal(c, ich){
 ============================================================ */
 const fmtUSD = (x)=> x==null?"—":"$"+x.toLocaleString("en-US",{minimumFractionDigits:x<10?4:2,maximumFractionDigits:x<10?4:2});
 const fmtUSD0= (x)=> x==null?"—":"$"+x.toLocaleString("en-US",{maximumFractionDigits:0});
-const fmtPct = (x,sign)=> x==null?"—":((sign&&x>0)?"+":"")+x.toFixed(2)+"%";
 
 /* ============================================================
    STATIC TEXT
@@ -601,6 +543,7 @@ function applyStatic(){
   if(!errored) document.getElementById("veilTxt").textContent = t("loadingCandles");
   if(!document.getElementById("px").textContent || document.getElementById("px").textContent==="—")
     document.getElementById("upd").textContent = t("waiting");
+  // how to read
   document.getElementById("howtoTitle").textContent = t("howtoTitle");
   document.getElementById("howtoLead").textContent = t("howtoLead");
   const hs=document.getElementById("howtoSteps"); hs.innerHTML="";
@@ -611,45 +554,13 @@ function applyStatic(){
 }
 
 /* ============================================================
-   GAUGE (SVG)
-============================================================ */
-function buildGaugeTicks(){
-  const g=document.getElementById("gTicks"); if(!g||g.childNodes.length) return;
-  for(let a=-5;a<=5;a++){
-    const f=(a+5)/10, th=Math.PI*(1+f); // 180°→360°
-    const major=(a===-5||a===0||a===5), r2=78, r1=major?67:71;
-    const x1=100+r1*Math.cos(th), y1=100+r1*Math.sin(th);
-    const x2=100+r2*Math.cos(th), y2=100+r2*Math.sin(th);
-    const ln=document.createElementNS("http://www.w3.org/2000/svg","line");
-    ln.setAttribute("x1",x1.toFixed(1)); ln.setAttribute("y1",y1.toFixed(1));
-    ln.setAttribute("x2",x2.toFixed(1)); ln.setAttribute("y2",y2.toFixed(1));
-    if(major) ln.setAttribute("stroke","#4a5066");
-    g.appendChild(ln);
-  }
-}
-function setGauge(a,col){
-  const arc=document.getElementById("gArc"), L=arc.getTotalLength();
-  const f=Math.max(0,Math.min(1,(a+5)/10));
-  arc.style.strokeDasharray=L; arc.style.strokeDashoffset=L*(1-f);
-  const nd=document.getElementById("gNeedle");
-  nd.style.transform=`rotate(${(f-0.5)*180}deg)`; nd.setAttribute("stroke",col);
-  const gv=document.getElementById("gVal");
-  gv.textContent=(a>0?"+":"")+a.toFixed(1); gv.setAttribute("fill",col);
-}
-
-/* ============================================================
-   RENDER cards + sparklines + consensus + analysis
+   RENDER cards + consensus + analysis
 ============================================================ */
 function renderCards(){
   const g=document.getElementById("tfGrid"); g.innerHTML="";
   TFS.forEach(tf=>{
     const st=store[tf.key], div=document.createElement("div");
-    div.className="tf-card"+(tf.key===current?" active":"");
-    div.setAttribute("role","button"); div.tabIndex=0;
-    div.setAttribute("aria-pressed", tf.key===current ? "true":"false");
-    const go=()=>selectTF(tf.key);
-    div.onclick=go;
-    div.onkeydown=(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); go(); } };
+    div.className="tf-card"+(tf.key===current?" active":""); div.onclick=()=>selectTF(tf.key);
     if(!st){ div.innerHTML=`<div class="tf-head"><span class="tf-name">${tf.label}</span></div>
       <div class="verdict" style="color:var(--faint)"><span class="spin"></span></div>`; }
     else{
@@ -658,65 +569,40 @@ function renderCards(){
       div.innerHTML=`<div class="tf-head"><span class="tf-name">${tf.label}</span><span class="tf-px">${fmtUSD0(sg.price)}</span></div>
         <div class="verdict ${sg.vclass}">${t(sg.vkey)}</div>
         <div class="score">${t("score")} ${sg.score>0?'+':''}${sg.score} / 5</div>
-        <canvas class="spark" data-key="${tf.key}" aria-hidden="true"></canvas>
         <div class="mini">${minis}</div>`;
     }
     g.appendChild(div);
   });
-  drawSparks();
-}
-function drawSparks(){
-  document.querySelectorAll(".tf-card canvas.spark").forEach(sc=>{
-    const st=store[sc.dataset.key]; if(!st) return;
-    const dpr=Math.max(1,window.devicePixelRatio||1), w=sc.clientWidth, h=sc.clientHeight;
-    if(!w||!h) return;
-    sc.width=w*dpr; sc.height=h*dpr;
-    const g=sc.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
-    const cl=st.candles.slice(-56).map(k=>k.c);
-    if(cl.length<2) return;
-    const mn=Math.min(...cl), mx=Math.max(...cl), sp=(mx-mn)||1;
-    const col=st.signal.score>0?COLORS.bull:st.signal.score<0?COLORS.bear:COLORS.tenkan;
-    const X=i=>1+i/(cl.length-1)*(w-2), Y=v=>h-3-((v-mn)/sp)*(h-6);
-    g.beginPath();
-    cl.forEach((v,i)=> i?g.lineTo(X(i),Y(v)):g.moveTo(X(i),Y(v)));
-    g.strokeStyle=col; g.lineWidth=1.4; g.lineJoin="round"; g.stroke();
-    g.lineTo(X(cl.length-1),h); g.lineTo(X(0),h); g.closePath();
-    const gr=g.createLinearGradient(0,0,0,h);
-    gr.addColorStop(0,col+"36"); gr.addColorStop(1,col+"00");
-    g.fillStyle=gr; g.fill();
-  });
 }
 function renderConsensus(){
   const loaded=TFS.map(x=>store[x.key]).filter(Boolean);
-  if(loaded.length<TFS.length){
-    document.getElementById("consTitle").textContent=t("consCalc");
-    document.getElementById("consSub").textContent=t("consReading");
-    return;
-  }
+  if(loaded.length<TFS.length) return;
   let bull=0,bear=0,sum=0;
   loaded.forEach(s=>{ sum+=s.signal.score; if(s.signal.score>0)bull++; else if(s.signal.score<0)bear++; });
   const a=sum/loaded.length;
   let key,vclass,col;
-  if(a>=2){key="uptrend";vclass="v-2";col="#36b285";}
+  if(a>=2){key="uptrend";vclass="v-2";col="var(--bull)";}
   else if(a>=.6){key="bull_bias";vclass="v-1";col="#7fc9a6";}
-  else if(a<=-2){key="downtrend";vclass="v-neg2";col="#e2533c";}
+  else if(a<=-2){key="downtrend";vclass="v-neg2";col="var(--bear)";}
   else if(a<=-.6){key="bear_bias";vclass="v-neg1";col="#e89a86";}
-  else {key="sideways";vclass="v0";col="#e0b24a";}
-  setGauge(a,col);
+  else {key="sideways";vclass="v0";col="var(--gold)";}
+  const pct=Math.round(((a+5)/10)*100);
+  document.getElementById("gauge").style.background=`conic-gradient(${col} 0 ${pct}%, var(--line2) ${pct}% 100%)`;
+  const gi=document.getElementById("gaugeIn"); gi.textContent=(a>0?"+":"")+a.toFixed(1); gi.style.color=col;
   const ct=document.getElementById("consTitle"); ct.textContent=t(key); ct.className="t "+vclass;
   document.getElementById("consSub").textContent=
     `${bull} ${t("of")} ${loaded.length} ${t("tfBull")} · ${bear} ${t("tfBear")} · ${t("avg")} ${(a>0?'+':'')+a.toFixed(1)}/5`;
   const bars=document.getElementById("consBars"); bars.innerHTML="";
   TFS.forEach(x=>{ const sc=store[x.key].signal.score, sp=document.createElement("span");
-    sp.style.height=(20+Math.abs(sc)/5*28)+"px"; sp.style.background=sc>0?"var(--bull)":sc<0?"var(--bear)":"var(--gold)";
-    sp.title=x.label+": "+(sc>0?"+":"")+sc; bars.appendChild(sp); });
+    sp.style.height=(20+Math.abs(sc)/5*26)+"px"; sp.style.background=sc>0?"var(--bull)":sc<0?"var(--bear)":"var(--gold)";
+    sp.title=x.label+": "+sc; bars.appendChild(sp); });
 }
 function renderAnalysis(){
   const st=store[current], name=tfName(current);
   document.getElementById("readTf").textContent=`${name} · Ichimoku 9 / 26 / 52`;
   if(!st){ document.getElementById("readTxt").textContent=t("selectTf"); return; }
   const sg=st.signal;
-  const pos = (sg.top!=null&&sg.price>sg.top)?t("n_pos_above"):(sg.bot!=null&&sg.price<sg.bot)?t("n_pos_below"):t("n_pos_inside");
+  const pos = sg.price>sg.top?t("n_pos_above"):sg.price<sg.bot?t("n_pos_below"):t("n_pos_inside");
   const tkTxt = sg.tk>sg.kj?t("n_tk_above"):sg.tk<sg.kj?t("n_tk_below"):t("n_tk_eq");
   const futTxt = sg.futA>sg.futB?t("n_fut_green"):sg.futA<sg.futB?t("n_fut_red"):t("n_fut_flat");
   let txt;
@@ -738,37 +624,28 @@ function renderAnalysis(){
   sg.components.forEach(x=>{ const col=x.v>0?"var(--bull)":x.v<0?"var(--bear)":"var(--gold)";
     sigEl.innerHTML+=`<div class="sig"><span class="dot" style="background:${col}"></span>
       <span class="nm">${t(x.nm)}</span><span class="vl" style="color:${col}">${t(x.txt)}</span></div>`; });
-  const distCol = sg.dist==null?"var(--muted)":sg.dist>0?"var(--bull)":sg.dist<0?"var(--bear)":"var(--gold)";
   document.getElementById("levels").innerHTML=`
     <div class="lv"><span class="k">Tenkan</span><span class="v" style="color:var(--gold)">${fmtUSD0(sg.tk)}</span></div>
     <div class="lv"><span class="k">Kijun</span><span class="v" style="color:var(--blue)">${fmtUSD0(sg.kj)}</span></div>
     <div class="lv"><span class="k">${t("lvTop")}</span><span class="v" style="color:var(--jade)">${fmtUSD0(sg.top)}</span></div>
-    <div class="lv"><span class="k">${t("lvBot")}</span><span class="v" style="color:var(--verm)">${fmtUSD0(sg.bot)}</span></div>
-    <div class="lv"><span class="k">${t("lvThick")}</span><span class="v" style="color:var(--muted)">${fmtPct(sg.thick,false)}</span></div>
-    <div class="lv"><span class="k">${t("lvDist")}</span><span class="v" style="color:${distCol}">${fmtPct(sg.dist,true)}</span></div>`;
+    <div class="lv"><span class="k">${t("lvBot")}</span><span class="v" style="color:var(--verm)">${fmtUSD0(sg.bot)}</span></div>`;
 }
 
 /* ============================================================
    CHART
 ============================================================ */
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d"), host=document.getElementById("host");
-let DPR=Math.max(1,window.devicePixelRatio||1);
-let hover=null;          // {s, py}
-let lastScale=null;      // escala do último draw, para o crosshair
-const PAD={L:8,R:74,T:14,B:26};
-
+let DPR=Math.max(1,window.devicePixelRatio||1); let hover=null;
 function resize(){ DPR=Math.max(1,window.devicePixelRatio||1);
   cv.width=host.clientWidth*DPR; cv.height=host.clientHeight*DPR; ctx.setTransform(DPR,0,0,DPR,0,0); draw(); }
-window.addEventListener("resize",()=>{ resize(); drawSparks(); });
-if(typeof ResizeObserver!=="undefined"){ new ResizeObserver(()=>resize()).observe(host); }
-
+window.addEventListener("resize",resize);
 function getView(){ if(!view[current]){ const n=store[current]?store[current].candles.length:0;
   view[current]={zoom:Math.min(110,n),scroll:n-1}; } return view[current]; }
 
 function draw(){
   const st=store[current]; if(!st) return;
   const W=host.clientWidth,H=host.clientHeight; ctx.clearRect(0,0,W,H);
-  const padL=PAD.L,padR=PAD.R,padT=PAD.T,padB=PAD.B, plotW=W-padL-padR, plotH=H-padT-padB;
+  const padL=8,padR=68,padT=12,padB=26, plotW=W-padL-padR, plotH=H-padT-padB;
   const c=st.candles,ich=st.ich,n=c.length,d=P.disp, v=getView();
   v.zoom=Math.max(30,Math.min(n,v.zoom)); v.scroll=Math.max(v.zoom-1,Math.min(n-1,v.scroll));
   const S=v.scroll-v.zoom+1, E=v.scroll+d, slots=E-S+1, cw=plotW/slots;
@@ -782,20 +659,13 @@ function draw(){
   if(!isFinite(mn)) return;
   const pad=(mx-mn)*0.08||mx*0.02; mn-=pad; mx+=pad;
   const y=(p)=>padT+(1-(p-mn)/(mx-mn))*plotH;
-  lastScale={mn,mx,padT,padL,plotH,plotW};
-
-  /* grade + eixo de preço */
   ctx.font='10px "IBM Plex Mono", monospace'; ctx.textBaseline="middle";
   for(let i=0;i<=6;i++){ const p=mn+(mx-mn)*i/6, yy=y(p);
     ctx.strokeStyle=COLORS.grid; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(W-padR,yy); ctx.stroke();
     ctx.fillStyle=COLORS.faint; ctx.textAlign="left"; ctx.fillText(fmtUSD0(p).replace("$",""), W-padR+6, yy); }
-
-  /* divisor presente/futuro */
   const liveX=x(v.scroll)+cw/2;
   ctx.strokeStyle="rgba(224,178,74,.25)"; ctx.setLineDash([3,4]); ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(liveX,padT); ctx.lineTo(liveX,padT+plotH); ctx.stroke(); ctx.setLineDash([]);
-
-  /* nuvem */
   for(let s=S;s<E;s++){
     const a1=ich.A[s-d],b1=ich.B[s-d],a2=ich.A[s+1-d],b2=ich.B[s+1-d];
     if(a1==null||b1==null||a2==null||b2==null) continue;
@@ -803,8 +673,6 @@ function draw(){
     ctx.fillStyle=up?COLORS.cloudBull:COLORS.cloudBear;
     ctx.beginPath(); ctx.moveTo(x1,y(a1)); ctx.lineTo(x2,y(a2)); ctx.lineTo(x2,y(b2)); ctx.lineTo(x1,y(b1)); ctx.closePath(); ctx.fill();
   }
-
-  /* linhas */
   function line(getter,color,lw){ ctx.strokeStyle=color; ctx.lineWidth=lw||1.4; ctx.lineJoin="round";
     let started=false; ctx.beginPath();
     for(let s=S;s<=E;s++){ const p=getter(s); if(p==null||!isFinite(p)){started=false;continue;}
@@ -814,8 +682,6 @@ function draw(){
   line(s=>(s>=0&&s<=n-1)?ich.T[s]:null,COLORS.tenkan,1.5);
   line(s=>(s>=0&&s<=n-1)?ich.K[s]:null,COLORS.kijun,1.5);
   line(s=>{const i=s+d;return i>=0&&i<=n-1?c[i].c:null;},COLORS.chikou,1.3);
-
-  /* velas */
   const bw=Math.max(1,Math.min(cw*0.62,14));
   for(let s=Math.max(S,0);s<=Math.min(E,n-1);s++){
     const k=c[s],xx=x(s),up=k.c>=k.o,col=up?COLORS.bull:COLORS.bear;
@@ -823,44 +689,15 @@ function draw(){
     ctx.beginPath(); ctx.moveTo(xx,y(k.h)); ctx.lineTo(xx,y(k.l)); ctx.stroke();
     const yo=y(k.o),yc=y(k.c),top=Math.min(yo,yc),bh=Math.max(1,Math.abs(yc-yo)); ctx.fillRect(xx-bw/2,top,bw,bh);
   }
-
-  /* linha do último preço + etiqueta no eixo */
-  const lp=c[n-1].c, prev=c[n-2]?c[n-2].c:lp, lpUp=lp>=prev, lpCol=lpUp?COLORS.bull:COLORS.bear, lpy=y(lp);
-  if(lpy>padT&&lpy<padT+plotH){
-    ctx.save(); ctx.globalAlpha=.55; ctx.strokeStyle=lpCol; ctx.setLineDash([5,4]); ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(padL,lpy); ctx.lineTo(W-padR,lpy); ctx.stroke(); ctx.restore();
-    const lbl=fmtUSD0(lp).replace("$","");
-    ctx.font='10px "IBM Plex Mono", monospace';
-    const tw=ctx.measureText(lbl).width+12;
-    ctx.fillStyle=lpCol; roundRect(W-padR+2, lpy-9, Math.max(tw,padR-6), 18, 5); ctx.fill();
-    ctx.fillStyle="#0b0c10"; ctx.textAlign="left"; ctx.textBaseline="middle";
-    ctx.fillText(lbl, W-padR+8, lpy);
-  }
-
-  /* rótulos de tempo */
   ctx.fillStyle=COLORS.faint; ctx.textAlign="center"; ctx.textBaseline="top";
-  ctx.font='10px "IBM Plex Mono", monospace';
   const labStep=Math.ceil(slots/7);
   for(let s=S;s<=E;s+=labStep){ let tm = s<=n-1?c[s].t:c[n-1].t+(s-(n-1))*tfMs(current);
     ctx.fillText(fmtTime(tm,current),x(s),padT+plotH+6); }
-
-  /* crosshair completo */
-  if(hover!=null){
-    const s=Math.round(hover.s);
+  if(hover!=null){ const s=Math.round(hover);
     if(s>=S&&s<=E){ const xx=x(s);
-      ctx.strokeStyle="rgba(236,232,223,.18)"; ctx.setLineDash([2,3]); ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke();
-      const py=Math.max(padT,Math.min(padT+plotH,hover.py));
-      ctx.beginPath(); ctx.moveTo(padL,py); ctx.lineTo(W-padR,py); ctx.stroke(); ctx.setLineDash([]);
-      const pv=mn+(1-(py-padT)/plotH)*(mx-mn), lbl=fmtUSD0(pv).replace("$","");
-      ctx.font='10px "IBM Plex Mono", monospace';
-      ctx.fillStyle="rgba(16,18,24,.96)"; ctx.strokeStyle="#2f3445";
-      roundRect(W-padR+2, py-9, padR-6, 18, 5); ctx.fill(); ctx.stroke();
-      ctx.fillStyle="#ece8df"; ctx.textAlign="left"; ctx.textBaseline="middle";
-      ctx.fillText(lbl, W-padR+8, py);
-      drawTip(s,xx,W,padT,plotW,padL);
-    }
-  }
+      ctx.strokeStyle="rgba(236,232,223,.18)"; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(xx,padT); ctx.lineTo(xx,padT+plotH); ctx.stroke(); ctx.setLineDash([]);
+      drawTip(s,xx,W,padT,plotW,padL); } }
 }
 function drawTip(s,xx,W,padT,plotW,padL){
   const st=store[current],c=st.candles,ich=st.ich,n=c.length,d=P.disp; const rows=[]; let tm;
@@ -888,55 +725,22 @@ function fmtTime(tm,key,full){
   return full?(dayFirst?`${dd}/${mm} ${hh}:${mi}`:`${mm}/${dd} ${hh}:${mi}`):(dayFirst?`${dd}/${mm} ${hh}h`:`${mm}/${dd} ${hh}h`);
 }
 function slotAtX(px){ const st=store[current]; if(!st)return null;
-  const W=host.clientWidth,plotW=W-PAD.L-PAD.R,v=getView(),d=P.disp;
-  const S=v.scroll-v.zoom+1,E=v.scroll+d,slots=E-S+1,cw=plotW/slots; return S+(px-PAD.L)/cw-0.5; }
-
-/* interação: crosshair / pan / zoom no cursor / pinch / reset */
-cv.addEventListener("mousemove",e=>{ const r=cv.getBoundingClientRect();
-  const s=slotAtX(e.clientX-r.left); if(s==null) return;
-  hover={s, py:e.clientY-r.top}; draw(); });
+  const W=host.clientWidth,padL=8,padR=68,plotW=W-padL-padR,v=getView(),d=P.disp;
+  const S=v.scroll-v.zoom+1,E=v.scroll+d,slots=E-S+1,cw=plotW/slots; return S+(px-padL)/cw-0.5; }
+cv.addEventListener("mousemove",e=>{ const r=cv.getBoundingClientRect(); hover=slotAtX(e.clientX-r.left); draw(); });
 cv.addEventListener("mouseleave",()=>{hover=null;draw();});
-
-host.addEventListener("wheel",e=>{ e.preventDefault();
-  const st=store[current]; if(!st) return;
-  const v=getView(), r=cv.getBoundingClientRect(), px=e.clientX-r.left;
-  const plotW=host.clientWidth-PAD.L-PAD.R;
-  const slots=v.zoom+P.disp, cw=plotW/slots, S=v.scroll-v.zoom+1;
-  const s0=S+(px-PAD.L)/cw-0.5, f=(s0-S)/slots;       // âncora no cursor
-  const nz=Math.round(Math.max(30,Math.min(st.candles.length, v.zoom*(e.deltaY>0?1.12:0.89))));
-  const nslots=nz+P.disp, nS=s0-f*nslots;
-  v.zoom=nz; v.scroll=Math.max(nz-1,Math.min(st.candles.length-1,Math.round(nS+nz-1)));
-  draw();
-},{passive:false});
-
-cv.addEventListener("dblclick",()=>{ delete view[current]; draw(); });
-
-let drag=null, pinch=null;
+host.addEventListener("wheel",e=>{ e.preventDefault(); const v=getView(); v.zoom=Math.round(v.zoom*(e.deltaY>0?1.12:0.89)); draw(); },{passive:false});
+let drag=null;
 cv.addEventListener("mousedown",e=>{drag={x:e.clientX,scroll:getView().scroll};});
 window.addEventListener("mouseup",()=>drag=null);
 window.addEventListener("mousemove",e=>{ if(!drag)return; const st=store[current];if(!st)return;
-  const plotW=host.clientWidth-PAD.L-PAD.R,v=getView(),slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.clientX-drag.x)/cw);
+  const W=host.clientWidth,plotW=W-76,v=getView(),slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.clientX-drag.x)/cw);
   v.scroll=Math.max(v.zoom-1,Math.min(st.candles.length-1,drag.scroll-dd)); draw(); });
-
-cv.addEventListener("touchstart",e=>{
-  if(e.touches.length===2){
-    drag=null;
-    pinch={dist:Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY), zoom:getView().zoom};
-  } else if(e.touches[0]) drag={x:e.touches[0].clientX,scroll:getView().scroll};
-},{passive:true});
-cv.addEventListener("touchmove",e=>{
-  const st=store[current]; if(!st) return;
-  const v=getView();
-  if(pinch && e.touches.length===2){
-    const d2=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-    v.zoom=Math.round(Math.max(30,Math.min(st.candles.length, pinch.zoom*pinch.dist/Math.max(20,d2))));
-    draw(); return;
-  }
-  if(!drag||!e.touches[0])return;
-  const plotW=host.clientWidth-PAD.L-PAD.R,slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.touches[0].clientX-drag.x)/cw);
-  v.scroll=Math.max(v.zoom-1,Math.min(st.candles.length-1,drag.scroll-dd)); draw();
-},{passive:true});
-cv.addEventListener("touchend",e=>{ if(e.touches.length<2)pinch=null; if(e.touches.length===0)drag=null; });
+cv.addEventListener("touchstart",e=>{if(e.touches[0])drag={x:e.touches[0].clientX,scroll:getView().scroll};},{passive:true});
+cv.addEventListener("touchmove",e=>{ if(!drag||!e.touches[0])return; const st=store[current];if(!st)return;
+  const W=host.clientWidth,plotW=W-76,v=getView(),slots=v.zoom+P.disp,cw=plotW/slots,dd=Math.round((e.touches[0].clientX-drag.x)/cw);
+  v.scroll=Math.max(v.zoom-1,Math.min(st.candles.length-1,drag.scroll-dd)); draw(); },{passive:true});
+cv.addEventListener("touchend",()=>drag=null);
 
 /* ============================================================
    SELECT TF + SEGMENTED
@@ -958,30 +762,17 @@ function selectTF(key){
 }
 
 /* ============================================================
-   TICKER (flash de variação + barra de amplitude 24h)
+   TICKER
 ============================================================ */
 async function loadTicker(){
   try{
-    const d=await jget("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT");
-    const px=+d.lastPrice, ch=+d.priceChangePercent, lo=+d.lowPrice, hi=+d.highPrice;
-    const pxEl=document.getElementById("px");
-    pxEl.textContent=fmtUSD(px);
-    if(lastTickerPx!=null && px!==lastTickerPx){
-      pxEl.classList.remove("up","dn"); void pxEl.offsetWidth;
-      pxEl.classList.add(px>lastTickerPx?"up":"dn");
-    }
-    lastTickerPx=px;
+    const d=await (await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT")).json();
+    const px=+d.lastPrice, ch=+d.priceChangePercent;
+    document.getElementById("px").textContent=fmtUSD(px);
     const chg=document.getElementById("chg");
     chg.textContent=(ch>=0?"▲ +":"▼ ")+ch.toFixed(2)+"%  (24h)"; chg.className="chg "+(ch>=0?"pos":"neg");
-    if(isFinite(lo)&&isFinite(hi)&&hi>lo){
-      document.getElementById("rangeRow").style.visibility="visible";
-      document.getElementById("rlo").textContent=fmtUSD0(lo).replace("$","");
-      document.getElementById("rhi").textContent=fmtUSD0(hi).replace("$","");
-      const f=Math.max(0,Math.min(1,(px-lo)/(hi-lo)));
-      document.getElementById("rpos").style.left=(f*100)+"%";
-    }
     document.getElementById("upd").textContent=t("updated")+new Date().toLocaleTimeString(locale());
-  }catch(e){ /* mantém o último valor exibido */ }
+  }catch(e){}
 }
 
 /* ============================================================
@@ -991,6 +782,7 @@ function switchLang(l){
   if(l===lang) return; lang=l;
   document.querySelectorAll(".lang-toggle button").forEach(b=>b.classList.toggle("on",b.dataset.lang===l));
   applyStatic(); buildSeg(); renderCards(); renderConsensus(); setChartTitle(); renderAnalysis();
+  // refresh ticker timestamp label + footR
   const st=store[current];
   if(st) document.getElementById("footR").textContent=st.candles.length+t("candles")+new Date(st.candles[st.candles.length-1].t).toLocaleString(locale());
   loadTicker(); if(store[current]) draw();
@@ -998,28 +790,13 @@ function switchLang(l){
 document.querySelectorAll(".lang-toggle button").forEach(b=>b.onclick=()=>switchLang(b.dataset.lang));
 
 /* ============================================================
-   BOOT + POLLING (atômico, pausa em aba oculta)
+   BOOT
 ============================================================ */
-async function refreshAll(){
-  const results=await Promise.allSettled(TFS.map(async tf=>{
-    const candles=await loadTF(tf);
-    return {key:tf.key, candles, ich:ichimoku(candles)};
-  }));
-  let ok=0;
-  results.forEach(r=>{ if(r.status==="fulfilled"){
-    const {key,candles,ich}=r.value;
-    store[key]={candles,ich,signal:signal(candles,ich)}; ok++;
-  }});
-  return ok;
-}
 async function boot(){
-  errored=false; buildGaugeTicks();
   applyStatic(); buildSeg(); renderCards(); setChartTitle(); renderAnalysis(); loadTicker();
   await Promise.all(TFS.map(async tf=>{
-    try{
-      const candles=await loadTF(tf), ich=ichimoku(candles);
-      store[tf.key]={candles,ich,signal:signal(candles,ich)};
-      renderCards();
+    try{ const candles=await loadTF(tf); store[tf.key]={candles,ich:ichimoku(candles),signal:null};
+      store[tf.key].signal=signal(candles,store[tf.key].ich); renderCards();
       if(tf.key===current) selectTF(current);
     }catch(e){ console.error(tf.key,e); }
   }));
@@ -1030,13 +807,10 @@ async function boot(){
 }
 document.getElementById("refresh").onclick=()=>boot();
 boot();
-setInterval(()=>{ if(!document.hidden) loadTicker(); },30000);
-setInterval(async()=>{
-  if(document.hidden) return;
-  await refreshAll();
-  renderCards(); renderConsensus(); renderAnalysis(); if(store[current]) draw();
-},120000);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) loadTicker(); });
+setInterval(loadTicker,30000);
+setInterval(async()=>{ for(const tf of TFS){ try{ const candles=await loadTF(tf);
+  store[tf.key]={candles,ich:ichimoku(candles),signal:null}; store[tf.key].signal=signal(candles,store[tf.key].ich);
+}catch(e){} } renderCards(); renderConsensus(); renderAnalysis(); if(store[current]) draw(); },120000);
 </script>
 </body>
 </html>

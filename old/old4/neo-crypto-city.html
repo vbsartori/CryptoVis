@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEO-CRYPTO CITY // SMART GRID v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<style>
+  /* =================================================================
+     CYBERPUNK CORE
+     ================================================================= */
+  :root {
+    --bg-deep: #050010;
+    --bg-mid:  #0d0322;
+    --neon-pink:    #ff007a;
+    --neon-magenta: #ff00ff;
+    --neon-cyan:    #00f0ff;
+    --neon-green:   #00ff88;
+    --neon-red:     #ff0844;
+    --neon-yellow:  #f6ff00;
+    --neon-purple:  #b347ff;
+    --grid-line:    rgba(255, 0, 200, 0.18);
+    --txt-dim:      rgba(0, 240, 255, 0.55);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: var(--neon-cyan);
+    font-family: 'Share Tech Mono', monospace;
+    overflow: hidden;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* CRT scanlines overlay */
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background:
+      repeating-linear-gradient(
+        180deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0, 0, 0, 0.20) 3px,
+        rgba(0, 0, 0, 0.05) 4px
+      );
+    mix-blend-mode: multiply;
+  }
+
+  /* Subtle vignette */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
+  }
+
+  /* Chromatic aberration tinted noise overlay */
+  .noise {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 98;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='1'/></svg>");
+  }
+
+  /* =================================================================
+     LOADING SCREEN
+     ================================================================= */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, var(--bg-mid) 0%, #000 80%);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.8s ease;
+  }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+
+  #loader::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(400px) rotateX(60deg) translateY(20%);
+    transform-origin: center bottom;
+    opacity: 0.6;
+    mask-image: linear-gradient(180deg, transparent, black 50%, transparent);
+  }
+
+  .loader-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: min(560px, 88vw);
+  }
+
+  .loader-glitch {
+    font-family: 'Major Mono Display', 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 56px);
+    color: var(--neon-cyan);
+    text-shadow:
+      0 0 8px var(--neon-cyan),
+      2px 0 0 var(--neon-pink),
+      -2px 0 0 var(--neon-yellow);
+    letter-spacing: 0.1em;
+    margin-bottom: 18px;
+    animation: glitch 4s infinite;
+  }
+  @keyframes glitch {
+    0%, 92%, 100% { transform: translate(0,0); filter: hue-rotate(0deg); }
+    93% { transform: translate(-2px, 1px); filter: hue-rotate(45deg); }
+    94% { transform: translate(2px, -1px); }
+    95% { transform: translate(0, 0); filter: hue-rotate(0); }
+  }
+
+  .loader-sub {
+    font-size: 13px;
+    color: var(--neon-pink);
+    letter-spacing: 0.4em;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+
+  .loader-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 0, 122, 0.15);
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 12px rgba(255, 0, 122, 0.6), inset 0 0 8px rgba(255, 0, 122, 0.3);
+    overflow: hidden;
+    position: relative;
+  }
+  .loader-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+    box-shadow: 0 0 18px var(--neon-cyan);
+    transition: width 0.4s ease;
+  }
+  .loader-status {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--txt-dim);
+    letter-spacing: 0.2em;
+    min-height: 16px;
+  }
+
+  /* =================================================================
+     TOP HUD
+     ================================================================= */
+  .hud-top {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 18px 24px;
+    pointer-events: none;
+    gap: 20px;
+  }
+  .hud-top > * { pointer-events: auto; }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+  }
+  .brand-title {
+    font-family: 'Major Mono Display', monospace;
+    font-size: 26px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 14px var(--neon-cyan), 0 0 4px var(--neon-cyan);
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .brand-title .accent { color: var(--neon-pink); text-shadow: 0 0 14px var(--neon-pink); }
+  .brand-sub {
+    font-size: 10px;
+    color: var(--neon-magenta);
+    letter-spacing: 0.45em;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+  .brand-coords {
+    font-size: 9px;
+    color: var(--txt-dim);
+    letter-spacing: 0.2em;
+    margin-top: 2px;
+  }
+
+  /* Filter (24h / 7d) */
+  .filter-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, rgba(255, 0, 200, 0.08), rgba(0, 240, 255, 0.05));
+    border: 1px solid rgba(255, 0, 200, 0.4);
+    box-shadow: 0 0 16px rgba(255, 0, 200, 0.2), inset 0 0 8px rgba(0, 240, 255, 0.05);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .filter-label {
+    font-size: 10px;
+    color: var(--neon-pink);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 6px 14px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+  }
+  .filter-btn:hover {
+    background: rgba(0, 240, 255, 0.12);
+    box-shadow: 0 0 12px var(--neon-cyan);
+  }
+  .filter-btn.active {
+    background: var(--neon-cyan);
+    color: #000;
+    box-shadow: 0 0 18px var(--neon-cyan);
+  }
+
+  /* Height mode (Market Cap / Top Movers) — pink theme to differentiate */
+  .height-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, rgba(255, 0, 200, 0.10), rgba(255, 130, 0, 0.04));
+    border: 1px solid rgba(255, 0, 200, 0.55);
+    box-shadow: 0 0 16px rgba(255, 0, 200, 0.25), inset 0 0 8px rgba(255, 0, 200, 0.05);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .height-label {
+    font-size: 10px;
+    color: var(--neon-cyan);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-right: 6px;
+  }
+  .height-btn {
+    background: transparent;
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+  }
+  .height-btn:hover {
+    background: rgba(255, 0, 200, 0.12);
+    box-shadow: 0 0 12px var(--neon-pink);
+  }
+  .height-btn.active {
+    background: var(--neon-pink);
+    color: #000;
+    box-shadow: 0 0 18px var(--neon-pink);
+  }
+  .height-btn.rebuilding { opacity: 0.5; pointer-events: none; }
+
+  /* Fear & Greed display */
+  .fg-block {
+    text-align: right;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, rgba(255, 0, 200, 0.06), rgba(0, 240, 255, 0.06));
+    border: 1px solid var(--neon-pink);
+    box-shadow: 0 0 16px rgba(255, 0, 200, 0.25);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    min-width: 200px;
+  }
+  .fg-label {
+    font-size: 9px;
+    letter-spacing: 0.4em;
+    color: var(--neon-cyan);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .fg-meter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .fg-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 12px currentColor;
+    transition: color 0.4s;
+  }
+  .fg-class {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--neon-yellow);
+    transition: color 0.4s;
+  }
+
+  /* =================================================================
+     SIDE STATS PANEL
+     ================================================================= */
+  .hud-side {
+    position: fixed;
+    top: 50%;
+    left: 24px;
+    transform: translateY(-50%);
+    z-index: 40;
+    width: 240px;
+    max-height: 70vh;
+    overflow: hidden;
+    pointer-events: auto;
+  }
+  .panel {
+    background: linear-gradient(180deg, rgba(15, 0, 30, 0.85), rgba(5, 0, 16, 0.85));
+    border: 1px solid var(--neon-magenta);
+    box-shadow: 0 0 22px rgba(255, 0, 255, 0.25), inset 0 0 12px rgba(255, 0, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: var(--neon-pink);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 0, 200, 0.3);
+    padding-bottom: 6px;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 11px;
+    margin-bottom: 6px;
+    color: var(--txt-dim);
+  }
+  .stat-row .v {
+    color: var(--neon-cyan);
+    font-weight: 700;
+    text-shadow: 0 0 6px var(--neon-cyan);
+  }
+  .stat-row.up .v { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+  .stat-row.down .v { color: var(--neon-red); text-shadow: 0 0 8px var(--neon-red); }
+
+  /* =================================================================
+     RANKING / LEADERBOARD
+     ================================================================= */
+  .leaderboard {
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .leaderboard::-webkit-scrollbar { width: 4px; }
+  .leaderboard::-webkit-scrollbar-track { background: rgba(255, 0, 200, 0.08); }
+  .leaderboard::-webkit-scrollbar-thumb { background: var(--neon-pink); }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding: 5px 0;
+    border-bottom: 1px dashed rgba(255, 0, 200, 0.15);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .lb-row:hover { background: rgba(0, 240, 255, 0.07); }
+  .lb-rank {
+    color: var(--neon-yellow);
+    font-weight: 700;
+    text-align: right;
+  }
+  .lb-name {
+    color: var(--neon-cyan);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lb-pct.up { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
+  .lb-pct.down { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); }
+
+  /* =================================================================
+     HOVER TOOLTIP (when hovering a building in 3D)
+     ================================================================= */
+  .hover-card {
+    position: fixed;
+    z-index: 60;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(0, 0, 20, 0.95), rgba(20, 0, 40, 0.95));
+    border: 1px solid var(--neon-cyan);
+    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 12px rgba(0, 240, 255, 0.1);
+    padding: 14px 18px;
+    min-width: 240px;
+    transform: translate(12px, 12px);
+    opacity: 0;
+    transition: opacity 0.18s;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .hover-card.visible { opacity: 1; }
+  .hc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .hc-icon {
+    width: 28px; height: 28px;
+    border: 1px solid var(--neon-pink);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--neon-pink);
+    background: #000;
+  }
+  .hc-name { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--neon-cyan); font-size: 14px; }
+  .hc-symbol { color: var(--neon-pink); font-size: 11px; letter-spacing: 0.2em; }
+  .hc-data { font-size: 11px; color: var(--txt-dim); margin-top: 2px; }
+  .hc-data b { color: #fff; font-weight: 400; }
+  .hc-pct.up { color: var(--neon-green); }
+  .hc-pct.down { color: var(--neon-red); }
+
+  /* =================================================================
+     BOTTOM LEGEND
+     ================================================================= */
+  .hud-bottom {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex;
+    gap: 18px;
+    padding: 10px 22px;
+    background: rgba(5, 0, 16, 0.7);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    max-width: 92vw;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--txt-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .ld-height  { background: var(--neon-cyan); color: var(--neon-cyan); }
+  .ld-up      { background: var(--neon-green); color: var(--neon-green); }
+  .ld-down    { background: var(--neon-red); color: var(--neon-red); }
+  .ld-traffic { background: var(--neon-yellow); color: var(--neon-yellow); }
+  .ld-sun     { background: var(--neon-magenta); color: var(--neon-magenta); }
+
+  /* =================================================================
+     CONTROLS HINT
+     ================================================================= */
+  .controls-hint {
+    position: fixed;
+    bottom: 18px;
+    right: 24px;
+    z-index: 40;
+    font-size: 10px;
+    color: var(--txt-dim);
+    letter-spacing: 0.2em;
+    text-align: right;
+    text-transform: uppercase;
+    line-height: 1.6;
+  }
+  .controls-hint kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    font-family: inherit;
+    font-size: 9px;
+    margin: 0 2px;
+    box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+  }
+
+  /* Marquee error / status banner */
+  .banner {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 41;
+    padding: 6px 14px;
+    background: rgba(255, 0, 60, 0.12);
+    border: 1px solid var(--neon-red);
+    color: var(--neon-red);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    box-shadow: 0 0 14px rgba(255, 0, 60, 0.4);
+    display: none;
+  }
+  .banner.visible { display: block; }
+
+  @media (max-width: 900px) {
+    .hud-side { display: none; }
+    .brand-title { font-size: 18px; }
+    .fg-block { min-width: 140px; }
+    .fg-value { font-size: 22px; }
+    .controls-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<style>
+.home-link{--hl:#00f0ff;display:inline-flex;align-items:center;height:40px;min-width:40px;border-radius:999px;background:rgba(8,9,14,.55);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;flex:0 0 auto;margin-right:8px;align-self:center;backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'Share Tech Mono',monospace;z-index:50;}
+.home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
+.home-link .hl-ico svg{width:18px;height:18px;display:block;}
+.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
+.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(8,9,14,.55));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl);}
+.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
+.home-link:active{transform:scale(.94);}
+</style>
+
+<!-- Loading screen -->
+<div id="loader">
+  <div class="loader-content">
+    <div class="loader-glitch">NEO-CRYPTO CITY</div>
+    <div class="loader-sub">// SMART GRID v2.0 // BOOT SEQUENCE</div>
+    <div class="loader-bar-wrap"><div class="loader-bar" id="loaderBar"></div></div>
+    <div class="loader-status" id="loaderStatus">INITIALIZING NEURAL UPLINK...</div>
+  </div>
+</div>
+
+<!-- 3D scene -->
+<div id="canvas-container"></div>
+
+<!-- Visual overlays -->
+<div class="vignette"></div>
+<div class="noise"></div>
+<div class="scanlines"></div>
+
+<!-- Top HUD -->
+<div class="hud-top">
+  <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
+  <div class="brand">
+    <div class="brand-title">NEO–<span class="accent">CRYPTO</span> CITY</div>
+    <div class="brand-sub">SMART GRID v2.0 // LIVE FEED</div>
+    <div class="brand-coords">SECTOR 7G // LAT 25.42°S // LONG 49.27°W</div>
+  </div>
+
+  <div class="filter-block">
+    <span class="filter-label">PERFORMANCE</span>
+    <button class="filter-btn active" data-filter="24h">24H</button>
+    <button class="filter-btn" data-filter="7d">7D</button>
+  </div>
+
+  <div class="height-block">
+    <span class="height-label">HEIGHT</span>
+    <button class="height-btn active" data-height="mcap">MARKET CAP</button>
+    <button class="height-btn" data-height="movers">TOP MOVERS</button>
+  </div>
+
+  <div class="fg-block">
+    <div class="fg-label">MARKET SENTIMENT // FEAR &amp; GREED</div>
+    <div class="fg-meter">
+      <div class="fg-value" id="fgValue">--</div>
+      <div class="fg-class" id="fgClass">SCANNING</div>
+    </div>
+  </div>
+</div>
+
+<!-- Side HUD -->
+<div class="hud-side">
+  <div class="panel">
+    <div class="panel-title">▚ GRID TELEMETRY</div>
+    <div class="stat-row"><span>ASSETS ONLINE</span><span class="v" id="statAssets">--</span></div>
+    <div class="stat-row"><span>TOTAL MARKET CAP</span><span class="v" id="statMcap">--</span></div>
+    <div class="stat-row"><span>24H VOLUME</span><span class="v" id="statVolume">--</span></div>
+    <div class="stat-row up"><span>BULL DISTRICT</span><span class="v" id="statUp">--</span></div>
+    <div class="stat-row down"><span>BEAR DISTRICT</span><span class="v" id="statDown">--</span></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">▚ TOP MOVERS</div>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+</div>
+
+<!-- Hover tooltip -->
+<div class="hover-card" id="hoverCard">
+  <div class="hc-row">
+    <img class="hc-icon" id="hcIcon" alt="">
+    <div>
+      <div class="hc-name" id="hcName">--</div>
+      <div class="hc-symbol" id="hcSymbol">--</div>
+    </div>
+  </div>
+  <div class="hc-data">RANK <b id="hcRank">--</b></div>
+  <div class="hc-data">PRICE <b id="hcPrice">--</b></div>
+  <div class="hc-data">MCAP <b id="hcMcap">--</b></div>
+  <div class="hc-data">24H VOL <b id="hcVol">--</b></div>
+  <div class="hc-data">24H <span class="hc-pct" id="hcPct">--</span> // 7D <span class="hc-pct" id="hcPct7">--</span></div>
+</div>
+
+<!-- Bottom legend -->
+<div class="hud-bottom">
+  <div class="legend-item"><span class="legend-dot ld-height"></span>Altura = Market Cap (log)</div>
+  <div class="legend-item"><span class="legend-dot ld-up"></span>Neon Verde = Em Alta</div>
+  <div class="legend-item"><span class="legend-dot ld-down"></span>Neon Vermelho = Em Queda</div>
+  <div class="legend-item"><span class="legend-dot ld-traffic"></span>Tráfego = Volume 24h</div>
+  <div class="legend-item"><span class="legend-dot ld-sun"></span>Sol = Fear &amp; Greed</div>
+</div>
+
+<!-- Controls hint -->
+<div class="controls-hint">
+  <kbd>DRAG</kbd> rotate &nbsp; <kbd>SCROLL</kbd> zoom<br>
+  <kbd>HOVER</kbd> inspect tower
+</div>
+
+<!-- Banner for fallback message -->
+<div class="banner" id="banner">!! USING CACHED DATA - LIVE FEED OFFLINE !!</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+
+/* =====================================================================
+   CONSTANTS / STATE
+   ===================================================================== */
+const NUM_BUILDINGS = 50;
+const TOP_ICON_COUNT = 8;         // top N buildings get icon sprite
+const MAX_PARTICLES = 500;
+// City block layout: blocks of 4 buildings separated by streets
+const BLOCK_SIZE = 14;             // each block 14x14 units
+const STREET_WIDTH = 7;            // wide street between blocks
+const BLOCKS_PER_SIDE = 4;         // 4x4 = 16 blocks (we use ~13 closest)
+const SUB_GRID_GAP = 6;            // distance between building slots in a block
+
+const state = {
+  coins: [],
+  fearGreed: { value: 50, classification: 'NEUTRAL' },
+  filter: '24h',          // '24h' | '7d'
+  heightMode: 'mcap',     // 'mcap' | 'movers' — building height drives this
+  buildings: [],
+  particleData: [],
+  hoveredBuilding: null,
+  time: 0,
+  sunTarget: null,
+};
+
+/* =====================================================================
+   LOADER UI
+   ===================================================================== */
+const loaderEl = document.getElementById('loader');
+const loaderBar = document.getElementById('loaderBar');
+const loaderStatus = document.getElementById('loaderStatus');
+function setLoader(pct, msg) {
+  loaderBar.style.width = pct + '%';
+  if (msg) loaderStatus.textContent = msg;
+}
+
+/* =====================================================================
+   FETCH DATA
+   ===================================================================== */
+async function fetchCoins() {
+  setLoader(15, 'PINGING COINGECKO MAINFRAME...');
+  const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=' + NUM_BUILDINGS + '&page=1&sparkline=false&price_change_percentage=24h%2C7d';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    setLoader(45, 'DOWNLOADED ' + data.length + ' ASSETS');
+    return data;
+  } catch (e) {
+    console.warn('CoinGecko fetch failed, using fallback', e);
+    document.getElementById('banner').classList.add('visible');
+    return generateMockCoins();
+  }
+}
+
+async function fetchFearGreed() {
+  setLoader(60, 'READING MARKET SENTIMENT...');
+  try {
+    const res = await fetch('https://api.alternative.me/fng/?limit=1');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data && data.data && data.data[0]) {
+      return {
+        value: parseInt(data.data[0].value),
+        classification: data.data[0].value_classification.toUpperCase()
+      };
+    }
+  } catch (e) {
+    console.warn('FNG fetch failed', e);
+  }
+  return { value: 50, classification: 'NEUTRAL' };
+}
+
+function generateMockCoins() {
+  const SYMBOLS = ['BTC','ETH','USDT','BNB','SOL','XRP','USDC','ADA','DOGE','AVAX','TRX','SHIB','DOT','LINK','BCH','MATIC','LTC','UNI','ATOM','XLM','ETC','XMR','OKB','ICP','FIL','HBAR','APT','VET','LDO','ARB','OP','MKR','NEAR','GRT','AAVE','ALGO','EOS','XTZ','SAND','MANA','EGLD','FTM','THETA','AXS','RUNE','ZEC','CHZ','FLOW','GALA','KAVA','RSR','ENJ','CRV','SNX','BAT','COMP','DASH','1INCH','YFI','BAL','LRC','OMG','REN','ZRX','SUSHI','ANKR','STORJ','SKL','BAND','CVC','MTL','POLY','ICX','QNT','HOT','NANO','DGB','RVN','SC','XEM','BTG','LSK','STEEM','ARDR','SYS','GAS','GLMR','MOVR','ASTR','ROSE','JST','TWT','MASK','AUDIO','LPT','DYDX','IMX','ENS','GMT','APE'];
+  return SYMBOLS.slice(0, NUM_BUILDINGS).map((s, i) => {
+    const rank = i + 1;
+    const mcap = Math.pow(10, 12 - i * 0.04) * (0.5 + Math.random());
+    const price = mcap / (1e6 * Math.pow(10, 1 + Math.random() * 3));
+    const ch24 = (Math.random() - 0.45) * 18;
+    const ch7 = (Math.random() - 0.45) * 30;
+    return {
+      id: s.toLowerCase(),
+      symbol: s.toLowerCase(),
+      name: s,
+      image: '',
+      current_price: price,
+      market_cap: mcap,
+      market_cap_rank: rank,
+      total_volume: mcap * (0.02 + Math.random() * 0.15),
+      price_change_percentage_24h: ch24,
+      price_change_percentage_7d_in_currency: ch7,
+    };
+  });
+}
+
+/* =====================================================================
+   THREE.JS SETUP
+   ===================================================================== */
+const container = document.getElementById('canvas-container');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x040010);
+scene.fog = new THREE.FogExp2(0x12002a, 0.0065);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+container.appendChild(renderer.domElement);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* =====================================================================
+   CAMERA CONTROLS (custom orbit)
+   ===================================================================== */
+const cameraState = {
+  angle: Math.PI * 0.25,
+  tilt: 0.55,                  // 0 = horizon, PI/2 = top-down
+  distance: 105,
+  target: new THREE.Vector3(0, 10, 0),
+  autoRotate: true,
+  autoRotateSpeed: 0.0007,
+};
+
+function updateCameraPosition() {
+  const r = cameraState.distance;
+  const t = cameraState.tilt;
+  camera.position.x = cameraState.target.x + Math.sin(cameraState.angle) * r * Math.cos(t);
+  camera.position.z = cameraState.target.z + Math.cos(cameraState.angle) * r * Math.cos(t);
+  camera.position.y = cameraState.target.y + Math.sin(t) * r;
+  camera.lookAt(cameraState.target);
+}
+updateCameraPosition();
+
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+const dom = renderer.domElement;
+
+dom.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  cameraState.autoRotate = false;
+  lastMouse.x = e.clientX;
+  lastMouse.y = e.clientY;
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+window.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    cameraState.angle -= (e.clientX - lastMouse.x) * 0.005;
+    cameraState.tilt = Math.max(0.15, Math.min(1.35, cameraState.tilt + (e.clientY - lastMouse.y) * 0.005));
+    lastMouse.x = e.clientX;
+    lastMouse.y = e.clientY;
+  }
+});
+dom.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  cameraState.distance = Math.max(40, Math.min(180, cameraState.distance + e.deltaY * 0.1));
+}, { passive: false });
+
+// Touch
+let lastTouch = null;
+dom.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    cameraState.autoRotate = false;
+    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+});
+dom.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1 && isDragging && lastTouch) {
+    cameraState.angle -= (e.touches[0].clientX - lastTouch.x) * 0.005;
+    cameraState.tilt  = Math.max(0.15, Math.min(1.35, cameraState.tilt + (e.touches[0].clientY - lastTouch.y) * 0.005));
+    lastTouch.x = e.touches[0].clientX;
+    lastTouch.y = e.touches[0].clientY;
+  }
+}, { passive: true });
+dom.addEventListener('touchend', () => { isDragging = false; lastTouch = null; });
+
+/* =====================================================================
+   ENVIRONMENT
+   ===================================================================== */
+function createSkybox() {
+  const skyGeo = new THREE.SphereGeometry(450, 32, 16);
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms: {
+      topColor:    { value: new THREE.Color(0x040018) },
+      midColor:    { value: new THREE.Color(0x2a0844) },
+      bottomColor: { value: new THREE.Color(0x6a0c4f) },
+    },
+    vertexShader: `
+      varying vec3 vWorldPos;
+      void main() {
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vWorldPos;
+      uniform vec3 topColor;
+      uniform vec3 midColor;
+      uniform vec3 bottomColor;
+      void main() {
+        float h = normalize(vWorldPos).y;
+        vec3 col;
+        if (h > 0.0) col = mix(midColor, topColor, smoothstep(0.0, 0.7, h));
+        else         col = mix(midColor, bottomColor, smoothstep(0.0, 0.4, -h));
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+    side: THREE.BackSide,
+    depthWrite: false,
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+}
+
+function createStars() {
+  const positions = [];
+  const colors = [];
+  for (let i = 0; i < 1500; i++) {
+    const phi = Math.acos(2 * Math.random() - 1);
+    const theta = Math.random() * Math.PI * 2;
+    const r = 380;
+    const y = Math.cos(phi);
+    if (y < -0.05) continue;
+    positions.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * y,
+      r * Math.sin(phi) * Math.sin(theta)
+    );
+    const tint = Math.random();
+    if (tint > 0.92)      colors.push(1.0, 0.4, 0.9);
+    else if (tint > 0.85) colors.push(0.5, 1.0, 1.0);
+    else if (tint > 0.78) colors.push(1.0, 0.9, 0.4);
+    else                  colors.push(0.85, 0.9, 1.0);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  const m = new THREE.PointsMaterial({
+    size: 1.1,
+    sizeAttenuation: false,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.9,
+  });
+  scene.add(new THREE.Points(g, m));
+}
+
+function createGround() {
+  // Dark base
+  const baseGeo = new THREE.PlaneGeometry(500, 500);
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: 0x040010,
+    metalness: 0.7,
+    roughness: 0.55,
+    emissive: 0x0a0220,
+    emissiveIntensity: 0.4,
+  });
+  const base = new THREE.Mesh(baseGeo, baseMat);
+  base.rotation.x = -Math.PI / 2;
+  base.receiveShadow = false;
+  scene.add(base);
+
+  // Magenta finer grid (deep background texture)
+  const gridFine = new THREE.GridHelper(300, 60, 0xff00aa, 0x440022);
+  gridFine.position.y = 0.01;
+  gridFine.material.transparent = true;
+  gridFine.material.opacity = 0.22;
+  scene.add(gridFine);
+
+  // Cyan major grid
+  const gridMajor = new THREE.GridHelper(300, 12, 0x00f0ff, 0x00f0ff);
+  gridMajor.position.y = 0.02;
+  gridMajor.material.transparent = true;
+  gridMajor.material.opacity = 0.18;
+  scene.add(gridMajor);
+
+  // === NEON STREET GRID (the avenues between city blocks) =================
+  const span = BLOCK_SIZE + STREET_WIDTH;
+  const half = (BLOCKS_PER_SIDE - 1) / 2;
+  const cityExtent = span * BLOCKS_PER_SIDE; // total reach
+  const roadLen = cityExtent + 30;            // extend past edges
+  const roadGroup = new THREE.Group();
+
+  // Asphalt strips (dark) - 1 between each adjacent pair of blocks
+  for (let i = 0; i < BLOCKS_PER_SIDE - 1; i++) {
+    const pos = (i - half + 0.5) * span;
+    // North-South street
+    const nsGeo = new THREE.PlaneGeometry(STREET_WIDTH, roadLen);
+    const nsMat = new THREE.MeshBasicMaterial({ color: 0x0a0218, transparent: true, opacity: 0.55 });
+    const ns = new THREE.Mesh(nsGeo, nsMat);
+    ns.rotation.x = -Math.PI / 2;
+    ns.position.set(pos, 0.025, 0);
+    roadGroup.add(ns);
+
+    // East-West street
+    const ewGeo = new THREE.PlaneGeometry(roadLen, STREET_WIDTH);
+    const ewMat = new THREE.MeshBasicMaterial({ color: 0x0a0218, transparent: true, opacity: 0.55 });
+    const ew = new THREE.Mesh(ewGeo, ewMat);
+    ew.rotation.x = -Math.PI / 2;
+    ew.position.set(0, 0.025, pos);
+    roadGroup.add(ew);
+
+    // Glowing edge lines along each street (magenta on N-S, cyan on E-W = dual-tone cyberpunk)
+    for (const sign of [-1, 1]) {
+      // N-S edges → magenta
+      const edgeNS = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.18, roadLen),
+        new THREE.MeshBasicMaterial({
+          color: 0xff00aa,
+          transparent: true,
+          opacity: 0.9,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      edgeNS.rotation.x = -Math.PI / 2;
+      edgeNS.position.set(pos + sign * STREET_WIDTH / 2, 0.04, 0);
+      roadGroup.add(edgeNS);
+
+      // E-W edges → cyan
+      const edgeEW = new THREE.Mesh(
+        new THREE.PlaneGeometry(roadLen, 0.18),
+        new THREE.MeshBasicMaterial({
+          color: 0x00f0ff,
+          transparent: true,
+          opacity: 0.9,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      edgeEW.rotation.x = -Math.PI / 2;
+      edgeEW.position.set(0, 0.04, pos + sign * STREET_WIDTH / 2);
+      roadGroup.add(edgeEW);
+    }
+
+    // Center dashed lane markers (yellow) along each street
+    const dashCount = 28;
+    for (let d = 0; d < dashCount; d++) {
+      const dt = (d / dashCount - 0.5) * roadLen;
+      // N-S center dashes
+      const dashNS = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.35, 1.6),
+        new THREE.MeshBasicMaterial({
+          color: 0xf6ff00,
+          transparent: true,
+          opacity: 0.55,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      dashNS.rotation.x = -Math.PI / 2;
+      dashNS.position.set(pos, 0.05, dt);
+      roadGroup.add(dashNS);
+      // E-W center dashes
+      const dashEW = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.6, 0.35),
+        new THREE.MeshBasicMaterial({
+          color: 0xf6ff00,
+          transparent: true,
+          opacity: 0.55,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        })
+      );
+      dashEW.rotation.x = -Math.PI / 2;
+      dashEW.position.set(dt, 0.05, pos);
+      roadGroup.add(dashEW);
+    }
+  }
+
+  // Intersection accents: small glowing diamond at every street crossing
+  for (let i = 0; i < BLOCKS_PER_SIDE - 1; i++) {
+    for (let j = 0; j < BLOCKS_PER_SIDE - 1; j++) {
+      const x = (i - half + 0.5) * span;
+      const z = (j - half + 0.5) * span;
+      const dGeo = new THREE.CircleGeometry(0.9, 4);
+      const dMat = new THREE.MeshBasicMaterial({
+        color: 0xff00ff,
+        transparent: true,
+        opacity: 0.85,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const d = new THREE.Mesh(dGeo, dMat);
+      d.rotation.x = -Math.PI / 2;
+      d.rotation.z = Math.PI / 4;
+      d.position.set(x, 0.06, z);
+      roadGroup.add(d);
+    }
+  }
+
+  scene.add(roadGroup);
+
+  // Glowing center disc (downtown halo)
+  const discGeo = new THREE.CircleGeometry(28, 64);
+  const discMat = new THREE.MeshBasicMaterial({
+    color: 0xff00aa,
+    transparent: true,
+    opacity: 0.07,
+    side: THREE.DoubleSide,
+  });
+  const disc = new THREE.Mesh(discGeo, discMat);
+  disc.rotation.x = -Math.PI / 2;
+  disc.position.y = 0.03;
+  scene.add(disc);
+}
+
+/* The Sun/Moon - Fear & Greed visualization */
+let sunGroup;
+function createSun() {
+  sunGroup = new THREE.Group();
+
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(16, 48, 48),
+    new THREE.MeshBasicMaterial({ color: 0xff6622 })
+  );
+  sunGroup.add(core);
+
+  const halo1 = new THREE.Mesh(
+    new THREE.SphereGeometry(22, 32, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xff6622,
+      transparent: true,
+      opacity: 0.35,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+  );
+  sunGroup.add(halo1);
+
+  const halo2 = new THREE.Mesh(
+    new THREE.SphereGeometry(34, 32, 32),
+    new THREE.MeshBasicMaterial({
+      color: 0xff6622,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+  );
+  sunGroup.add(halo2);
+
+  // Decorative ring
+  const ringGeo = new THREE.RingGeometry(30, 31, 96);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xff6622,
+    transparent: true,
+    opacity: 0.5,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  sunGroup.add(ring);
+
+  const ring2 = new THREE.Mesh(
+    new THREE.RingGeometry(38, 38.4, 96),
+    new THREE.MeshBasicMaterial({ color: 0xff6622, transparent: true, opacity: 0.3, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
+  );
+  sunGroup.add(ring2);
+
+  sunGroup.position.set(0, 55, -180);
+  sunGroup.userData = { core, halo1, halo2, ring, ring2 };
+  scene.add(sunGroup);
+
+  // Big point light from the sun
+  const sunLight = new THREE.PointLight(0xff6622, 1.4, 400);
+  sunLight.position.copy(sunGroup.position);
+  sunGroup.userData.light = sunLight;
+  scene.add(sunLight);
+
+  // Atmospheric haze line on horizon
+  const hazeGeo = new THREE.PlaneGeometry(800, 60);
+  const hazeMat = new THREE.MeshBasicMaterial({
+    color: 0xff0080,
+    transparent: true,
+    opacity: 0.18,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const haze = new THREE.Mesh(hazeGeo, hazeMat);
+  haze.position.set(0, 8, -200);
+  scene.add(haze);
+}
+
+function fearGreedColor(value) {
+  // 0 -> deep red, 25 -> red-orange, 50 -> magenta, 75 -> lime, 100 -> green
+  if (value < 25)  return new THREE.Color(0xff0033);
+  if (value < 45)  return new THREE.Color(0xff5511);
+  if (value < 55)  return new THREE.Color(0xb347ff);
+  if (value < 75)  return new THREE.Color(0xa3ff00);
+  return new THREE.Color(0x00ff77);
+}
+function fearGreedHex(value) {
+  if (value < 25)  return '#ff0033';
+  if (value < 45)  return '#ff5511';
+  if (value < 55)  return '#b347ff';
+  if (value < 75)  return '#a3ff00';
+  return '#00ff77';
+}
+
+function applyFearGreed(value, classification) {
+  const c = fearGreedColor(value);
+  if (sunGroup) {
+    sunGroup.userData.core.material.color.copy(c);
+    sunGroup.userData.halo1.material.color.copy(c);
+    sunGroup.userData.halo2.material.color.copy(c);
+    sunGroup.userData.ring.material.color.copy(c);
+    sunGroup.userData.ring2.material.color.copy(c);
+    sunGroup.userData.light.color.copy(c);
+  }
+  document.getElementById('fgValue').textContent = value;
+  document.getElementById('fgValue').style.color = fearGreedHex(value);
+  document.getElementById('fgClass').textContent = classification;
+  document.getElementById('fgClass').style.color = fearGreedHex(value);
+}
+
+/* =====================================================================
+   GLOBAL LIGHTS
+   ===================================================================== */
+scene.add(new THREE.AmbientLight(0x331b66, 0.55));
+
+const keyLight = new THREE.DirectionalLight(0xff00aa, 0.5);
+keyLight.position.set(60, 80, 30);
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x00ddff, 0.35);
+fillLight.position.set(-60, 50, -40);
+scene.add(fillLight);
+
+/* =====================================================================
+   SHARED RESOURCES
+   ===================================================================== */
+
+// Glow sprite texture (radial)
+function makeRadialTexture(innerColor = 'rgba(255,255,255,1)', outerColor = 'rgba(255,255,255,0)') {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, innerColor);
+  g.addColorStop(0.4, 'rgba(255,255,255,0.6)');
+  g.addColorStop(1, outerColor);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+const PARTICLE_TEX = makeRadialTexture();
+
+/* =====================================================================
+   BUILDING FACTORY
+   ===================================================================== */
+function formatPrice(p) {
+  if (p == null || isNaN(p)) return '0';
+  if (p >= 1000) return p.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (p >= 1)    return p.toFixed(2);
+  if (p >= 0.01) return p.toFixed(4);
+  if (p >= 0.0001) return p.toFixed(6);
+  return p.toExponential(2);
+}
+function formatBig(n) {
+  if (n == null || isNaN(n)) return '0';
+  if (n >= 1e12) return (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3)  return (n/1e3).toFixed(2) + 'K';
+  return n.toFixed(0);
+}
+
+function drawHologramCanvas(coin, mode) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+  redrawHologram(ctx, canvas.width, canvas.height, coin, mode);
+  return canvas;
+}
+
+function redrawHologram(ctx, w, h, coin, mode) {
+  ctx.clearRect(0, 0, w, h);
+
+  const change = (mode === '7d')
+    ? (coin.price_change_percentage_7d_in_currency || 0)
+    : (coin.price_change_percentage_24h || 0);
+  const isUp = change >= 0;
+  const color = isUp ? '#00ff88' : '#ff0844';
+  const accent = isUp ? '#00f0ff' : '#ff00ff';
+
+  // Translucent panel
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(8, 0, 24, 0.78)');
+  grad.addColorStop(1, 'rgba(28, 0, 48, 0.55)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Outer border w/ glow
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 24;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.strokeRect(8, 8, w - 16, h - 16);
+
+  // Inner border
+  ctx.shadowBlur = 8;
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.4;
+  ctx.strokeRect(18, 18, w - 36, h - 36);
+
+  // Corner brackets
+  ctx.shadowBlur = 18;
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = color;
+  ctx.beginPath(); ctx.moveTo(8, 36);  ctx.lineTo(8, 8);   ctx.lineTo(36, 8);   ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w-36, 8); ctx.lineTo(w-8, 8); ctx.lineTo(w-8, 36); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(8, h-36); ctx.lineTo(8, h-8); ctx.lineTo(36, h-8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(w-36, h-8); ctx.lineTo(w-8, h-8); ctx.lineTo(w-8, h-36); ctx.stroke();
+
+  // Top label band
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(28, 28, w - 56, 32);
+  ctx.fillStyle = accent;
+  ctx.shadowColor = accent;
+  ctx.shadowBlur = 6;
+  ctx.font = "bold 18px 'Share Tech Mono', monospace";
+  ctx.textAlign = 'left';
+  ctx.fillText('// NCC-' + String(coin.market_cap_rank || 0).padStart(3, '0'), 38, 50);
+  ctx.textAlign = 'right';
+  ctx.fillText(mode === '7d' ? '7D' : '24H', w - 38, 50);
+
+  // Big ticker
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = color;
+  ctx.font = "900 70px 'Orbitron','Share Tech Mono', monospace";
+  ctx.textAlign = 'center';
+  ctx.fillText((coin.symbol || '').toUpperCase(), w / 2, 130);
+
+  // Price
+  ctx.shadowBlur = 6;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = "bold 36px 'Share Tech Mono', monospace";
+  ctx.fillText('$' + formatPrice(coin.current_price), w / 2, 178);
+
+  // Change
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = color;
+  ctx.font = "bold 44px 'Orbitron', monospace";
+  const sign = isUp ? '▲ +' : '▼ ';
+  ctx.fillText(sign + Math.abs(change).toFixed(2) + '%', w / 2, 230);
+}
+
+function createBuilding(coin, position, height, isTop) {
+  const group = new THREE.Group();
+  group.position.copy(position);
+
+  const change = (state.filter === '7d')
+    ? (coin.price_change_percentage_7d_in_currency || 0)
+    : (coin.price_change_percentage_24h || 0);
+  const isUp = change >= 0;
+  const accentColor = new THREE.Color(isUp ? 0x00ff88 : 0xff0844);
+  const altColor = new THREE.Color(isUp ? 0x00f0ff : 0xff00ff);
+
+  const width = isTop ? 4.4 : 3.0;
+
+  // Track meshes that get recolored on filter switch
+  const recolorMeshes = [];   // their material.color = accent
+  const recolorEmissive = []; // their material.emissive = accent (StandardMaterial)
+  const sweepMeshes = [];     // animated cascading beams
+
+  // Main body
+  const bodyGeo = new THREE.BoxGeometry(width, height, width);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0x080418,
+    emissive: accentColor.clone().multiplyScalar(0.18),
+    metalness: 0.92,
+    roughness: 0.28,
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = height / 2;
+  group.add(body);
+  recolorEmissive.push({ mat: bodyMat, intensity: 0.18 });
+
+  // Top capstone for top buildings
+  if (isTop) {
+    const capGeo = new THREE.BoxGeometry(width * 1.15, 0.6, width * 1.15);
+    const capMat = new THREE.MeshStandardMaterial({
+      color: 0x100828,
+      emissive: accentColor.clone(),
+      emissiveIntensity: 0.6,
+      metalness: 0.9,
+      roughness: 0.3,
+    });
+    const cap = new THREE.Mesh(capGeo, capMat);
+    cap.position.y = height + 0.3;
+    group.add(cap);
+    recolorEmissive.push({ mat: capMat, intensity: 1.0 });
+  }
+
+  // Edge beams (the corner verticals)
+  const beamH = height * 0.96;
+  const beamGeo = new THREE.BoxGeometry(0.13, beamH, 0.13);
+  for (let i = 0; i < 4; i++) {
+    const angle = i * Math.PI / 2 + Math.PI / 4;
+    const beamMat = new THREE.MeshBasicMaterial({
+      color: accentColor.clone(), transparent: true, opacity: 0.95,
+    });
+    const beam = new THREE.Mesh(beamGeo, beamMat);
+    beam.position.x = Math.cos(angle) * (width / 2);
+    beam.position.z = Math.sin(angle) * (width / 2);
+    beam.position.y = beamH / 2;
+    group.add(beam);
+    recolorMeshes.push(beamMat);
+  }
+
+  // Window strips (horizontal neon bands per floor)
+  const numFloors = Math.max(3, Math.floor(height / 1.2));
+  const stripGeo = new THREE.PlaneGeometry(width * 0.92, 0.13);
+  const floorStrips = [];
+  for (let i = 0; i < numFloors; i++) {
+    const yPos = (i + 1) * (height / (numFloors + 1));
+    const lit = Math.random() > 0.25;
+    const opacity = lit ? 0.4 + Math.random() * 0.5 : 0.08;
+    for (let s = 0; s < 4; s++) {
+      const stripMat = new THREE.MeshBasicMaterial({
+        color: accentColor.clone(),
+        transparent: true,
+        opacity,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const strip = new THREE.Mesh(stripGeo, stripMat);
+      const angle = s * Math.PI / 2;
+      strip.position.x = Math.cos(angle) * (width / 2 + 0.015);
+      strip.position.z = Math.sin(angle) * (width / 2 + 0.015);
+      strip.position.y = yPos;
+      strip.rotation.y = angle + Math.PI / 2;
+      group.add(strip);
+      floorStrips.push({ strip, baseOpacity: opacity, lit });
+      recolorMeshes.push(stripMat);
+    }
+  }
+
+  // Top platform glow
+  const topGlowMat = new THREE.MeshBasicMaterial({
+    color: accentColor.clone(),
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const topGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(width + 1.5, width + 1.5),
+    topGlowMat
+  );
+  topGlow.rotation.x = -Math.PI / 2;
+  topGlow.position.y = height + (isTop ? 0.65 : 0.05);
+  group.add(topGlow);
+  recolorMeshes.push(topGlowMat);
+
+  // Vertical sweep beams (the elevator of light) - one per side
+  const sweepGeo = new THREE.PlaneGeometry(width * 1.1, 1.4);
+  const sweepConfigs = [
+    { pos: [0, 0, width / 2 + 0.04], rot: 0 },
+    { pos: [0, 0, -width / 2 - 0.04], rot: 0 },
+    { pos: [width / 2 + 0.04, 0, 0], rot: Math.PI / 2 },
+    { pos: [-width / 2 - 0.04, 0, 0], rot: Math.PI / 2 },
+  ];
+  for (const cfg of sweepConfigs) {
+    const m = new THREE.MeshBasicMaterial({
+      color: accentColor.clone(),
+      transparent: true,
+      opacity: 0.55,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(sweepGeo, m);
+    mesh.position.set(...cfg.pos);
+    mesh.rotation.y = cfg.rot;
+    group.add(mesh);
+    sweepMeshes.push(mesh);
+    recolorMeshes.push(m);
+  }
+
+  // Hologram (always faces camera)
+  const holoCanvas = drawHologramCanvas(coin, state.filter);
+  const holoTex = new THREE.CanvasTexture(holoCanvas);
+  holoTex.minFilter = THREE.LinearFilter;
+  const holoMat = new THREE.SpriteMaterial({
+    map: holoTex,
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    blending: THREE.NormalBlending,
+  });
+  const holo = new THREE.Sprite(holoMat);
+  const holoScale = isTop ? 9 : 6;
+  holo.scale.set(holoScale, holoScale * 0.5, 1);
+  holo.position.y = height + (isTop ? 5 : 3.4);
+  group.add(holo);
+
+  // Coin icon for top N
+  let iconSprite = null;
+  if (isTop) {
+    iconSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: PARTICLE_TEX, color: accentColor.clone(),
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    iconSprite.scale.set(3.4, 3.4, 1);
+    iconSprite.position.y = height + 9.8;
+    group.add(iconSprite);
+
+    if (coin.image) {
+      const tl = new THREE.TextureLoader();
+      tl.setCrossOrigin('anonymous');
+      tl.load(
+        coin.image,
+        (tex) => {
+          tex.minFilter = THREE.LinearFilter;
+          iconSprite.material = new THREE.SpriteMaterial({
+            map: tex, transparent: true, depthWrite: false,
+          });
+        },
+        undefined,
+        () => { /* silent fail; keep glowing dot */ }
+      );
+    }
+  }
+
+  // Point light at top (illuminates building)
+  const ptLight = new THREE.PointLight(accentColor.clone(), 1.0, 22);
+  ptLight.position.y = height + 0.8;
+  group.add(ptLight);
+
+  // Base antenna for top buildings
+  if (isTop) {
+    const antMat = new THREE.MeshBasicMaterial({ color: accentColor.clone() });
+    const ant = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 4, 6),
+      antMat
+    );
+    ant.position.y = height + 2.3;
+    group.add(ant);
+    recolorMeshes.push(antMat);
+    const antTip = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    antTip.position.y = height + 4.4;
+    group.add(antTip);
+  }
+
+  group.userData = {
+    coin, height, isTop,
+    accentColor, altColor,
+    body, bodyMat,
+    holoMat, holoTex, holoCanvas, holoSprite: holo,
+    floorStrips,
+    sweepMeshes,
+    topGlow,
+    iconSprite,
+    pointLight: ptLight,
+    recolorMeshes, recolorEmissive,
+    pulseOffset: Math.random() * Math.PI * 2,
+    width,
+    isBuilding: true,
+  };
+
+  scene.add(group);
+  return group;
+}
+
+/* =====================================================================
+   LAYOUT - irregular downtown blocks separated by streets
+   ===================================================================== *
+   The city is divided into a coarse grid of "blocks". Each block holds up
+   to 4 buildings on a jittered sub-grid, with random rotation. Streets run
+   between blocks. Some outer blocks are left empty as plazas. Building
+   slots are sorted by distance-from-center so the highest market caps land
+   in the downtown core (BTC at the heart), with smaller caps spread to the
+   suburbs and natural "plazas" at the edges.
+   ===================================================================== */
+let cachedSlots = null;
+function generateCitySlots(seed) {
+  // Deterministic-ish per page-load (don't reseed if cached)
+  if (cachedSlots) return cachedSlots;
+  const blocks = [];
+  const span = (BLOCK_SIZE + STREET_WIDTH);
+  const half = (BLOCKS_PER_SIDE - 1) / 2;
+  for (let bx = 0; bx < BLOCKS_PER_SIDE; bx++) {
+    for (let bz = 0; bz < BLOCKS_PER_SIDE; bz++) {
+      const cx = (bx - half) * span;
+      const cz = (bz - half) * span;
+      blocks.push({ cx, cz, dist: Math.hypot(cx, cz) });
+    }
+  }
+  // Shuffle, then sort with distance bias — gives organic ordering, not perfectly radial
+  blocks.sort((a, b) => (a.dist + Math.random() * 4) - (b.dist + Math.random() * 4));
+
+  const slots = [];
+  for (const block of blocks) {
+    // 2x2 sub-grid inside the block, jittered
+    const sub = [];
+    for (let sx = 0; sx < 2; sx++) {
+      for (let sz = 0; sz < 2; sz++) {
+        const ox = (sx - 0.5) * SUB_GRID_GAP;
+        const oz = (sz - 0.5) * SUB_GRID_GAP;
+        const jx = (Math.random() - 0.5) * 1.6;
+        const jz = (Math.random() - 0.5) * 1.6;
+        const rot = (Math.random() - 0.5) * 0.35; // small irregular twist
+        sub.push({
+          x: block.cx + ox + jx,
+          z: block.cz + oz + jz,
+          rot,
+          blockDist: block.dist,
+        });
+      }
+    }
+    // Maybe drop one slot to keep blocks irregular (15% chance per slot)
+    const filtered = sub.filter(() => Math.random() > 0.12);
+    // Shuffle within block so ordering is organic
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+    slots.push(...filtered);
+  }
+  cachedSlots = slots;
+  return slots;
+}
+
+/* =====================================================================
+   HEIGHT MAP — supports two modes:
+     'mcap'   : log10(market_cap), normalized → towering BTC, modest small caps
+     'movers' : |% change| (24h or 7d, follows current filter), normalized
+                so the day's biggest mover is the tallest building
+   ===================================================================== */
+function buildHeightFn(coins, mode, filter) {
+  const minH = 4;
+  const maxH = 38;
+  if (mode === 'movers') {
+    const key = (filter === '7d')
+      ? 'price_change_percentage_7d_in_currency'
+      : 'price_change_percentage_24h';
+    const abs = coins.map(c => Math.abs(c[key] || 0));
+    const maxA = Math.max(0.001, ...abs);
+    return (coin) => {
+      const a = Math.abs(coin[key] || 0);
+      const t = Math.min(1, a / maxA);
+      // Slight curve so mid-range movers don't all sit too low
+      return minH + Math.pow(t, 0.85) * (maxH - minH);
+    };
+  }
+  // Default: market cap, log scale
+  const logs = coins.map(c => Math.log10(Math.max(1, c.market_cap || 1)));
+  const minL = Math.min(...logs);
+  const maxL = Math.max(...logs);
+  return (coin) => {
+    const l = Math.log10(Math.max(1, coin.market_cap || 1));
+    const t = (l - minL) / Math.max(0.001, (maxL - minL));
+    return minH + t * (maxH - minH);
+  };
+}
+
+/* =====================================================================
+   PARTICLES - flying cars + volume vortex
+   ===================================================================== */
+let particleSystem;
+
+function buildParticles(coins) {
+  const positions = new Float32Array(MAX_PARTICLES * 3);
+  const colors = new Float32Array(MAX_PARTICLES * 3);
+
+  state.particleData = [];
+
+  // Distribute by volume
+  const volScores = state.buildings.map(b => Math.log10(Math.max(1, b.userData.coin.total_volume || 1)));
+  const totalScore = volScores.reduce((s, v) => s + v, 0);
+
+  let pIdx = 0;
+  for (let i = 0; i < state.buildings.length && pIdx < MAX_PARTICLES; i++) {
+    const b = state.buildings[i];
+    const share = volScores[i] / totalScore;
+    const count = Math.max(1, Math.round(MAX_PARTICLES * share));
+    for (let j = 0; j < count && pIdx < MAX_PARTICLES; j++) {
+      const angle = Math.random() * Math.PI * 2;
+      const orbitR = 4 + Math.random() * 7;
+      const yOff = 1.5 + Math.random() * (b.userData.height + 4);
+      const orbitSpeed = (0.4 + Math.random() * 0.9) * (Math.random() > 0.5 ? 1 : -1);
+      const yVel = (Math.random() - 0.5) * 0.04;
+      const c = b.userData.accentColor;
+      const variance = 0.6 + Math.random() * 0.4;
+      colors[pIdx * 3]     = Math.min(1, c.r * variance + 0.1);
+      colors[pIdx * 3 + 1] = Math.min(1, c.g * variance + 0.1);
+      colors[pIdx * 3 + 2] = Math.min(1, c.b * variance + 0.1);
+      state.particleData.push({
+        building: b,
+        angle,
+        orbitR,
+        yOff,
+        yVel,
+        orbitSpeed,
+        index: pIdx,
+        // For inter-building travel: occasionally migrates
+        nextSwitch: 200 + Math.random() * 600,
+      });
+      pIdx++;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const mat = new THREE.PointsMaterial({
+    size: 0.7,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.95,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    map: PARTICLE_TEX,
+    sizeAttenuation: true,
+  });
+
+  particleSystem = new THREE.Points(geo, mat);
+  scene.add(particleSystem);
+}
+
+function updateParticles(dt) {
+  if (!particleSystem) return;
+  const pos = particleSystem.geometry.attributes.position.array;
+  for (let i = 0; i < state.particleData.length; i++) {
+    const p = state.particleData[i];
+    p.angle += p.orbitSpeed * dt * 0.001;
+    p.yOff  += p.yVel;
+    const maxY = p.building.userData.height + 4;
+    if (p.yOff > maxY) { p.yOff = maxY; p.yVel = -Math.abs(p.yVel); }
+    if (p.yOff < 1)    { p.yOff = 1;    p.yVel =  Math.abs(p.yVel); }
+
+    p.nextSwitch -= dt;
+    if (p.nextSwitch <= 0) {
+      // Migrate to a random nearby building (the "flying car" trip)
+      const candidates = state.buildings;
+      const newB = candidates[Math.floor(Math.random() * candidates.length)];
+      p.building = newB;
+      const c = newB.userData.accentColor;
+      const colors = particleSystem.geometry.attributes.color.array;
+      const v = 0.6 + Math.random() * 0.4;
+      colors[p.index * 3]     = Math.min(1, c.r * v + 0.1);
+      colors[p.index * 3 + 1] = Math.min(1, c.g * v + 0.1);
+      colors[p.index * 3 + 2] = Math.min(1, c.b * v + 0.1);
+      particleSystem.geometry.attributes.color.needsUpdate = true;
+      p.nextSwitch = 400 + Math.random() * 1200;
+    }
+
+    const bx = p.building.position.x;
+    const bz = p.building.position.z;
+    pos[p.index * 3]     = bx + Math.cos(p.angle) * p.orbitR;
+    pos[p.index * 3 + 1] = p.yOff;
+    pos[p.index * 3 + 2] = bz + Math.sin(p.angle) * p.orbitR;
+  }
+  particleSystem.geometry.attributes.position.needsUpdate = true;
+}
+
+/* =====================================================================
+   HOVER / RAYCASTING
+   ===================================================================== */
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2(-2, -2);
+let lastMouseClient = { x: 0, y: 0 };
+
+window.addEventListener('mousemove', (e) => {
+  mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  lastMouseClient.x = e.clientX;
+  lastMouseClient.y = e.clientY;
+});
+
+function getBuildingFromObject(obj) {
+  let cur = obj;
+  while (cur && !cur.userData?.isBuilding) cur = cur.parent;
+  return (cur && cur.userData?.coin) ? cur : null;
+}
+
+function updateHover() {
+  if (state.buildings.length === 0) return;
+  raycaster.setFromCamera(mouseNDC, camera);
+  // Test against building bodies only (perf)
+  const targets = state.buildings.map(b => b.userData.body);
+  const hits = raycaster.intersectObjects(targets, false);
+  let hovered = null;
+  if (hits.length > 0) {
+    hovered = getBuildingFromObject(hits[0].object);
+  }
+
+  if (hovered !== state.hoveredBuilding) {
+    if (state.hoveredBuilding) {
+      state.hoveredBuilding.userData.bodyMat.emissiveIntensity = 0.18;
+    }
+    state.hoveredBuilding = hovered;
+    if (hovered) {
+      hovered.userData.bodyMat.emissiveIntensity = 0.85;
+    }
+  }
+
+  const card = document.getElementById('hoverCard');
+  if (hovered) {
+    const coin = hovered.userData.coin;
+    document.getElementById('hcName').textContent = coin.name;
+    document.getElementById('hcSymbol').textContent = (coin.symbol || '').toUpperCase();
+    document.getElementById('hcRank').textContent = '#' + (coin.market_cap_rank || '?');
+    document.getElementById('hcPrice').textContent = '$' + formatPrice(coin.current_price);
+    document.getElementById('hcMcap').textContent = '$' + formatBig(coin.market_cap);
+    document.getElementById('hcVol').textContent = '$' + formatBig(coin.total_volume);
+
+    const c24 = coin.price_change_percentage_24h || 0;
+    const c7  = coin.price_change_percentage_7d_in_currency || 0;
+    const ePct = document.getElementById('hcPct');
+    ePct.textContent = (c24 >= 0 ? '+' : '') + c24.toFixed(2) + '%';
+    ePct.className = 'hc-pct ' + (c24 >= 0 ? 'up' : 'down');
+    const ePct7 = document.getElementById('hcPct7');
+    ePct7.textContent = (c7 >= 0 ? '+' : '') + c7.toFixed(2) + '%';
+    ePct7.className = 'hc-pct ' + (c7 >= 0 ? 'up' : 'down');
+
+    const icon = document.getElementById('hcIcon');
+    if (coin.image) icon.src = coin.image; else icon.removeAttribute('src');
+
+    // Position card near cursor but constrained
+    const w = 280, h = 200;
+    let x = lastMouseClient.x + 18;
+    let y = lastMouseClient.y + 18;
+    if (x + w > window.innerWidth) x = lastMouseClient.x - w - 18;
+    if (y + h > window.innerHeight) y = lastMouseClient.y - h - 18;
+    card.style.left = x + 'px';
+    card.style.top = y + 'px';
+    card.classList.add('visible');
+  } else {
+    card.classList.remove('visible');
+  }
+}
+
+/* =====================================================================
+   FILTER SWITCHING (24h / 7d)
+   ===================================================================== */
+function applyFilter(mode) {
+  state.filter = mode;
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === mode);
+  });
+  // Repaint all holograms + recolor accents
+  state.buildings.forEach(b => {
+    const coin = b.userData.coin;
+    const change = (mode === '7d')
+      ? (coin.price_change_percentage_7d_in_currency || 0)
+      : (coin.price_change_percentage_24h || 0);
+    const isUp = change >= 0;
+    const newAccent = new THREE.Color(isUp ? 0x00ff88 : 0xff0844);
+    const ud = b.userData;
+    ud.accentColor.copy(newAccent);
+
+    // All neon-colored basic meshes (edge beams, window strips, top glow, sweeps, antenna)
+    ud.recolorMeshes.forEach(m => m.color.copy(newAccent));
+
+    // Standard materials with emissive (body + capstone) — preserve original intensity
+    ud.recolorEmissive.forEach(({ mat, intensity }) => {
+      mat.emissive.copy(newAccent).multiplyScalar(intensity);
+    });
+
+    // Building point light
+    ud.pointLight.color.copy(newAccent);
+
+    // Repaint hologram
+    const ctx = b.userData.holoCanvas.getContext('2d');
+    redrawHologram(ctx, b.userData.holoCanvas.width, b.userData.holoCanvas.height, coin, mode);
+    b.userData.holoTex.needsUpdate = true;
+  });
+
+  // Repaint particles colors based on new accents
+  if (particleSystem) {
+    const colors = particleSystem.geometry.attributes.color.array;
+    for (let i = 0; i < state.particleData.length; i++) {
+      const p = state.particleData[i];
+      const c = p.building.userData.accentColor;
+      const v = 0.6 + Math.random() * 0.4;
+      colors[p.index * 3]     = Math.min(1, c.r * v + 0.1);
+      colors[p.index * 3 + 1] = Math.min(1, c.g * v + 0.1);
+      colors[p.index * 3 + 2] = Math.min(1, c.b * v + 0.1);
+    }
+    particleSystem.geometry.attributes.color.needsUpdate = true;
+  }
+
+  updateLeaderboard();
+  updateTelemetry();
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    applyFilter(btn.dataset.filter);
+    // Top-movers mode is filter-dependent (uses current 24h or 7d %),
+    // so rebuild heights when filter changes.
+    if (state.heightMode === 'movers') applyHeightMode('movers', /*skipFilter*/true);
+  });
+});
+
+/* =====================================================================
+   HEIGHT MODE SWITCHING (Market Cap / Top Movers)
+   - Replaces every building's geometry/materials with new ones built at
+     the new height. Colors and animation phase are preserved.
+   ===================================================================== */
+function disposeBuildingChildren(b) {
+  // Properly dispose all GPU resources attached to the building's children
+  const children = b.children.slice();
+  for (const c of children) {
+    b.remove(c);
+    if (c.geometry) c.geometry.dispose();
+    if (c.material) {
+      const mats = Array.isArray(c.material) ? c.material : [c.material];
+      for (const m of mats) {
+        if (m.map) m.map.dispose();
+        m.dispose();
+      }
+    }
+    if (c.isLight && c.dispose) c.dispose();
+  }
+}
+
+let _heightSwitching = false;
+function applyHeightMode(mode, skipFilter) {
+  if (_heightSwitching) return;
+  _heightSwitching = true;
+  state.heightMode = mode;
+
+  document.querySelectorAll('.height-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.height === mode);
+    btn.classList.add('rebuilding');
+  });
+
+  // Defer the heavy rebuild one frame so the button click feedback paints first
+  requestAnimationFrame(() => {
+    const heightFn = buildHeightFn(state.coins, mode, state.filter);
+    for (let i = 0; i < state.buildings.length; i++) {
+      const b = state.buildings[i];
+      const coin = b.userData.coin;
+      const isTop = b.userData.isTop;
+      const oldPulseOffset = b.userData.pulseOffset;
+      const newH = heightFn(coin);
+
+      // Dispose old GPU resources
+      disposeBuildingChildren(b);
+      if (b.userData.holoTex) b.userData.holoTex.dispose();
+
+      // Build a fresh tower at same world position with new height
+      const fresh = createBuilding(coin, b.position, newH, isTop);
+      // Transplant children from fresh → b (preserving b's identity for particles)
+      while (fresh.children.length > 0) {
+        const c = fresh.children[0];
+        fresh.remove(c);
+        b.add(c);
+      }
+      // Adopt fresh's userData but keep b's pulseOffset for animation continuity
+      b.userData = fresh.userData;
+      b.userData.pulseOffset = oldPulseOffset;
+      // The fresh group was added to scene by createBuilding — remove it (now empty)
+      scene.remove(fresh);
+    }
+
+    document.querySelectorAll('.height-btn').forEach(btn => btn.classList.remove('rebuilding'));
+
+    // The fresh buildings already used current state.filter for their initial
+    // accent colors, so we don't strictly need a recolor — but call applyFilter
+    // anyway to refresh particles, leaderboard, and telemetry.
+    if (!skipFilter) applyFilter(state.filter);
+
+    _heightSwitching = false;
+  });
+}
+
+document.querySelectorAll('.height-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.height === state.heightMode) return;
+    applyHeightMode(btn.dataset.height);
+  });
+});
+
+/* =====================================================================
+   HUD - leaderboard + telemetry
+   ===================================================================== */
+function updateLeaderboard() {
+  const el = document.getElementById('leaderboard');
+  if (!el) return;
+  const key = state.filter === '7d' ? 'price_change_percentage_7d_in_currency' : 'price_change_percentage_24h';
+  const sorted = [...state.coins]
+    .filter(c => c[key] != null && !isNaN(c[key]))
+    .sort((a, b) => Math.abs(b[key]) - Math.abs(a[key]))
+    .slice(0, 18);
+
+  el.innerHTML = sorted.map(c => {
+    const v = c[key] || 0;
+    const cls = v >= 0 ? 'up' : 'down';
+    const sign = v >= 0 ? '+' : '';
+    return `<div class="lb-row" data-id="${c.id}">
+      <div class="lb-rank">${c.market_cap_rank || '?'}</div>
+      <div class="lb-name">${(c.symbol || '').toUpperCase()} <span style="opacity:.5;font-size:9px">${c.name}</span></div>
+      <div class="lb-pct ${cls}">${sign}${v.toFixed(2)}%</div>
+    </div>`;
+  }).join('');
+
+  // Click to focus camera on building
+  el.querySelectorAll('.lb-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.id;
+      const b = state.buildings.find(b => b.userData.coin.id === id);
+      if (b) {
+        cameraState.target.set(b.position.x, b.userData.height / 2 + 6, b.position.z);
+        cameraState.distance = 50;
+      }
+    });
+  });
+}
+
+function updateTelemetry() {
+  const totalMcap = state.coins.reduce((s, c) => s + (c.market_cap || 0), 0);
+  const totalVol = state.coins.reduce((s, c) => s + (c.total_volume || 0), 0);
+  const key = state.filter === '7d' ? 'price_change_percentage_7d_in_currency' : 'price_change_percentage_24h';
+  const ups = state.coins.filter(c => (c[key] || 0) >= 0).length;
+  const downs = state.coins.length - ups;
+
+  document.getElementById('statAssets').textContent = state.coins.length.toString().padStart(3, '0');
+  document.getElementById('statMcap').textContent = '$' + formatBig(totalMcap);
+  document.getElementById('statVolume').textContent = '$' + formatBig(totalVol);
+  document.getElementById('statUp').textContent = ups + ' ▲';
+  document.getElementById('statDown').textContent = downs + ' ▼';
+}
+
+/* =====================================================================
+   ANIMATION LOOP
+   ===================================================================== */
+const clock = new THREE.Clock();
+let frameCount = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta() * 1000;
+  state.time += dt;
+  frameCount++;
+
+  // Auto-rotate camera
+  if (cameraState.autoRotate) {
+    cameraState.angle += cameraState.autoRotateSpeed * dt;
+  }
+  updateCameraPosition();
+
+  // Pulse buildings (window flicker + sweep)
+  for (let i = 0; i < state.buildings.length; i++) {
+    const b = state.buildings[i];
+    const ud = b.userData;
+    const t = state.time * 0.001 + ud.pulseOffset;
+
+    // Subtle flicker on a few floors
+    if (frameCount % 3 === 0 && ud.floorStrips.length > 0) {
+      const flickerCount = Math.min(2, ud.floorStrips.length);
+      for (let f = 0; f < flickerCount; f++) {
+        const fs = ud.floorStrips[Math.floor(Math.random() * ud.floorStrips.length)];
+        fs.strip.material.opacity = fs.baseOpacity * (0.7 + Math.random() * 0.6);
+      }
+    }
+
+    // The "elevator of light" - sweep beams animate
+    const change = (state.filter === '7d')
+      ? (ud.coin.price_change_percentage_7d_in_currency || 0)
+      : (ud.coin.price_change_percentage_24h || 0);
+    const isUp = change >= 0;
+    const speed = 1.2;
+    let sweepY;
+    if (isUp) {
+      // Rising sweep - bottom to top (the "ascending elevator")
+      sweepY = ((t * speed) % 1) * ud.height;
+    } else {
+      // Falling cascade - top to bottom (with flicker)
+      sweepY = (1 - ((t * speed) % 1)) * ud.height;
+    }
+    for (let s = 0; s < ud.sweepMeshes.length; s++) {
+      const sm = ud.sweepMeshes[s];
+      sm.position.y = sweepY;
+      if (isUp) {
+        sm.material.opacity = 0.42 + Math.sin(t * 4 + s) * 0.18;
+      } else {
+        // Cascading + flickering downward beams
+        sm.material.opacity = 0.28 + (Math.random() > 0.7 ? 0.55 : 0.0);
+      }
+    }
+
+    // Top glow pulse
+    if (ud.topGlow) {
+      ud.topGlow.material.opacity = 0.35 + Math.sin(t * 2 + ud.pulseOffset) * 0.15;
+    }
+
+    // Hologram subtle vertical bob
+    if (ud.holoSprite) {
+      ud.holoSprite.position.y = ud.height + (ud.isTop ? 5 : 3.4) + Math.sin(t * 1.5 + ud.pulseOffset) * 0.15;
+    }
+  }
+
+  // Sun pulse
+  if (sunGroup) {
+    const t = state.time * 0.001;
+    sunGroup.userData.halo1.scale.setScalar(1 + Math.sin(t * 0.7) * 0.04);
+    sunGroup.userData.halo2.scale.setScalar(1 + Math.sin(t * 0.5 + 1) * 0.06);
+    sunGroup.userData.ring.rotation.z = t * 0.2;
+    sunGroup.userData.ring2.rotation.z = -t * 0.15;
+  }
+
+  // Particles
+  updateParticles(dt);
+
+  // Hover (every 2 frames for perf)
+  if (frameCount % 2 === 0) updateHover();
+
+  renderer.render(scene, camera);
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+async function init() {
+  setLoader(5, 'BOOTING WORLD ENGINE...');
+  createSkybox();
+  createStars();
+  createGround();
+  createSun();
+
+  setLoader(10, 'CONTACTING DATA NEXUS...');
+  const coins = await fetchCoins();
+  state.coins = coins;
+
+  setLoader(50, 'PROCESSING ' + coins.length + ' ASSETS...');
+
+  const fg = await fetchFearGreed();
+  state.fearGreed = fg;
+  setLoader(70, 'SENTIMENT INDEX = ' + fg.value);
+  applyFearGreed(fg.value, fg.classification);
+
+  // Build buildings using the city-block layout
+  setLoader(80, 'CONSTRUCTING SKYLINE...');
+  const heightFn = buildHeightFn(coins, state.heightMode, state.filter);
+  const slots = generateCitySlots();
+  const used = Math.min(coins.length, slots.length);
+  for (let i = 0; i < used; i++) {
+    const coin = coins[i];
+    const slot = slots[i];
+    const pos = new THREE.Vector3(slot.x, 0, slot.z);
+    const h = heightFn(coin);
+    const isTop = i < TOP_ICON_COUNT;
+    const b = createBuilding(coin, pos, h, isTop);
+    b.rotation.y = slot.rot;            // organic non-grid rotation
+    state.buildings.push(b);
+  }
+
+  setLoader(92, 'ACTIVATING TRAFFIC FLOW...');
+  buildParticles(coins);
+
+  setLoader(96, 'CALIBRATING HUD...');
+  updateLeaderboard();
+  updateTelemetry();
+
+  setLoader(100, 'READY // ENTER GRID');
+  setTimeout(() => {
+    loaderEl.classList.add('hidden');
+    setTimeout(() => loaderEl.style.display = 'none', 800);
+  }, 600);
+
+  animate();
+}
+
+init().catch(err => {
+  console.error('Fatal init error', err);
+  setLoader(100, 'ERROR: ' + (err.message || err));
+});
+
+// Expose for debugging in console
+window.NCC = { state, scene, camera, cameraState };
+</script>
+</body>
+</html>

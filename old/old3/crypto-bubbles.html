@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#000000">
-<title>Crypto Bubbles · O mercado em esferas iridescentes</title>
+<title>Crypto Bubbles · The Market as Iridescent Spheres</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -56,47 +56,8 @@
   }
 
   body.is-hovering { cursor: pointer; }
-  body.is-dragging { cursor: grabbing; }
 
-  /* ─────────── AURORA BACKGROUND ─────────── */
-  .aurora {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .aurora i {
-    position: absolute;
-    width: 55vmax;
-    height: 55vmax;
-    border-radius: 50%;
-    filter: blur(90px);
-    opacity: 0.16;
-    mix-blend-mode: screen;
-    will-change: transform;
-  }
-  .aurora i:nth-child(1) {
-    background: radial-gradient(circle, #1b4a8a 0%, transparent 65%);
-    top: -18%; left: -12%;
-    animation: drift1 46s ease-in-out infinite alternate;
-  }
-  .aurora i:nth-child(2) {
-    background: radial-gradient(circle, #5a2070 0%, transparent 65%);
-    bottom: -22%; right: -14%;
-    animation: drift2 58s ease-in-out infinite alternate;
-  }
-  .aurora i:nth-child(3) {
-    background: radial-gradient(circle, #0c5246 0%, transparent 65%);
-    top: 30%; left: 45%;
-    width: 40vmax; height: 40vmax;
-    animation: drift3 52s ease-in-out infinite alternate;
-  }
-  @keyframes drift1 { from { transform: translate(0,0) scale(1); }   to { transform: translate(14vw, 10vh) scale(1.15); } }
-  @keyframes drift2 { from { transform: translate(0,0) scale(1.1); } to { transform: translate(-12vw, -8vh) scale(0.95); } }
-  @keyframes drift3 { from { transform: translate(0,0); }            to { transform: translate(-10vw, 12vh) scale(1.2); } }
-
-  /* Vignette */
+  /* Vignette background subtle */
   body::before {
     content: "";
     position: fixed;
@@ -109,7 +70,7 @@
     z-index: 0;
   }
 
-  /* Film grain */
+  /* Subtle film grain for cinematic feel */
   body::after {
     content: "";
     position: fixed;
@@ -121,7 +82,7 @@
     z-index: 1;
   }
 
-  canvas#bubbleCanvas {
+  canvas {
     display: block;
     position: fixed;
     inset: 0;
@@ -138,8 +99,8 @@
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 11px 18px 11px 20px;
+    gap: 18px;
+    padding: 11px 20px 11px 22px;
     background: var(--glass-bg);
     backdrop-filter: blur(28px) saturate(1.4);
     -webkit-backdrop-filter: blur(28px) saturate(1.4);
@@ -150,7 +111,6 @@
       0 24px 48px -16px rgba(0, 0, 0, 0.6),
       0 1px 0 rgba(255, 255, 255, 0.04) inset;
     animation: enterHeader 1.2s cubic-bezier(.2,.8,.2,1) both;
-    max-width: calc(100vw - 24px);
   }
   @keyframes enterHeader {
     from { opacity: 0; transform: translate(-50%, -20px); }
@@ -167,7 +127,7 @@
     letter-spacing: 0.22em;
     text-transform: uppercase;
     color: var(--ink);
-    padding-right: 16px;
+    padding-right: 18px;
     border-right: 1px solid var(--ink-faint);
     white-space: nowrap;
   }
@@ -202,7 +162,6 @@
     border-radius: 999px;
     padding: 3px;
     border: 1px solid rgba(255, 255, 255, 0.04);
-    flex-shrink: 0;
   }
   .filter-btn {
     background: transparent;
@@ -211,63 +170,26 @@
     font-family: var(--font-body);
     font-weight: 600;
     font-size: 11px;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    padding: 8px 13px;
+    padding: 8px 16px;
     border-radius: 999px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(.2,.8,.2,1);
     position: relative;
-    white-space: nowrap;
   }
   .filter-btn:hover { color: var(--ink); }
-  .filter-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.5); outline-offset: 2px; }
   .filter-btn.active {
     background: rgba(255, 255, 255, 0.92);
     color: #0a0a0c;
     box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;
   }
 
-  /* ─────────── SEARCH ─────────── */
-  .search-wrap {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 999px;
-    padding: 6px 12px;
-    transition: border-color .3s, background .3s, width .3s;
-  }
-  .search-wrap:focus-within {
-    border-color: var(--ink-mute);
-    background: rgba(255,255,255,0.07);
-  }
-  .search-wrap svg {
-    width: 12px; height: 12px;
-    stroke: var(--ink-mute);
-    stroke-width: 2.2;
-    flex-shrink: 0;
-  }
-  #search {
-    background: transparent;
-    border: 0;
-    outline: none;
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    width: 74px;
-    transition: width .3s cubic-bezier(.2,.8,.2,1);
-  }
-  #search:focus { width: 120px; }
-  #search::placeholder { color: var(--ink-mute); }
-
   .status {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding-left: 14px;
+    padding-left: 16px;
     border-left: 1px solid var(--ink-faint);
     font-size: 11px;
     color: var(--ink-soft);
@@ -302,8 +224,7 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    margin-left: 2px;
-    flex-shrink: 0;
+    margin-left: 4px;
   }
   .refresh-btn:hover {
     color: var(--ink);
@@ -359,51 +280,8 @@
     text-transform: uppercase;
     margin-bottom: 4px;
   }
-  .legend-hint {
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px solid var(--ink-faint);
-    color: var(--ink-mute);
-    font-size: 9px;
-    line-height: 1.7;
-  }
 
-  /* ─────────── MARKET BAR (bottom-center) ─────────── */
-  .market-bar {
-    position: fixed;
-    bottom: 22px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 20px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px) saturate(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(1.3);
-    border: 1px solid var(--glass-edge);
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--ink-mute);
-    letter-spacing: 0.05em;
-    animation: enterLegend 1.4s cubic-bezier(.2,.8,.2,1) 0.35s both;
-    white-space: nowrap;
-  }
-  .mb-item { display: flex; align-items: center; gap: 6px; }
-  .mb-label {
-    font-size: 8.5px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-mute);
-  }
-  .mb-val { color: var(--ink); font-variant-numeric: tabular-nums; }
-  .mb-val.pos { color: var(--pos-bright); }
-  .mb-val.neg { color: var(--neg-bright); }
-  .mb-sep { width: 1px; height: 14px; background: var(--ink-faint); }
-
-  /* ─────────── INFO (bottom-right) ─────────── */
+  /* ─────────── INFO PANEL (bottom-right) ─────────── */
   .info {
     position: fixed;
     bottom: 22px;
@@ -416,7 +294,6 @@
     letter-spacing: 0.08em;
     line-height: 1.7;
     animation: enterLegend 1.4s cubic-bezier(.2,.8,.2,1) 0.3s both;
-    transition: opacity .3s;
   }
   .info b { color: var(--ink-soft); font-weight: 500; }
   .info a {
@@ -426,7 +303,6 @@
     transition: color .2s;
   }
   .info a:hover { color: var(--ink); }
-  body.panel-open .info { opacity: 0; pointer-events: none; }
 
   /* ─────────── TOOLTIP ─────────── */
   #tooltip {
@@ -503,32 +379,24 @@
     color: var(--ink);
     letter-spacing: -0.01em;
     line-height: 1;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-variant-numeric: tabular-nums;
   }
-
-  .chip-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-  .chip {
+  .tt-change {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     font-family: var(--font-mono);
     font-weight: 500;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 0.02em;
-    padding: 3px 8px;
+    padding: 4px 9px;
     border-radius: 6px;
-    font-variant-numeric: tabular-nums;
+    margin-bottom: 14px;
   }
-  .chip .chip-tf {
-    font-size: 8px;
-    letter-spacing: 0.16em;
-    opacity: 0.65;
-    text-transform: uppercase;
-  }
-  .chip.pos { color: var(--pos-bright); background: rgba(52, 224, 161, 0.12); }
-  .chip.neg { color: var(--neg-bright); background: rgba(255, 84, 112, 0.12); }
-  .chip.neu { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
+  .tt-change.pos { color: var(--pos-bright); background: rgba(52, 224, 161, 0.12); }
+  .tt-change.neg { color: var(--neg-bright); background: rgba(255, 84, 112, 0.12); }
+  .tt-change.neu { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
 
   .tt-stats {
     display: grid;
@@ -551,163 +419,6 @@
     color: var(--ink);
     font-variant-numeric: tabular-nums;
   }
-  .tt-hint {
-    margin-top: 11px;
-    padding-top: 9px;
-    border-top: 1px solid var(--ink-faint);
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--ink-mute);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* ─────────── DETAIL PANEL ─────────── */
-  #panel {
-    position: fixed;
-    top: 90px;
-    right: 22px;
-    bottom: 22px;
-    width: 340px;
-    max-width: calc(100vw - 24px);
-    z-index: 40;
-    background: rgba(8, 8, 13, 0.78);
-    backdrop-filter: blur(32px) saturate(1.5);
-    -webkit-backdrop-filter: blur(32px) saturate(1.5);
-    border: 1px solid var(--glass-edge-strong);
-    border-radius: 22px;
-    padding: 22px;
-    overflow-y: auto;
-    box-shadow: 0 32px 80px -16px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03) inset;
-    transform: translateX(calc(100% + 30px));
-    transition: transform .45s cubic-bezier(.2,.8,.2,1);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.15) transparent;
-  }
-  #panel.open { transform: translateX(0); }
-
-  .panel-close {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    border: 1px solid var(--ink-faint);
-    background: transparent;
-    color: var(--ink-soft);
-    font-size: 15px;
-    line-height: 1;
-    cursor: pointer;
-    transition: all .25s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .panel-close:hover { color: var(--ink); border-color: var(--ink-mute); background: rgba(255,255,255,0.05); }
-
-  .panel-head {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    margin-bottom: 16px;
-    padding-right: 36px;
-  }
-  .panel-icon {
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.05);
-    box-shadow: 0 0 24px rgba(255,255,255,0.08);
-  }
-  .panel-name {
-    font-family: var(--font-display);
-    font-weight: 500;
-    font-size: 16px;
-    letter-spacing: 0.03em;
-    color: var(--ink);
-    line-height: 1.2;
-  }
-  .panel-sub {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--ink-mute);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .panel-rank {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--ink-faint);
-    padding: 1px 7px;
-    border-radius: 6px;
-    color: var(--ink-soft);
-  }
-
-  .panel-price {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 32px;
-    color: var(--ink);
-    letter-spacing: -0.01em;
-    line-height: 1;
-    margin-bottom: 10px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .panel-spark-wrap {
-    margin: 16px 0 4px;
-  }
-  .panel-spark-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--ink-mute);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  #sparkCanvas {
-    width: 100%;
-    height: 86px;
-    display: block;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-
-  .panel-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px 16px;
-    margin-top: 18px;
-    padding-top: 16px;
-    border-top: 1px solid var(--ink-faint);
-  }
-
-  .panel-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    margin-top: 20px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-soft);
-    text-decoration: none;
-    border: 1px solid var(--ink-faint);
-    padding: 9px 16px;
-    border-radius: 999px;
-    transition: all .25s;
-  }
-  .panel-link:hover {
-    color: var(--ink);
-    border-color: var(--ink-mute);
-    background: rgba(255,255,255,0.04);
-  }
-  .panel-link svg { width: 11px; height: 11px; stroke-width: 2; }
 
   /* ─────────── LOADING ─────────── */
   #loader {
@@ -781,6 +492,7 @@
     text-transform: uppercase;
   }
 
+  /* Error panel inside loader */
   .loader-error {
     margin-top: 28px;
     max-width: 380px;
@@ -861,65 +573,39 @@
     box-shadow: 0 0 8px var(--pos);
   }
 
-  /* ─────────── REDUCED MOTION ─────────── */
-  @media (prefers-reduced-motion: reduce) {
-    .aurora i, .loader-bubble, .status-dot { animation: none !important; }
-    header, .legend, .info, .market-bar { animation-duration: 0.01s !important; }
-  }
-
   /* ─────────── MOBILE ─────────── */
-  @media (max-width: 720px) {
+  @media (max-width: 640px) {
     header {
-      top: 10px;
-      gap: 6px 8px;
-      padding: 8px 12px;
-      max-width: calc(100vw - 16px);
+      top: 12px;
+      gap: 10px;
+      padding: 8px 12px 8px 14px;
+      max-width: calc(100vw - 24px);
       flex-wrap: wrap;
       justify-content: center;
-      border-radius: 22px;
     }
-    .home-link { margin-right: 0; order: 0; }
-    .brand { font-size: 10px; padding-right: 0; border-right: 0; gap: 8px; order: 1; }
+    .brand { font-size: 10px; padding-right: 10px; gap: 8px; }
     .brand-mark { width: 18px; height: 18px; }
-    .refresh-btn { order: 2; width: 34px; height: 34px; }
-    .filters { order: 3; }
-    .filter-btn { padding: 8px 11px; font-size: 10px; }
-    .search-wrap { order: 4; }
-    #search { width: 60px; }
-    #search:focus { width: 90px; }
+    .filter-btn { padding: 7px 11px; font-size: 9.5px; }
     .status {
-      order: 6;
       padding-left: 0;
       border-left: 0;
       font-size: 9.5px;
       width: 100%;
       justify-content: center;
-      padding-top: 6px;
+      padding-top: 4px;
       border-top: 1px solid var(--ink-faint);
     }
     .legend { display: none; }
-    .market-bar {
-      bottom: 10px;
-      gap: 10px;
-      padding: 8px 14px;
-      font-size: 9.5px;
-      max-width: calc(100vw - 16px);
-      overflow-x: auto;
+    .info {
+      bottom: 12px; right: 12px;
+      font-size: 9px;
     }
-    .info { display: none; }
-    #tooltip { display: none; }
-    #panel {
-      top: auto;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      width: 100%;
-      max-width: 100%;
-      max-height: 62vh;
-      border-radius: 22px 22px 0 0;
-      transform: translateY(calc(100% + 30px));
+    #tooltip {
+      min-width: 200px;
+      padding: 13px 14px;
+      border-radius: 14px;
     }
-    #panel.open { transform: translateY(0); }
+    .tt-price { font-size: 22px; }
     .loader-title { font-size: 17px; letter-spacing: 0.26em; }
     .loader-sub { font-size: 9px; }
   }
@@ -936,9 +622,6 @@
 .home-link:active{transform:scale(.94);}
 </style>
 
-<!-- ─── AURORA ─── -->
-<div class="aurora"><i></i><i></i><i></i></div>
-
 <!-- ─── LOADING ─── -->
 <div id="loader">
   <div class="loader-bubbles">
@@ -947,44 +630,35 @@
     <div class="loader-bubble"></div>
   </div>
   <div class="loader-title">Crypto Bubbles</div>
-  <div class="loader-sub" id="loaderSub">Inflando o mercado…</div>
+  <div class="loader-sub" id="loaderSub">Inflating the market…</div>
   <div class="loader-error" id="loaderError">
-    <div class="loader-error-title">Não foi possível buscar os dados</div>
+    <div class="loader-error-title">Couldn't fetch the data</div>
     <div class="loader-error-text" id="loaderErrorText">—</div>
-    <button class="loader-retry" id="loaderRetry">Tentar de novo</button>
+    <button class="loader-retry" id="loaderRetry">Try again</button>
   </div>
 </div>
 
 <!-- ─── HEADER ─── -->
 <header>
-  <a class="home-link" href="../index.html" title="Voltar ao Crypto Lab" aria-label="Voltar à página inicial do Crypto Lab"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
+  <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
   <div class="brand">
     <div class="brand-mark"></div>
     <span>Crypto&nbsp;Bubbles</span>
   </div>
-  <div class="filters" role="group" aria-label="Quantidade de moedas">
+  <div class="filters">
     <button class="filter-btn active" data-limit="50">Top 50</button>
     <button class="filter-btn" data-limit="100">Top 100</button>
   </div>
-  <div class="filters" role="group" aria-label="Período da variação">
-    <button class="filter-btn" data-tf="1h">1H</button>
-    <button class="filter-btn active" data-tf="24h">24H</button>
-    <button class="filter-btn" data-tf="7d">7D</button>
-  </div>
-  <div class="filters" role="group" aria-label="Valor exibido na bolha">
-    <button class="filter-btn active" data-mode="change" title="Mostrar variação %">%</button>
-    <button class="filter-btn" data-mode="price" title="Mostrar preço em USD">$</button>
-  </div>
-  <div class="search-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="search" type="text" placeholder="Buscar" autocomplete="off" spellcheck="false" aria-label="Buscar moeda">
+  <div class="filters">
+    <button class="filter-btn active" data-mode="change">Change</button>
+    <button class="filter-btn" data-mode="price">Price</button>
   </div>
   <div class="status" id="status">
     <span class="status-dot"></span>
-    <span class="status-text" id="statusText">Conectando</span>
+    <span class="status-text" id="statusText">Connecting</span>
     <span class="status-time" id="statusTime">—</span>
   </div>
-  <button class="refresh-btn" id="refreshBtn" title="Atualizar agora" aria-label="Atualizar dados">
+  <button class="refresh-btn" id="refreshBtn" title="Refresh now">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 12a9 9 0 0 1-15.9 5.7L3 15"/><path d="M3 12a9 9 0 0 1 15.9-5.7L21 9"/>
       <path d="M21 4v5h-5"/><path d="M3 20v-5h5"/>
@@ -994,38 +668,23 @@
 
 <!-- ─── LEGEND ─── -->
 <div class="legend">
-  <div class="legend-title" id="legendTitle">Variação 24H</div>
-  <div class="legend-row"><div class="legend-orb pos"></div><span>Alta · brilho verde</span></div>
-  <div class="legend-row"><div class="legend-orb neg"></div><span>Queda · brilho vermelho</span></div>
-  <div class="legend-row"><div class="legend-orb neu"></div><span>Neutro · ~0%</span></div>
-  <div class="legend-hint">
-    arraste · solte · jogue<br>
-    clique na bolha → detalhes<br>
-    clique no vazio → explosão
-  </div>
-</div>
-
-<!-- ─── MARKET BAR ─── -->
-<div class="market-bar" id="marketBar">
-  <div class="mb-item"><span class="mb-label">MCap</span><span class="mb-val" id="mbCap">—</span></div>
-  <div class="mb-sep"></div>
-  <div class="mb-item"><span class="mb-label">BTC Dom</span><span class="mb-val" id="mbDom">—</span></div>
-  <div class="mb-sep"></div>
-  <div class="mb-item"><span class="mb-val pos" id="mbUp">▲ —</span></div>
-  <div class="mb-item"><span class="mb-val neg" id="mbDown">▼ —</span></div>
+  <div class="legend-title">24h Change</div>
+  <div class="legend-row"><div class="legend-orb pos"></div><span>Up · green glow</span></div>
+  <div class="legend-row"><div class="legend-orb neg"></div><span>Down · red glow</span></div>
+  <div class="legend-row"><div class="legend-orb neu"></div><span>Neutral · 0%</span></div>
 </div>
 
 <!-- ─── INFO ─── -->
 <div class="info">
-  Tamanho ∝ <b>Market Cap</b><br>
-  Brilho ∝ <b>|Variação|</b><br>
-  <span style="color: var(--ink-faint);">Dados via</span> <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
+  Size ∝ <b>Market Cap</b><br>
+  Glow ∝ <b>|Change|</b><br>
+  <span style="color: var(--ink-faint);">Data via</span> <a href="https://www.coingecko.com" target="_blank" rel="noopener">CoinGecko</a>
 </div>
 
 <!-- ─── CANVAS ─── -->
 <canvas id="bubbleCanvas"></canvas>
 
-<!-- ─── TOOLTIP (hover, desktop) ─── -->
+<!-- ─── TOOLTIP ─── -->
 <div id="tooltip">
   <div class="tt-head">
     <img class="tt-icon" id="ttIcon" alt="">
@@ -1036,7 +695,7 @@
     <div class="tt-rank" id="ttRank">#—</div>
   </div>
   <div class="tt-price" id="ttPrice">—</div>
-  <div class="chip-row" id="ttChips"></div>
+  <div class="tt-change" id="ttChange">—</div>
   <div class="tt-stats">
     <div>
       <div class="tt-stat-label">Market Cap</div>
@@ -1046,60 +705,16 @@
       <div class="tt-stat-label">Volume 24h</div>
       <div class="tt-stat-val" id="ttVol">—</div>
     </div>
+    <div>
+      <div class="tt-stat-label">24h High</div>
+      <div class="tt-stat-val" id="ttHigh">—</div>
+    </div>
+    <div>
+      <div class="tt-stat-label">24h Low</div>
+      <div class="tt-stat-val" id="ttLow">—</div>
+    </div>
   </div>
-  <div class="tt-hint">Clique para detalhes + gráfico 7d</div>
 </div>
-
-<!-- ─── DETAIL PANEL ─── -->
-<aside id="panel" aria-label="Detalhes da moeda">
-  <button class="panel-close" id="panelClose" aria-label="Fechar painel">✕</button>
-  <div class="panel-head">
-    <img class="panel-icon" id="pIcon" alt="">
-    <div>
-      <div class="panel-name" id="pName">—</div>
-      <div class="panel-sub">
-        <span id="pSymbol">—</span>
-        <span class="panel-rank" id="pRank">#—</span>
-      </div>
-    </div>
-  </div>
-  <div class="panel-price" id="pPrice">—</div>
-  <div class="chip-row" id="pChips"></div>
-  <div class="panel-spark-wrap">
-    <div class="panel-spark-label">Últimos 7 dias</div>
-    <canvas id="sparkCanvas" width="296" height="86"></canvas>
-  </div>
-  <div class="panel-stats">
-    <div>
-      <div class="tt-stat-label">Market Cap</div>
-      <div class="tt-stat-val" id="pCap">—</div>
-    </div>
-    <div>
-      <div class="tt-stat-label">Volume 24h</div>
-      <div class="tt-stat-val" id="pVol">—</div>
-    </div>
-    <div>
-      <div class="tt-stat-label">Máx 24h</div>
-      <div class="tt-stat-val" id="pHigh">—</div>
-    </div>
-    <div>
-      <div class="tt-stat-label">Mín 24h</div>
-      <div class="tt-stat-val" id="pLow">—</div>
-    </div>
-    <div>
-      <div class="tt-stat-label">ATH</div>
-      <div class="tt-stat-val" id="pAth">—</div>
-    </div>
-    <div>
-      <div class="tt-stat-label">Desde o ATH</div>
-      <div class="tt-stat-val" id="pAthPct">—</div>
-    </div>
-  </div>
-  <a class="panel-link" id="pLink" href="#" target="_blank" rel="noopener">
-    Ver no CoinGecko
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M9 7h8v8"/></svg>
-  </a>
-</aside>
 
 <!-- ─── TOAST ─── -->
 <div class="toast" id="toast">
@@ -1109,58 +724,48 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════════
-   CRYPTO BUBBLES v2 · Esferas iridescentes do mercado
-   Canvas 2D · física leve · filme de sabão com matiz animada
-   Timeframes 1h/24h/7d · painel com sparkline · drag & throw · busca
+   CRYPTO BUBBLES · Soap-bubble Iridescent Visualizer
+   Canvas 2D rendering · Light Verlet physics · CoinGecko API
    ════════════════════════════════════════════════════════════════════ */
 
 (() => {
   'use strict';
 
   // ─────────── CONFIG ───────────
-  const REFRESH_MS    = 5 * 60 * 1000;
-  const RETRY_MS      = 30 * 1000;
-  const DPR_CAP       = 2;
-  const PHYS_HZ       = 60;
-  const CENTER_PULL   = 0.0006;
-  const DAMPING       = 0.985;
-  const COLLISION_K   = 0.5;
-  const WALL_BOUNCE   = 0.55;
-  const HOVER_LIFT    = 1.06;
-  const HOVER_SPEED   = 0.18;
-  const REDUCED       = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REFRESH_MS    = 5 * 60 * 1000;   // 5 min auto-refresh
+  const RETRY_MS      = 30 * 1000;       // retry after error
+  const DPR_CAP       = 2;               // limit retina cost
+  const PHYS_HZ       = 60;              // physics tick rate
+  const CENTER_PULL   = 0.0006;          // gravity toward center
+  const DAMPING       = 0.985;           // velocity decay
+  const COLLISION_K   = 0.5;             // bounce stiffness
+  const WALL_BOUNCE   = 0.55;            // wall restitution
+  const HOVER_LIFT    = 1.06;            // scale on hover
+  const HOVER_SPEED   = 0.18;            // hover anim ease
 
-  const SIZE_MIN_RATIO = 0.038;
+  const SIZE_MIN_RATIO = 0.038;  // % of min(width, height)
   const SIZE_MAX_RATIO = 0.16;
-  let   SIZE_MIN_PX    = 32;
-  let   SIZE_MAX_PX    = 220;
-
-  // Intensidade do glow calibrada por período (1h move menos que 7d)
-  const TF_SCALE = { '1h': 3, '24h': 12, '7d': 30 };
-  const TF_LABEL = { '1h': '1H', '24h': '24H', '7d': '7D' };
+  const SIZE_MIN_PX    = 32;
+  const SIZE_MAX_PX    = 220;
 
   // ─────────── STATE ───────────
-  const canvas  = document.getElementById('bubbleCanvas');
-  const ctx     = canvas.getContext('2d', { alpha: true });
+  const canvas = document.getElementById('bubbleCanvas');
+  const ctx    = canvas.getContext('2d', { alpha: true });
   const tooltip = document.getElementById('tooltip');
-  const panel   = document.getElementById('panel');
 
   let W = 0, H = 0, DPR = 1, CX = 0, CY = 0;
   let bubbles = [];
   let coinsRaw = [];
-  let imageCache = new Map();
+  let imageCache = new Map();   // url -> HTMLImageElement
   let currentLimit = 50;
-  let timeframe = '24h';
-  let displayMode = 'change';
-  let searchQuery = '';
+  let displayMode = 'change';   // 'change' = % change | 'price' = USD price
   let isFetching = false;
+  let lastFetchOK = false;
   let refreshTimer = null;
   let countdownTimer = null;
   let nextRefreshAt = 0;
   let mouseX = -9999, mouseY = -9999;
   let hoverBubble = null;
-  let selectedBubble = null;
-  let drag = null;            // { b, moved, vx, vy, lastX, lastY, lastT }
   let lastFrameTime = 0;
   let physAcc = 0;
   let firstLoad = true;
@@ -1168,9 +773,9 @@
   // ─────────── UTILS ───────────
   const fmtPrice = v => {
     if (v == null) return '—';
-    if (v >= 1)      return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    if (v >= 0.01)   return '$' + v.toFixed(4);
-    if (v >= 0.0001) return '$' + v.toFixed(6);
+    if (v >= 1)        return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    if (v >= 0.01)     return '$' + v.toFixed(4);
+    if (v >= 0.0001)   return '$' + v.toFixed(6);
     return '$' + v.toExponential(2);
   };
   const fmtBig = v => {
@@ -1183,10 +788,16 @@
     return '$' + v.toFixed(0);
   };
   const fmtPct = v => (v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%');
+
+  // Format prices for the limited space inside a bubble.
+  // Rules: ≥10 → integer w/ thousand separator (78,111);
+  //        ≥0.10 → 2 decimals (0.85, 2.34, 5.50);
+  //        ≥0.0001 → up to 4 decimals, trimmed (0.0011, 0.012);
+  //        <0.0001 → "<0.0001" so SHIB doesn't collapse to 0.0000.
   const fmtBubblePrice = v => {
     if (v == null || isNaN(v)) return '—';
-    if (v >= 10)   return Math.round(v).toLocaleString('en-US');
-    if (v >= 0.1)  return v.toFixed(2);
+    if (v >= 10)     return Math.round(v).toLocaleString('en-US');
+    if (v >= 0.1)    return v.toFixed(2);
     if (v >= 0.0001) {
       const s = v.toFixed(4);
       return s.replace(/0+$/, '').replace(/\.$/, '');
@@ -1196,8 +807,6 @@
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const lerp  = (a, b, t)   => a + (b - a) * t;
   const rand  = (a, b)      => a + Math.random() * (b - a);
-
-  const changeOf = b => b.ch[timeframe] ?? 0;
 
   // ─────────── RESIZE ───────────
   function resize() {
@@ -1211,19 +820,19 @@
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     CX = W / 2;
     CY = H / 2;
-    if (W < 560) { SIZE_MIN_PX = 15; SIZE_MAX_PX = 120; }
-    else         { SIZE_MIN_PX = 32; SIZE_MAX_PX = 220; }
     if (bubbles.length) recalcSizes();
   }
 
   // ─────────── SIZE SCALING ───────────
   function computeRadius(marketCap, minCap, maxCap) {
+    // Logarithmic scale, then a slight power curve to give whales presence
     const logMin = Math.log10(Math.max(minCap, 1));
     const logMax = Math.log10(Math.max(maxCap, 1));
     const logV   = Math.log10(Math.max(marketCap, 1));
     let t = (logV - logMin) / Math.max(0.0001, logMax - logMin);
     t = clamp(t, 0, 1);
-    t = Math.pow(t, 0.85);
+    t = Math.pow(t, 0.85);  // mild curve
+
     const dim = Math.min(W, H);
     const minR = Math.max(SIZE_MIN_PX, dim * SIZE_MIN_RATIO);
     const maxR = Math.min(SIZE_MAX_PX, dim * SIZE_MAX_RATIO);
@@ -1235,6 +844,8 @@
     const caps = coinsRaw.map(c => c.market_cap || 0).filter(c => c > 0);
     const minCap = caps.length ? Math.min(...caps) : 1;
     const maxCap = caps.length ? Math.max(...caps) : 1;
+
+    // Map by id (not index) — bubble order can drift relative to coinsRaw
     const byId = new Map(coinsRaw.map(c => [c.id, c]));
     bubbles.forEach(b => {
       const coin = byId.get(b.id);
@@ -1243,39 +854,32 @@
     });
   }
 
-  // ─────────── BUBBLE FACTORY ───────────
-  function coinChanges(c) {
-    return {
-      '1h':  c.price_change_percentage_1h_in_currency  ?? null,
-      '24h': c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? 0,
-      '7d':  c.price_change_percentage_7d_in_currency  ?? null,
-    };
-  }
-
+  // ─────────── BUBBLE CLASS ───────────
   function makeBubble(coin, idx, total) {
+    // Spawn in a gentle ring around center for cinematic entrance
     const angle = (idx / total) * Math.PI * 2 + rand(-0.2, 0.2);
     const ringR = Math.min(W, H) * 0.35 + rand(-30, 30);
+
     return {
       id: coin.id,
       symbol: (coin.symbol || '?').toUpperCase(),
       name: coin.name,
-      ch: coinChanges(coin),
+      change: coin.price_change_percentage_24h ?? 0,
       marketCap: coin.market_cap || 0,
       price: coin.current_price,
       volume: coin.total_volume,
       high: coin.high_24h,
       low: coin.low_24h,
-      ath: coin.ath,
-      athPct: coin.ath_change_percentage,
       rank: coin.market_cap_rank || idx + 1,
       imageUrl: coin.image,
-      spark: coin.sparkline_in_7d && coin.sparkline_in_7d.price ? coin.sparkline_in_7d.price : null,
+
+      // physics
       x: CX + Math.cos(angle) * ringR,
       y: CY + Math.sin(angle) * ringR,
       vx: Math.cos(angle) * rand(0.2, 0.5),
       vy: Math.sin(angle) * rand(0.2, 0.5),
-      r: 40,
-      targetR: 40,
+      r: 40,                 // visible immediately; tickPhysics eases toward targetR
+      targetR: 40,           // overwritten in rebuild()
       hover: 0,
       seed: Math.random() * Math.PI * 2,
       pulse: rand(0.7, 1.3),
@@ -1287,6 +891,8 @@
     if (!url) return null;
     if (imageCache.has(url)) return imageCache.get(url);
     const img = new Image();
+    // No crossOrigin: we don't need pixel access, and some CDNs block CORS.
+    // Canvas becomes "tainted" but drawImage still works.
     img.referrerPolicy = 'no-referrer';
     img.onerror = () => { img.failed = true; };
     img.src = url;
@@ -1294,20 +900,38 @@
     return img;
   }
 
-  // ─────────── COLOR ───────────
+  // ─────────── COLOR HELPERS ───────────
   function colorFor(change) {
-    const scale = TF_SCALE[timeframe];
-    const a = Math.abs(change ?? 0);
-    if (change != null && change > 0.1) {
-      return { type: 'pos', rim: [52,224,161], bright: [111,245,185], deep: [13,138,93],  intensity: clamp(a / scale, 0, 1) };
-    } else if (change != null && change < -0.1) {
-      return { type: 'neg', rim: [255,84,112], bright: [255,141,160], deep: [178,42,69],  intensity: clamp(a / scale, 0, 1) };
+    const a = Math.abs(change);
+    if (change > 0.1) {
+      return {
+        type: 'pos',
+        rim:    [52, 224, 161],
+        bright: [111, 245, 185],
+        deep:   [13, 138, 93],
+        intensity: clamp(a / 12, 0, 1),
+      };
+    } else if (change < -0.1) {
+      return {
+        type: 'neg',
+        rim:    [255, 84, 112],
+        bright: [255, 141, 160],
+        deep:   [178, 42, 69],
+        intensity: clamp(a / 12, 0, 1),
+      };
+    } else {
+      return {
+        type: 'neu',
+        rim:    [240, 240, 245],
+        bright: [255, 255, 255],
+        deep:   [120, 120, 140],
+        intensity: 0,
+      };
     }
-    return   { type: 'neu', rim: [240,240,245], bright: [255,255,255], deep: [120,120,140], intensity: 0 };
   }
   const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-  // ─────────── BUILD / REBUILD ───────────
+  // ─────────── BUILD ───────────
   function rebuild(coins) {
     coinsRaw = coins;
     if (!coins || !coins.length) return;
@@ -1321,49 +945,41 @@
       const prior = old.get(c.id);
       const target = computeRadius(c.market_cap || minCap, minCap, maxCap);
       if (prior) {
-        prior.ch        = coinChanges(c);
+        // Update existing in-place to preserve position/momentum
+        prior.change    = c.price_change_percentage_24h ?? 0;
         prior.marketCap = c.market_cap || 0;
         prior.price     = c.current_price;
         prior.volume    = c.total_volume;
         prior.high      = c.high_24h;
         prior.low       = c.low_24h;
-        prior.ath       = c.ath;
-        prior.athPct    = c.ath_change_percentage;
         prior.rank      = c.market_cap_rank || i + 1;
-        prior.spark     = c.sparkline_in_7d && c.sparkline_in_7d.price ? c.sparkline_in_7d.price : prior.spark;
         prior.targetR   = target;
         return prior;
       }
       const nb = makeBubble(c, i, coins.length);
       nb.targetR = target;
-      nb.r       = target;
+      nb.r       = target;   // start at full size
       return nb;
     });
 
+    // Drop bubbles that no longer exist
     const ids = new Set(coins.map(c => c.id));
     bubbles = bubbles.filter(b => ids.has(b.id));
-    if (selectedBubble && !ids.has(selectedBubble.id)) closePanel();
 
+    // Preload images
     coins.forEach(c => loadImage(c.image));
-    updateMarketBar();
-    if (selectedBubble) fillPanel(selectedBubble); // refresh open panel data
-  }
 
-  // ─────────── MARKET BAR ───────────
-  function updateMarketBar() {
-    if (!bubbles.length) return;
-    let total = 0, btc = 0, up = 0, down = 0;
-    bubbles.forEach(b => {
-      total += b.marketCap || 0;
-      if (b.id === 'bitcoin') btc = b.marketCap || 0;
-      const c = changeOf(b);
-      if (c > 0.1) up++;
-      else if (c < -0.1) down++;
-    });
-    document.getElementById('mbCap').textContent  = fmtBig(total);
-    document.getElementById('mbDom').textContent  = total ? (btc / total * 100).toFixed(1) + '%' : '—';
-    document.getElementById('mbUp').textContent   = '▲ ' + up;
-    document.getElementById('mbDown').textContent = '▼ ' + down;
+    // Debug: surface sizing info so we can diagnose any sizing issue
+    const dim = Math.min(W, H);
+    const minR = Math.max(SIZE_MIN_PX, dim * SIZE_MIN_RATIO);
+    const maxR = Math.min(SIZE_MAX_PX, dim * SIZE_MAX_RATIO);
+    const sample = bubbles.slice(0, 6).map(b => `${b.symbol}=${b.targetR.toFixed(0)}px`).join(' · ');
+    console.log(
+      `[crypto-bubbles] viewport ${W}×${H} (DPR ${DPR}) · ` +
+      `radius range ${minR.toFixed(0)}-${maxR.toFixed(0)}px · ` +
+      `${bubbles.length} bubbles`
+    );
+    console.log(`[crypto-bubbles] sample: ${sample}`);
   }
 
   // ─────────── PHYSICS ───────────
@@ -1373,28 +989,31 @@
 
     for (let i = 0; i < n; i++) {
       const b = bubbles[i];
+
+      // Smoothly track targetR (handles refresh resize and hover lift).
+      // No "grow from zero" — bubbles spawn at full size for guaranteed visibility.
       const goalR = b.targetR * lerp(1, HOVER_LIFT, b.hover);
       b.r = lerp(b.r, goalR, 0.20);
 
-      const targetHover = (hoverBubble === b || selectedBubble === b) ? 1 : 0;
+      // Hover ease toward target
+      const targetHover = (hoverBubble === b) ? 1 : 0;
       b.hover = lerp(b.hover, targetHover, HOVER_SPEED);
 
-      if (drag && drag.b === b) continue; // bolha presa ao ponteiro
-
+      // Central gravity
       const dx = CX - b.x;
       const dy = CY - b.y;
       const distC = Math.hypot(dx, dy) || 1;
+      // Gravity scales with distance so bubbles drift gently inward
       const g = CENTER_PULL * distC;
       b.vx += (dx / distC) * g * dt;
       b.vy += (dy / distC) * g * dt;
 
-      if (!REDUCED) {
-        b.vx += (Math.random() - 0.5) * 0.012;
-        b.vy += (Math.random() - 0.5) * 0.012;
-      }
+      // Tiny ambient jitter for organic life
+      b.vx += (Math.random() - 0.5) * 0.012;
+      b.vy += (Math.random() - 0.5) * 0.012;
     }
 
-    // Colisões par-a-par
+    // Pairwise collision
     for (let i = 0; i < n; i++) {
       const a = bubbles[i];
       for (let j = i + 1; j < n; j++) {
@@ -1407,49 +1026,48 @@
           const overlap = minD - dist;
           const nx = dx / dist;
           const ny = dy / dist;
+          // Push apart proportional to mass (radius²)
           const ma = a.r * a.r;
           const mb = b.r * b.r;
           const total = ma + mb;
           const pushA = (mb / total) * overlap * COLLISION_K;
           const pushB = (ma / total) * overlap * COLLISION_K;
-          const aDragged = drag && drag.b === a;
-          const bDragged = drag && drag.b === b;
-          if (!aDragged) { a.x -= nx * pushA; a.y -= ny * pushA; }
-          if (!bDragged) { b.x += nx * pushB; b.y += ny * pushB; }
+          a.x -= nx * pushA;
+          a.y -= ny * pushA;
+          b.x += nx * pushB;
+          b.y += ny * pushB;
+          // Soft velocity exchange
           const relV = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
           if (relV < 0) {
             const impulse = -relV * 0.5;
-            if (!aDragged) { a.vx -= nx * impulse * (mb / total); a.vy -= ny * impulse * (mb / total); }
-            if (!bDragged) { b.vx += nx * impulse * (ma / total); b.vy += ny * impulse * (ma / total); }
+            a.vx -= nx * impulse * (mb / total);
+            a.vy -= ny * impulse * (mb / total);
+            b.vx += nx * impulse * (ma / total);
+            b.vy += ny * impulse * (ma / total);
           }
         }
       }
     }
 
-    // Integração + paredes
+    // Integrate + damp + walls
     for (let i = 0; i < n; i++) {
       const b = bubbles[i];
-      if (drag && drag.b === b) continue;
       b.vx *= DAMPING;
       b.vy *= DAMPING;
+      // Cap speed
       const sp = Math.hypot(b.vx, b.vy);
-      const maxSp = 9;
+      const maxSp = 8;
       if (sp > maxSp) { b.vx = (b.vx / sp) * maxSp; b.vy = (b.vy / sp) * maxSp; }
+
       b.x += b.vx * dt * 60;
       b.y += b.vy * dt * 60;
-      const margin = 6;
-      if (b.x - b.r < margin)        { b.x = b.r + margin;     b.vx = Math.abs(b.vx) * WALL_BOUNCE; }
-      else if (b.x + b.r > W-margin) { b.x = W - b.r - margin; b.vx = -Math.abs(b.vx) * WALL_BOUNCE; }
-      if (b.y - b.r < margin)        { b.y = b.r + margin;     b.vy = Math.abs(b.vy) * WALL_BOUNCE; }
-      else if (b.y + b.r > H-margin) { b.y = H - b.r - margin; b.vy = -Math.abs(b.vy) * WALL_BOUNCE; }
-    }
-  }
 
-  // ─────────── SEARCH MATCH ───────────
-  function matchesSearch(b) {
-    if (!searchQuery) return true;
-    return b.symbol.toLowerCase().includes(searchQuery) ||
-           b.name.toLowerCase().includes(searchQuery);
+      const margin = 6;
+      if (b.x - b.r < margin)        { b.x = b.r + margin;       b.vx = Math.abs(b.vx) * WALL_BOUNCE; }
+      else if (b.x + b.r > W-margin) { b.x = W - b.r - margin;   b.vx = -Math.abs(b.vx) * WALL_BOUNCE; }
+      if (b.y - b.r < margin)        { b.y = b.r + margin;       b.vy = Math.abs(b.vy) * WALL_BOUNCE; }
+      else if (b.y + b.r > H-margin) { b.y = H - b.r - margin;   b.vy = -Math.abs(b.vy) * WALL_BOUNCE; }
+    }
   }
 
   // ─────────── RENDER ───────────
@@ -1457,18 +1075,15 @@
     const x = b.x, y = b.y, r = b.r;
     if (r < 0.5) return;
 
-    const change = changeOf(b);
-    const col = colorFor(change);
+    const col = colorFor(b.change);
     const intensity = col.intensity;
-    const matched = matchesSearch(b);
+    const isHover = b.hover > 0.05;
 
-    ctx.save();
-    if (searchQuery && !matched) ctx.globalAlpha = 0.13;
-
-    const wobble = REDUCED ? 1 : 1 + Math.sin(t * 0.0009 * b.pulse + b.seed) * 0.01;
+    // Subtle wobble (radius oscillation) — soap-bubble life
+    const wobble = 1 + Math.sin(t * 0.0009 * b.pulse + b.seed) * 0.01;
     const rr = r * wobble;
 
-    // 1. HALO externo (glow aditivo)
+    // ─── 1. OUTER HALO (additive glow) ───
     const haloR = rr * (1.6 + intensity * 1.2 + b.hover * 0.3);
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
@@ -1483,7 +1098,8 @@
     ctx.fill();
     ctx.restore();
 
-    // 2. CORPO (vidro translúcido)
+    // ─── 2. BUBBLE BODY (translucent glass + tinted gradient) ───
+    // Outer-edge tint with subtle inner darkness simulates a hollow soap film
     const bodyGrad = ctx.createRadialGradient(
       x - rr * 0.25, y - rr * 0.30, rr * 0.05,
       x, y, rr
@@ -1497,26 +1113,7 @@
     ctx.arc(x, y, rr, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. FILME IRIDESCENTE — arcos de matiz rotativa, o arco-íris da bolha de sabão
-    if (rr > 16) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.lineCap = 'round';
-      const spin = REDUCED ? 0 : t * 0.00045;
-      for (let k = 0; k < 3; k++) {
-        const hue = (t * (REDUCED ? 0 : 0.014) + b.seed * 57 + k * 120) % 360;
-        const a0  = b.seed + spin * (k % 2 ? 1 : -1) + k * 2.1;
-        const lw  = Math.max(1.2, rr * 0.05);
-        ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${0.09 + intensity * 0.07 + b.hover * 0.06})`;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.arc(x, y, rr - lw * 0.9, a0, a0 + 1.7);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 4. BORDA NEON
+    // ─── 3. RIM GLOW (the neon edge) ───
     ctx.save();
     ctx.shadowColor = rgba(col.rim, 0.85);
     ctx.shadowBlur  = 14 + intensity * 28 + b.hover * 12;
@@ -1527,7 +1124,7 @@
     ctx.stroke();
     ctx.restore();
 
-    // 5. ESCURECIMENTO interno (casca oca)
+    // ─── 4. INNER RIM DARKENING (creates the "hollow shell" depth) ───
     ctx.save();
     ctx.lineWidth = Math.max(1, rr * 0.04);
     ctx.strokeStyle = rgba([0,0,0], 0.18);
@@ -1536,15 +1133,15 @@
     ctx.stroke();
     ctx.restore();
 
-    // 6. BRILHO ESPECULAR (crescente superior-esquerdo)
+    // ─── 5. SPECULAR HIGHLIGHT (top-left bright crescent) ───
     if (rr > 14) {
       const hx = x - rr * 0.32;
       const hy = y - rr * 0.42;
       const hRad = rr * 0.42;
       const specGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, hRad);
-      specGrad.addColorStop(0,   'rgba(255,255,255,0.55)');
-      specGrad.addColorStop(0.4, 'rgba(255,255,255,0.18)');
-      specGrad.addColorStop(1,   'rgba(255,255,255,0)');
+      specGrad.addColorStop(0,    'rgba(255,255,255,0.55)');
+      specGrad.addColorStop(0.4,  'rgba(255,255,255,0.18)');
+      specGrad.addColorStop(1,    'rgba(255,255,255,0)');
       ctx.save();
       ctx.beginPath();
       ctx.arc(x, y, rr, 0, Math.PI * 2);
@@ -1556,10 +1153,10 @@
       ctx.restore();
     }
 
-    // 7. BRILHO secundário (ponto inferior-direito)
+    // ─── 6. SECONDARY HIGHLIGHT (small dot bottom-right, glass sheen) ───
     if (rr > 22) {
       ctx.save();
-      ctx.globalAlpha *= 0.55;
+      ctx.globalAlpha = 0.55;
       ctx.beginPath();
       ctx.arc(x + rr * 0.42, y + rr * 0.36, Math.max(1.2, rr * 0.05), 0, Math.PI * 2);
       ctx.fillStyle = '#ffffff';
@@ -1569,22 +1166,7 @@
       ctx.restore();
     }
 
-    // 8. ANEL de seleção / spotlight de busca
-    const spotlight = searchQuery && matched;
-    if (selectedBubble === b || spotlight) {
-      ctx.save();
-      const pulse = REDUCED ? 0 : Math.sin(t * 0.004 + b.seed) * 0.5 + 0.5;
-      ctx.lineWidth = 1.4;
-      ctx.setLineDash([5, 7]);
-      ctx.lineDashOffset = REDUCED ? 0 : -t * 0.02;
-      ctx.strokeStyle = rgba(col.bright, 0.5 + pulse * 0.4);
-      ctx.beginPath();
-      ctx.arc(x, y, rr + 7 + pulse * 3, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // 9. ÍCONE
+    // ─── 7. ICON ───
     const img = imageCache.get(b.imageUrl);
     let iconDrawn = false;
     if (img && img.complete && img.naturalWidth && !img.failed) {
@@ -1595,6 +1177,7 @@
       ctx.beginPath();
       ctx.arc(ix, iy, iconSize / 2, 0, Math.PI * 2);
       ctx.clip();
+      // Small dark backing for icons with white/transparent regions
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       ctx.fillRect(ix - iconSize/2, iy - iconSize/2, iconSize, iconSize);
       try {
@@ -1604,61 +1187,71 @@
       ctx.restore();
     }
 
-    // 10. TEXTO
+    // ─── 8. TEXT (symbol + percentage) ───
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const txtCol = col.type === 'pos' ? '#d8ffe8'
-                 : col.type === 'neg' ? '#ffd8de'
-                 : '#f0f0f5';
+                  : col.type === 'neg' ? '#ffd8de'
+                  : '#f0f0f5';
 
     if (rr > 38) {
-      ctx.font = `700 ${Math.round(rr * 0.30)}px 'Manrope', sans-serif`;
+      // Big bubble: icon top, symbol middle, secondary value bottom
+      ctx.font = `700 ${Math.round(rr * 0.30)}px ${"'Manrope', sans-serif"}`;
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 4;
       ctx.fillText(b.symbol, x, y + rr * 0.18);
+
       ctx.shadowBlur = 0;
 
+      // Secondary text: % change or USD price — colors stay tied to b.change.
       let secText, secSize;
       if (displayMode === 'price') {
         secText = fmtBubblePrice(b.price);
+        // Price strings are typically longer than "+1.4%" — shrink slightly to fit
         secSize = rr * (secText.length > 6 ? 0.13 : 0.15);
       } else {
-        secText = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(1) + '%';
+        secText = (b.change >= 0 ? '+' : '') + b.change.toFixed(1) + '%';
         secSize = rr * 0.16;
       }
-      ctx.font = `600 ${Math.round(secSize)}px 'JetBrains Mono', monospace`;
+      ctx.font = `600 ${Math.round(secSize)}px ${"'JetBrains Mono', monospace"}`;
       ctx.fillStyle = txtCol;
       ctx.fillText(secText, x, y + rr * 0.50);
     } else if (rr > 22) {
+      // Medium: icon top, symbol below
       if (iconDrawn) {
-        ctx.font = `700 ${Math.round(rr * 0.32)}px 'Manrope', sans-serif`;
+        ctx.font = `700 ${Math.round(rr * 0.32)}px ${"'Manrope', sans-serif"}`;
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
         ctx.shadowBlur = 3;
         ctx.fillText(b.symbol, x, y + rr * 0.45);
         ctx.shadowBlur = 0;
       } else {
-        ctx.font = `700 ${Math.round(rr * 0.42)}px 'Manrope', sans-serif`;
+        ctx.font = `700 ${Math.round(rr * 0.42)}px ${"'Manrope', sans-serif"}`;
         ctx.fillStyle = '#ffffff';
         ctx.fillText(b.symbol, x, y);
       }
     } else if (rr > 12 && !iconDrawn) {
-      ctx.font = `700 ${Math.round(rr * 0.7)}px 'Manrope', sans-serif`;
+      // Tiny: just first letter
+      ctx.font = `700 ${Math.round(rr * 0.7)}px ${"'Manrope', sans-serif"}`;
       ctx.fillStyle = '#ffffff';
       ctx.fillText(b.symbol[0] || '?', x, y);
     }
-
-    ctx.restore();
   }
 
   function render(t) {
+    // Clear (we let the body's CSS provide the void background)
     ctx.clearRect(0, 0, W, H);
+
+    // Sort by radius ascending so larger bubbles render on top (look more present)
     const drawOrder = bubbles.slice().sort((a, b) => a.r - b.r);
-    const top = hoverBubble || selectedBubble;
-    if (top) {
-      const idx = drawOrder.indexOf(top);
-      if (idx >= 0) { drawOrder.splice(idx, 1); drawOrder.push(top); }
+    // Hovered bubble always on top
+    if (hoverBubble) {
+      const idx = drawOrder.indexOf(hoverBubble);
+      if (idx >= 0) {
+        drawOrder.splice(idx, 1);
+        drawOrder.push(hoverBubble);
+      }
     }
     for (const b of drawOrder) drawBubble(b, t);
   }
@@ -1668,7 +1261,9 @@
     if (!lastFrameTime) lastFrameTime = now;
     let dt = (now - lastFrameTime) / 1000;
     lastFrameTime = now;
-    if (dt > 0.1) dt = 0.1;
+    if (dt > 0.1) dt = 0.1; // clamp big jumps (tab switch)
+
+    // Fixed-step physics for stability
     physAcc += dt;
     const step = 1 / PHYS_HZ;
     let safety = 4;
@@ -1680,38 +1275,35 @@
     requestAnimationFrame(loop);
   }
 
-  // ─────────── HIT TEST ───────────
+  // ─────────── INTERACTION ───────────
   function findBubbleAt(px, py) {
+    // Iterate from largest-on-top backward (last drawn is hovered first)
     for (let i = bubbles.length - 1; i >= 0; i--) {
       const b = bubbles[i];
-      if (Math.hypot(px - b.x, py - b.y) <= b.r) return b;
+      const d = Math.hypot(px - b.x, py - b.y);
+      if (d <= b.r) return b;
     }
     return null;
   }
 
-  // ─────────── CHIPS (1h/24h/7d) ───────────
-  function buildChips(container, b) {
-    container.innerHTML = '';
-    ['1h','24h','7d'].forEach(tf => {
-      const v = b.ch[tf];
-      const span = document.createElement('span');
-      span.className = 'chip ' + (v == null || Math.abs(v) <= 0.1 ? 'neu' : v > 0 ? 'pos' : 'neg');
-      span.innerHTML = `<span class="chip-tf">${TF_LABEL[tf]}</span> ${v == null ? '—' : fmtPct(v)}`;
-      container.appendChild(span);
-    });
-  }
-
-  // ─────────── TOOLTIP ───────────
   function showTooltip(b) {
     document.getElementById('ttName').textContent   = b.name;
     document.getElementById('ttSymbol').textContent = b.symbol;
     document.getElementById('ttRank').textContent   = '#' + b.rank;
     document.getElementById('ttPrice').textContent  = fmtPrice(b.price);
-    buildChips(document.getElementById('ttChips'), b);
+
+    const ch = document.getElementById('ttChange');
+    ch.textContent = (b.change >= 0 ? '▲ ' : '▼ ') + fmtPct(b.change);
+    ch.className = 'tt-change ' + (b.change > 0.1 ? 'pos' : b.change < -0.1 ? 'neg' : 'neu');
+
     document.getElementById('ttCap').textContent  = fmtBig(b.marketCap);
     document.getElementById('ttVol').textContent  = fmtBig(b.volume);
+    document.getElementById('ttHigh').textContent = fmtPrice(b.high);
+    document.getElementById('ttLow').textContent  = fmtPrice(b.low);
+
     const icon = document.getElementById('ttIcon');
     if (b.imageUrl && icon.src !== b.imageUrl) icon.src = b.imageUrl;
+
     tooltip.classList.add('visible');
   }
   function hideTooltip() { tooltip.classList.remove('visible'); }
@@ -1730,223 +1322,68 @@
     tooltip.style.top  = y + 'px';
   }
 
-  // ─────────── DETAIL PANEL ───────────
-  function drawSpark(prices, type) {
-    const cv = document.getElementById('sparkCanvas');
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cw = cv.clientWidth || 296;
-    const chh = cv.clientHeight || 86;
-    cv.width = cw * dpr;
-    cv.height = chh * dpr;
-    const c2 = cv.getContext('2d');
-    c2.setTransform(dpr, 0, 0, dpr, 0, 0);
-    c2.clearRect(0, 0, cw, chh);
-    if (!prices || prices.length < 2) {
-      c2.fillStyle = 'rgba(235,234,239,0.3)';
-      c2.font = "10px 'JetBrains Mono', monospace";
-      c2.textAlign = 'center';
-      c2.fillText('Sem dados de sparkline', cw / 2, chh / 2);
-      return;
-    }
-    const pad = 8;
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min || 1;
-    const col = type === 'neg' ? [255, 84, 112] : type === 'neu' ? [240, 240, 245] : [52, 224, 161];
-    const px = i => pad + (i / (prices.length - 1)) * (cw - pad * 2);
-    const py = v => pad + (1 - (v - min) / range) * (chh - pad * 2);
-
-    // Preenchimento gradiente
-    const grad = c2.createLinearGradient(0, 0, 0, chh);
-    grad.addColorStop(0, rgba(col, 0.25));
-    grad.addColorStop(1, rgba(col, 0));
-    c2.beginPath();
-    c2.moveTo(px(0), py(prices[0]));
-    for (let i = 1; i < prices.length; i++) c2.lineTo(px(i), py(prices[i]));
-    c2.lineTo(px(prices.length - 1), chh - 2);
-    c2.lineTo(px(0), chh - 2);
-    c2.closePath();
-    c2.fillStyle = grad;
-    c2.fill();
-
-    // Linha
-    c2.beginPath();
-    c2.moveTo(px(0), py(prices[0]));
-    for (let i = 1; i < prices.length; i++) c2.lineTo(px(i), py(prices[i]));
-    c2.strokeStyle = rgba(col, 0.9);
-    c2.lineWidth = 1.6;
-    c2.lineJoin = 'round';
-    c2.shadowColor = rgba(col, 0.6);
-    c2.shadowBlur = 6;
-    c2.stroke();
-
-    // Ponto final
-    c2.shadowBlur = 10;
-    c2.beginPath();
-    c2.arc(px(prices.length - 1), py(prices[prices.length - 1]), 3, 0, Math.PI * 2);
-    c2.fillStyle = rgba(col, 1);
-    c2.fill();
-  }
-
-  function fillPanel(b) {
-    document.getElementById('pName').textContent   = b.name;
-    document.getElementById('pSymbol').textContent = b.symbol;
-    document.getElementById('pRank').textContent   = '#' + b.rank;
-    document.getElementById('pPrice').textContent  = fmtPrice(b.price);
-    buildChips(document.getElementById('pChips'), b);
-    document.getElementById('pCap').textContent    = fmtBig(b.marketCap);
-    document.getElementById('pVol').textContent    = fmtBig(b.volume);
-    document.getElementById('pHigh').textContent   = fmtPrice(b.high);
-    document.getElementById('pLow').textContent    = fmtPrice(b.low);
-    document.getElementById('pAth').textContent    = fmtPrice(b.ath);
-    const athEl = document.getElementById('pAthPct');
-    athEl.textContent = fmtPct(b.athPct);
-    athEl.style.color = (b.athPct ?? 0) >= -1 ? 'var(--pos-bright)' : 'var(--neg-bright)';
-    const icon = document.getElementById('pIcon');
-    if (b.imageUrl && icon.src !== b.imageUrl) icon.src = b.imageUrl;
-    document.getElementById('pLink').href = 'https://www.coingecko.com/pt/moedas/' + encodeURIComponent(b.id);
-    const sparkType = (b.ch['7d'] ?? 0) > 0.1 ? 'pos' : (b.ch['7d'] ?? 0) < -0.1 ? 'neg' : 'neu';
-    requestAnimationFrame(() => drawSpark(b.spark, sparkType));
-  }
-
-  function openPanel(b) {
-    selectedBubble = b;
-    fillPanel(b);
-    panel.classList.add('open');
-    document.body.classList.add('panel-open');
-    hideTooltip();
-  }
-  function closePanel() {
-    selectedBubble = null;
-    panel.classList.remove('open');
-    document.body.classList.remove('panel-open');
-  }
-  document.getElementById('panelClose').addEventListener('click', closePanel);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { closePanel(); document.getElementById('search').blur(); }
-  });
-
-  // ─────────── POINTER: hover, drag & throw, click ───────────
-  canvas.addEventListener('pointerdown', e => {
-    canvas.setPointerCapture(e.pointerId);
-    const b = findBubbleAt(e.clientX, e.clientY);
-    drag = {
-      b, moved: false,
-      startX: e.clientX, startY: e.clientY,
-      lastX: e.clientX, lastY: e.clientY,
-      lastT: performance.now(),
-      vx: 0, vy: 0,
-    };
-    if (b) document.body.classList.add('is-dragging');
-  });
-
-  canvas.addEventListener('pointermove', e => {
+  canvas.addEventListener('mousemove', e => {
     mouseX = e.clientX; mouseY = e.clientY;
-
-    if (drag) {
-      const now = performance.now();
-      const dt = Math.max(1, now - drag.lastT);
-      const dx = e.clientX - drag.lastX;
-      const dy = e.clientY - drag.lastY;
-      drag.vx = lerp(drag.vx, dx / dt * 16, 0.5);
-      drag.vy = lerp(drag.vy, dy / dt * 16, 0.5);
-      drag.lastX = e.clientX; drag.lastY = e.clientY; drag.lastT = now;
-      if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 5) drag.moved = true;
-      if (drag.b) {
-        drag.b.x = clamp(e.clientX, drag.b.r, W - drag.b.r);
-        drag.b.y = clamp(e.clientY, drag.b.r, H - drag.b.r);
-        hideTooltip();
-        return;
-      }
+    const b = findBubbleAt(mouseX, mouseY);
+    if (b !== hoverBubble) {
+      hoverBubble = b;
+      if (b) { showTooltip(b); document.body.classList.add('is-hovering'); }
+      else   { hideTooltip();  document.body.classList.remove('is-hovering'); }
     }
-
-    // Hover (apenas mouse — em touch o tap abre o painel)
-    if (e.pointerType === 'mouse') {
-      const b = findBubbleAt(mouseX, mouseY);
-      if (b !== hoverBubble) {
-        hoverBubble = b;
-        if (b) { showTooltip(b); document.body.classList.add('is-hovering'); }
-        else   { hideTooltip();  document.body.classList.remove('is-hovering'); }
-      }
-      if (hoverBubble) positionTooltip(mouseX, mouseY);
-    }
+    if (hoverBubble) positionTooltip(mouseX, mouseY);
   });
-
-  function endDrag(e) {
-    if (!drag) return;
-    const d = drag;
-    drag = null;
-    document.body.classList.remove('is-dragging');
-
-    if (d.b) {
-      if (d.moved) {
-        // Arremesso com momentum
-        const sp = Math.hypot(d.vx, d.vy);
-        const maxSp = 14;
-        if (sp > maxSp) { d.vx = d.vx / sp * maxSp; d.vy = d.vy / sp * maxSp; }
-        d.b.vx = d.vx;
-        d.b.vy = d.vy;
-      } else {
-        // Tap/click simples sobre bolha → painel de detalhes
-        openPanel(d.b);
-      }
-    } else if (!d.moved && e) {
-      // Clique no vazio → explosão divertida + fecha painel
-      closePanel();
-      const cx = e.clientX, cy = e.clientY;
-      bubbles.forEach(b => {
-        const dx = b.x - cx, dy = b.y - cy;
-        const dist = Math.hypot(dx, dy);
-        if (dist < 250 && dist > 0.1) {
-          const force = (1 - dist / 250) * 6;
-          b.vx += (dx / dist) * force;
-          b.vy += (dy / dist) * force;
-        }
-      });
-    }
-  }
-  canvas.addEventListener('pointerup', endDrag);
-  canvas.addEventListener('pointercancel', () => endDrag(null));
-
   canvas.addEventListener('mouseleave', () => {
     hoverBubble = null;
     hideTooltip();
     document.body.classList.remove('is-hovering');
   });
 
-  // ─────────── SEARCH ───────────
-  const searchInput = document.getElementById('search');
-  searchInput.addEventListener('input', () => {
-    searchQuery = searchInput.value.trim().toLowerCase();
-  });
-  searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && searchQuery) {
-      const match = bubbles.find(matchesSearch);
-      if (match) openPanel(match);
-    }
-  });
-  document.addEventListener('keydown', e => {
-    if (e.key === '/' && document.activeElement !== searchInput) {
-      e.preventDefault();
-      searchInput.focus();
-    }
+  // Touch: tap to show tooltip
+  canvas.addEventListener('touchstart', e => {
+    if (!e.touches.length) return;
+    const t = e.touches[0];
+    mouseX = t.clientX; mouseY = t.clientY;
+    const b = findBubbleAt(mouseX, mouseY);
+    hoverBubble = b;
+    if (b) { showTooltip(b); positionTooltip(mouseX, mouseY); }
+    else   hideTooltip();
+  }, { passive: true });
+  canvas.addEventListener('touchend', () => {
+    setTimeout(() => { hoverBubble = null; hideTooltip(); }, 1800);
+  }, { passive: true });
+
+  // Click: small "burst" outward push for fun
+  canvas.addEventListener('click', e => {
+    const cx = e.clientX, cy = e.clientY;
+    bubbles.forEach(b => {
+      const dx = b.x - cx, dy = b.y - cy;
+      const d = Math.hypot(dx, dy);
+      if (d < 250 && d > 0.1) {
+        const force = (1 - d / 250) * 6;
+        b.vx += (dx / d) * force;
+        b.vy += (dy / d) * force;
+      }
+    });
   });
 
   // ─────────── DATA ───────────
+  // Try direct API first, then fall back to public CORS proxies.
+  // Each entry returns the final URL given a target endpoint.
   const ENDPOINTS = [
-    { name: 'CoinGecko (direto)',         wrap: u => u },
+    { name: 'CoinGecko (direct)', wrap: u => u },
     { name: 'CoinGecko via corsproxy.io', wrap: u => 'https://corsproxy.io/?' + encodeURIComponent(u) },
     { name: 'CoinGecko via allorigins',   wrap: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
   ];
 
   async function fetchCoins(limit) {
-    const target = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=true&price_change_percentage=1h%2C24h%2C7d`;
+    const target = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&sparkline=false&price_change_percentage=24h`;
     let lastErr = null;
     for (const ep of ENDPOINTS) {
       const url = ep.wrap(target);
       try {
+        console.log(`[crypto-bubbles] trying ${ep.name}…`);
         const ctrl = new AbortController();
-        const timeout = setTimeout(() => ctrl.abort(), 14000);
+        const timeout = setTimeout(() => ctrl.abort(), 12000);
         const res = await fetch(url, {
           headers: { 'Accept': 'application/json' },
           signal: ctrl.signal,
@@ -1954,7 +1391,7 @@
         clearTimeout(timeout);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const json = await res.json();
-        if (!Array.isArray(json) || !json.length) throw new Error('Resposta vazia ou inválida');
+        if (!Array.isArray(json) || !json.length) throw new Error('Empty or invalid response');
         console.log(`[crypto-bubbles] ✓ ${ep.name} → ${json.length} moedas`);
         return json;
       } catch (err) {
@@ -1962,7 +1399,7 @@
         lastErr = err;
       }
     }
-    throw lastErr || new Error('Todos os endpoints falharam');
+    throw lastErr || new Error('All endpoints failed');
   }
 
   function setStatus(state, text) {
@@ -1983,40 +1420,46 @@
   async function loadData(isRefresh) {
     if (isFetching) return;
     isFetching = true;
-    setStatus('loading', isRefresh ? 'Atualizando' : 'Conectando');
+    setStatus('loading', isRefresh ? 'Updating' : 'Connecting');
     document.getElementById('refreshBtn').classList.add('spinning');
 
+    // Reset any previous error UI on the loader
     if (firstLoad) {
       document.getElementById('loaderError').classList.remove('show');
-      document.getElementById('loaderSub').textContent = 'Inflando o mercado…';
+      document.getElementById('loaderSub').textContent = 'Inflating the market…';
     }
 
     try {
       const data = await fetchCoins(currentLimit);
       rebuild(data);
+      lastFetchOK = true;
       setStatus('ok', 'CoinGecko');
       nextRefreshAt = Date.now() + REFRESH_MS;
       startCountdown();
 
       if (firstLoad) {
         firstLoad = false;
+        // Hide loader only after we have actual data
         setTimeout(() => document.getElementById('loader').classList.add('hidden'), 350);
       }
-      if (isRefresh && !firstLoad) showToast('Bolhas atualizadas');
+      if (isRefresh && !firstLoad) showToast('Bubbles updated');
     } catch (err) {
-      console.error('[crypto-bubbles] todas as tentativas falharam:', err);
-      setStatus('error', 'Falha · tentando');
+      console.error('[crypto-bubbles] all fetches failed:', err);
+      lastFetchOK = false;
+      setStatus('error', 'Failed · retrying');
 
       if (firstLoad) {
-        document.getElementById('loaderSub').textContent = 'Conexão recusada';
+        // Keep loader visible, show error UI with retry button
+        document.getElementById('loaderSub').textContent = 'Connection refused';
         const errEl = document.getElementById('loaderError');
-        document.getElementById('loaderErrorText').textContent =
+        const errText = document.getElementById('loaderErrorText');
+        errText.textContent =
           (err && err.message ? err.message + '. ' : '') +
-          'Pode ser rate-limit da API, um bloqueador (uBlock, AdBlock) ou rede corporativa. ' +
-          'Veja o console (F12) para detalhes.';
+          'Could be API rate-limit, an extension blocker (uBlock, AdBlock), or corporate network. ' +
+          'Check the console (F12) for details.';
         errEl.classList.add('show');
       } else {
-        showToast('Falha · nova tentativa em 30s');
+        showToast('Failed · retrying in 30s');
       }
       setTimeout(() => loadData(isRefresh), RETRY_MS);
     } finally {
@@ -2053,18 +1496,8 @@
     });
   });
 
-  document.querySelectorAll('.filter-btn[data-tf]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tf = btn.dataset.tf;
-      if (tf === timeframe) return;
-      document.querySelectorAll('.filter-btn[data-tf]').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      timeframe = tf;
-      document.getElementById('legendTitle').textContent = 'Variação ' + TF_LABEL[tf];
-      updateMarketBar();
-    });
-  });
-
+  // Display-mode toggle: switches what's shown inside the bubble (change ↔ price).
+  // Colors stay tied to b.change and never flip with this toggle.
   document.querySelectorAll('.filter-btn[data-mode]').forEach(btn => {
     btn.addEventListener('click', () => {
       const mode = btn.dataset.mode;
@@ -2083,12 +1516,13 @@
   document.getElementById('loaderRetry').addEventListener('click', () => {
     if (isFetching) return;
     document.getElementById('loaderError').classList.remove('show');
-    document.getElementById('loaderSub').textContent = 'Inflando o mercado…';
+    document.getElementById('loaderSub').textContent = 'Inflating the market…';
     loadData(false);
   });
 
+  // Pause/resume on tab visibility (saves CPU)
   document.addEventListener('visibilitychange', () => {
-    lastFrameTime = 0;
+    lastFrameTime = 0; // reset dt on resume to avoid huge jump
   });
 
   // ─────────── BOOT ───────────

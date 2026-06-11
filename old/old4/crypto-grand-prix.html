@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CRYPTO GRAND PRIX S2 · Live Market Race</title>
+<title>CRYPTO GRAND PRIX · Live Market Race</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;800;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -850,191 +850,6 @@
     .tf-btn { padding: 7px 10px; }
     .mode-btn { padding: 6px 8px; letter-spacing: 1px; }
   }
-
-  /* ============ S2: Weather badge ============ */
-  .weather-badge {
-    display: flex; align-items: center; gap: 7px;
-    padding: 6px 12px; border-radius: 8px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--panel-bd);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; letter-spacing: 1.5px; font-weight: 700;
-    color: var(--text-1); white-space: nowrap;
-    transition: color .5s, border-color .5s, box-shadow .5s;
-  }
-  .weather-badge .w-ico { font-size: 14px; line-height: 1; filter: saturate(.9); }
-  .weather-badge.w-rain  { color: #7cc7ff; border-color: rgba(124,199,255,.35); box-shadow: 0 0 16px -6px rgba(124,199,255,.6); }
-  .weather-badge.w-storm { color: #c4b5fd; border-color: rgba(196,181,253,.4); box-shadow: 0 0 18px -5px rgba(196,181,253,.7); animation: stormPulse 2.2s infinite; }
-  .weather-badge.w-clear { color: var(--neon-yellow); border-color: rgba(250,204,21,.3); }
-  @keyframes stormPulse { 0%,100% { box-shadow: 0 0 18px -5px rgba(196,181,253,.7);} 50% { box-shadow: 0 0 26px -2px rgba(196,181,253,.9);} }
-
-  /* ============ S2: Paddock points ============ */
-  .points-pill {
-    display: flex; flex-direction: column; align-items: flex-end;
-    font-family: 'JetBrains Mono', monospace; line-height: 1.15;
-    padding: 4px 12px; border-radius: 8px;
-    border: 1px solid rgba(255,210,74,.28);
-    background: rgba(255,210,74,.06);
-    min-width: 74px;
-  }
-  .points-pill .pp-val { font-size: 15px; font-weight: 700; color: var(--gold); }
-  .points-pill .pp-lbl { font-size: 8px; letter-spacing: 2px; color: var(--text-2); }
-  .points-pill .pp-streak { color: var(--neon-green); }
-  .points-pill.bump { animation: ptsBump .5s ease; }
-  @keyframes ptsBump { 0% { transform: scale(1);} 35% { transform: scale(1.14);} 100% { transform: scale(1);} }
-
-  /* ============ S2: Sound button ============ */
-  #sound-btn.on { color: var(--neon-cyan); border-color: rgba(34,211,238,.45); box-shadow: 0 0 14px -4px rgba(34,211,238,.8); }
-
-  /* ============ S2: Race radio feed ============ */
-  #radio-feed {
-    position: absolute; left: 14px; bottom: 14px; z-index: 6;
-    display: flex; flex-direction: column-reverse; gap: 8px;
-    pointer-events: none; max-width: min(74vw, 420px);
-  }
-  .radio-msg {
-    display: flex; align-items: center; gap: 9px;
-    padding: 8px 13px 8px 10px; border-radius: 8px;
-    background: rgba(10, 12, 17, 0.82);
-    border: 1px solid var(--panel-bd);
-    border-left: 3px solid var(--neon-cyan);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    color: var(--text-0); letter-spacing: .4px;
-    box-shadow: 0 6px 18px rgba(0,0,0,.45);
-    animation: radioIn .35s cubic-bezier(.2,.9,.3,1.2);
-    opacity: 1; transition: opacity .6s, transform .6s;
-  }
-  .radio-msg.fading { opacity: 0; transform: translateX(-12px); }
-  .radio-msg .r-tag {
-    font-size: 8px; font-weight: 700; letter-spacing: 2px;
-    padding: 3px 6px; border-radius: 4px; flex: 0 0 auto;
-    background: rgba(34,211,238,.14); color: var(--neon-cyan);
-  }
-  .radio-msg.r-overtake { border-left-color: var(--neon-green); }
-  .radio-msg.r-overtake .r-tag { background: rgba(16,185,129,.14); color: var(--neon-green); }
-  .radio-msg.r-fastlap { border-left-color: #c084fc; }
-  .radio-msg.r-fastlap .r-tag { background: rgba(192,132,252,.16); color: #c084fc; }
-  .radio-msg.r-pit { border-left-color: var(--neon-red); }
-  .radio-msg.r-pit .r-tag { background: rgba(239,68,68,.14); color: var(--neon-red); }
-  .radio-msg.r-flag { border-left-color: var(--neon-yellow); }
-  .radio-msg.r-flag .r-tag { background: rgba(250,204,21,.14); color: var(--neon-yellow); }
-  .radio-msg.r-pick { border-left-color: var(--gold); }
-  .radio-msg.r-pick .r-tag { background: rgba(255,210,74,.16); color: var(--gold); }
-  @keyframes radioIn { from { opacity: 0; transform: translateX(-22px);} to { opacity: 1; transform: translateX(0);} }
-
-  /* ============ S2: Pick hint + marker ============ */
-  #pick-hint {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    z-index: 6; pointer-events: none;
-    padding: 7px 16px; border-radius: 999px;
-    background: rgba(10,12,17,.78); border: 1px solid rgba(255,210,74,.35);
-    color: var(--gold); font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; letter-spacing: 1.6px; font-weight: 700;
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-    opacity: 0; transition: opacity .5s;
-  }
-  #pick-hint.visible { opacity: 1; }
-  .lb-row .pick-star {
-    position: absolute; top: 6px; right: 6px; z-index: 2;
-    font-size: 11px; opacity: 0; transform: scale(.5);
-    transition: opacity .25s, transform .25s; pointer-events: none;
-    filter: drop-shadow(0 0 6px rgba(255,210,74,.9));
-  }
-  .lb-row.picked .pick-star { opacity: 1; transform: scale(1); }
-  .lb-row.picked { border-color: rgba(255,210,74,.55) !important; }
-  .lb-row { cursor: pointer; }
-
-  /* ============ S2: Sparkline ============ */
-  .lb-row .spark {
-    position: absolute; inset: 6px 8px 6px 30%; z-index: 0;
-    opacity: .16; pointer-events: none;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 86%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 22%, #000 86%, transparent);
-    transition: opacity .3s;
-  }
-  .lb-row:hover .spark, .lb-row.highlighted .spark { opacity: .42; }
-  .lb-row > .pos, .lb-row > .icon-wrap, .lb-row > .info, .lb-row > .price-block { position: relative; z-index: 1; }
-
-  /* ============ S2: Podium overlay ============ */
-  #podium-overlay {
-    position: absolute; inset: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(5, 6, 9, 0.72);
-    backdrop-filter: blur(10px) saturate(120%); -webkit-backdrop-filter: blur(10px) saturate(120%);
-    opacity: 1; transition: opacity .45s;
-  }
-  #podium-overlay.hidden { opacity: 0; pointer-events: none; }
-  #podium-confetti { position: absolute; inset: 0; pointer-events: none; }
-  .podium-card {
-    position: relative; text-align: center; padding: 30px 34px 26px;
-    border-radius: 16px; min-width: min(86vw, 480px);
-    background: linear-gradient(180deg, rgba(20,23,31,.92), rgba(10,12,17,.94));
-    border: 1px solid rgba(255,255,255,.1);
-    box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px -20px rgba(255,210,74,.35);
-    animation: podiumIn .5s cubic-bezier(.2,.9,.3,1.15);
-  }
-  @keyframes podiumIn { from { opacity: 0; transform: translateY(26px) scale(.96);} to { opacity: 1; transform: none;} }
-  .podium-flag {
-    font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 800;
-    letter-spacing: 5px; color: var(--text-2); margin-bottom: 4px;
-  }
-  .podium-title {
-    font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 900;
-    letter-spacing: 3px; color: var(--text-0); margin-bottom: 20px;
-  }
-  .podium-title .accent { color: var(--gold); }
-  .podium-steps { display: flex; align-items: flex-end; justify-content: center; gap: 12px; margin-bottom: 18px; }
-  .p-step { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 108px; }
-  .p-step .p-icon {
-    width: 46px; height: 46px; border-radius: 50%;
-    display: grid; place-items: center; overflow: hidden;
-    background: var(--bg-2); border: 2px solid var(--pc, #888);
-    box-shadow: 0 0 18px -4px var(--pc, #888);
-    font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 800;
-  }
-  .p-step .p-icon img { width: 100%; height: 100%; object-fit: cover; }
-  .p-step .p-sym { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 1px; }
-  .p-step .p-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-  .p-step .p-pct.up { color: var(--neon-green); } .p-step .p-pct.down { color: var(--neon-red); }
-  .p-step .p-block {
-    width: 100%; border-radius: 8px 8px 0 0; display: grid; place-items: center;
-    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 20px; color: #0a0c11;
-    background: linear-gradient(180deg, var(--pc), color-mix(in srgb, var(--pc) 60%, #000));
-    box-shadow: inset 0 2px 0 rgba(255,255,255,.35);
-  }
-  .p-step.p1 .p-block { height: 84px; --pc: var(--gold); }
-  .p-step.p2 .p-block { height: 60px; --pc: var(--silver); }
-  .p-step.p3 .p-block { height: 44px; --pc: var(--bronze); }
-  .p-step.p1 { --pc: var(--gold); } .p-step.p2 { --pc: var(--silver); } .p-step.p3 { --pc: var(--bronze); }
-  .podium-pick {
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 1px;
-    padding: 9px 12px; border-radius: 8px; margin-bottom: 16px;
-    background: rgba(255,255,255,.04); border: 1px solid var(--panel-bd); color: var(--text-1);
-  }
-  .podium-pick.win { color: var(--gold); border-color: rgba(255,210,74,.4); background: rgba(255,210,74,.07); }
-  .podium-pick.lose { color: var(--text-1); }
-  .podium-actions { display: flex; align-items: center; justify-content: center; gap: 14px; }
-  #podium-restart {
-    font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 2px;
-    padding: 11px 22px; border-radius: 8px; cursor: pointer;
-    color: #0a0c11; background: linear-gradient(180deg, #ffe08a, var(--gold));
-    border: none; box-shadow: 0 6px 18px -6px rgba(255,210,74,.8);
-    transition: transform .15s, box-shadow .2s;
-  }
-  #podium-restart:hover { transform: translateY(-2px); box-shadow: 0 10px 24px -6px rgba(255,210,74,.9); }
-  #podium-restart:active { transform: scale(.96); }
-  .podium-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-2); letter-spacing: 1px; }
-
-  @media (max-width: 860px) {
-    .weather-badge .w-txt { display: none; }
-    .weather-badge { padding: 6px 9px; }
-    .points-pill { min-width: 0; padding: 4px 9px; }
-    #radio-feed { max-width: 82vw; bottom: 10px; left: 10px; }
-    .radio-msg { font-size: 10px; padding: 7px 10px 7px 8px; }
-    .podium-card { padding: 22px 16px 20px; }
-    .p-step { width: 84px; }
-  }
 </style>
 </head>
 <body>
@@ -1064,10 +879,6 @@
       <span class="label">LAP</span>
       <span class="value" id="lap-value">001 / ∞</span>
     </div>
-    <div class="weather-badge" id="weather-badge" title="Track conditions follow market sentiment">
-      <span class="w-ico" id="weather-ico">☁</span>
-      <span class="w-txt" id="weather-txt">SCANNING</span>
-    </div>
     <div class="tf-selector" id="tf-selector">
       <button class="tf-btn" data-tf="1h">1H</button>
       <button class="tf-btn active" data-tf="24h">24H</button>
@@ -1078,7 +889,6 @@
       <div class="grid-segment" id="grid-segment">
         <button class="grid-btn active" data-grid="10">10</button>
         <button class="grid-btn" data-grid="15">15</button>
-        <button class="grid-btn" data-grid="20">20</button>
       </div>
     </div>
     <div class="mode-toggle" id="mode-toggle" title="Day / Night">
@@ -1094,13 +904,6 @@
   </div>
 
   <div class="hud-right">
-    <div class="points-pill" id="points-pill" title="Paddock points — pick the sprint winner to score">
-      <span class="pp-val" id="pp-val">0</span>
-      <span class="pp-lbl">PTS <span class="pp-streak" id="pp-streak"></span></span>
-    </div>
-    <button class="icon-btn" id="sound-btn" title="Engine sound on/off">
-      <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path id="snd-waves" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" opacity="0"/></svg>
-    </button>
     <button class="icon-btn" id="pause-btn" title="Pause / Play">
       <svg viewBox="0 0 24 24" id="pause-icon"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
     </button>
@@ -1120,21 +923,6 @@
     <canvas id="track"></canvas>
     <div id="tooltip"></div>
     <div class="error-banner hidden" id="error-banner"></div>
-    <div id="radio-feed" aria-live="polite"></div>
-    <div id="pick-hint">TAP A CAR OR ROW TO PICK YOUR SPRINT WINNER</div>
-    <div id="podium-overlay" class="hidden" role="dialog" aria-label="Sprint results">
-      <canvas id="podium-confetti"></canvas>
-      <div class="podium-card">
-        <div class="podium-flag">🏁 CHEQUERED FLAG</div>
-        <div class="podium-title">SPRINT <span class="accent" id="podium-num">1</span> · PODIUM</div>
-        <div class="podium-steps" id="podium-steps"></div>
-        <div class="podium-pick" id="podium-pick"></div>
-        <div class="podium-actions">
-          <button id="podium-restart">NEXT SPRINT →</button>
-          <span class="podium-count" id="podium-count"></span>
-        </div>
-      </div>
-    </div>
     <div id="loading-overlay">
       <div class="loader-stripes"></div>
       <div class="loader-text">FORMATION LAP<span class="blink">...</span></div>
@@ -1195,11 +983,6 @@ const CFG = {
   CAR_WID: 22,
   TRACK_WIDTH_FACTOR: 0.135,      // % of min(canvas dim)
   LANE_COUNT: 4,
-  SPRINT_LAPS: 3,                 // laps per sprint race
-  RADIO_DRAIN_MS: 2600,           // min ms between radio toasts
-  RADIO_TTL_MS: 6500,             // toast lifetime
-  OVERTAKE_CHECK_S: 1.25,         // seconds between order checks
-  PODIUM_AUTONEXT_S: 14,          // auto-start next sprint
   BASE_SPEED_PX_S: 130,           // pixels/sec at neutral perf
   COLOR_FALLBACK: {
     btc:  '#f7931a', eth: '#627eea', usdt: '#26a17b', bnb: '#f3ba2f',
@@ -1258,21 +1041,7 @@ const state = {
   startLineDistance: 0,
   leaderLapsCompleted: 0,
   hoveredCarId: null,
-  dpr: 1,
-  /* ---- S2 ---- */
-  sprint: { num: 1, leaderLap: 0, finished: false, autoTimer: null, countLeft: 0 },
-  pickId: null,
-  pickLocked: false,
-  points: 0,
-  streak: 0,
-  weather: { mode: 'cloudy', target: 0, intensity: 0, drops: [], flash: 0, nextBolt: 0, avg: 0 },
-  radioQueue: [],
-  radioLastTs: 0,
-  lastOrder: [],
-  orderTimer: 0,
-  lastFastLapId: null,
-  pitAnnounced: new Set(),
-  soundOn: false
+  dpr: 1
 };
 
 /* =====================================================================
@@ -1932,7 +1701,7 @@ function loadCoinImage(url, symbol) {
  * ===================================================================== */
 async function fetchCoins(retry = 0) {
   const perPage = state.carCount;
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=1&price_change_percentage=1h%2C24h%2C7d&sparkline=true`;
+  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${perPage}&page=1&price_change_percentage=1h%2C24h%2C7d&sparkline=false`;
   setStatus('loading', 'FETCHING');
   try {
     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
@@ -2022,8 +1791,6 @@ function buildCars(coins) {
       color: symFallback(coin.symbol) || hashColor(coin.symbol || coin.id),
       trail: [],
       smoke: [],
-      spray: [],
-      sprintDist: 0,
     };
     cars.push(car);
   }
@@ -2074,8 +1841,6 @@ function syncCarsWithCoins(coins) {
         color: symFallback(coin.symbol) || hashColor(coin.symbol || coin.id),
         trail: [],
         smoke: [],
-        spray: [],
-        sprintDist: 0,
       };
       if (coin.image) {
         loadCoinImage(coin.image, coin.symbol).then(entry => {
@@ -2126,7 +1891,6 @@ function updateCars(dt) {
     const v = baseSpeed * c.speedMul;
     const prevDist = c.distance;
     c.distance += v * dt;
-    c.sprintDist += v * dt;
     if (c.distance > state.totalArc) {
       c.distance -= state.totalArc;
       c.lapsCompleted++;
@@ -2171,29 +1935,6 @@ function updateCars(dt) {
       if (p.life >= p.ttl) c.smoke.splice(s, 1);
     }
 
-    // Wet-track spray behind the car (market rain)
-    const wIntensity = state.weather.intensity;
-    if (wIntensity > 0.3 && c.spray.length < 14 && Math.random() < wIntensity * 0.8) {
-      const tailX = c.x - Math.cos(c.angle) * (CFG.CAR_LEN * 0.5);
-      const tailY = c.y - Math.sin(c.angle) * (CFG.CAR_LEN * 0.5);
-      c.spray.push({
-        x: tailX + (Math.random() - 0.5) * 10,
-        y: tailY + (Math.random() - 0.5) * 10,
-        vx: -Math.cos(c.angle) * 30 + (Math.random() - 0.5) * 26,
-        vy: -Math.sin(c.angle) * 30 + (Math.random() - 0.5) * 26 - 8,
-        life: 0, ttl: 0.45 + Math.random() * 0.3,
-        size: 2 + Math.random() * 3
-      });
-    }
-    for (let s = c.spray.length - 1; s >= 0; s--) {
-      const p = c.spray[s];
-      p.life += dt;
-      p.x += p.vx * dt; p.y += p.vy * dt;
-      p.vx *= 0.9; p.vy *= 0.9;
-      p.size += 9 * dt;
-      if (p.life >= p.ttl) c.spray.splice(s, 1);
-    }
-
     if (c.distance > leaderDistance) leaderDistance = c.distance;
   }
 
@@ -2205,11 +1946,6 @@ function updateCars(dt) {
     );
     state.leaderLapsCompleted = leader.lapsCompleted;
   }
-
-  updateSprint();
-  updateWeather(dt);
-  detectOvertakes(dt);
-  soundTick(dt);
 }
 
 function renderFrame() {
@@ -2225,11 +1961,8 @@ function renderFrame() {
   // Smoke first (under cars, but above trail of fast cars? — render in sensible order)
   // Order: smoke (rear) → trails → cars
   for (const c of state.cars) drawSmoke(c);
-  for (const c of state.cars) drawSpray(c);
   for (const c of state.cars) drawTrail(c);
-  drawPickMarker();
   for (const c of state.cars) drawCar(c);
-  drawWeatherFX();
 
   // HUD overlays inside canvas
   drawLapBanner();
@@ -2666,8 +2399,6 @@ function rebuildLeaderboardDOM() {
     row.dataset.id = car.id;
     row.style.setProperty('--car-color', car.color);
     row.innerHTML = `
-      ${buildSparkSVG(car)}
-      <span class="pick-star">🎯</span>
       <div class="pos">—</div>
       <div class="icon-wrap">
         ${car.coin.image ? `<img src="${car.coin.image}" alt="${car.symbol}" referrerpolicy="no-referrer" />` : `<span class="fallback">${car.symbol.slice(0,3)}</span>`}
@@ -2683,8 +2414,6 @@ function rebuildLeaderboardDOM() {
     `;
     row.addEventListener('mouseenter', () => { state.hoveredCarId = car.id; row.classList.add('highlighted'); });
     row.addEventListener('mouseleave', () => { state.hoveredCarId = null; row.classList.remove('highlighted'); });
-    row.addEventListener('click', () => setPick(car.id));
-    if (state.pickId === car.id) row.classList.add('picked');
     lbList.appendChild(row);
   }
   positionLeaderboardRows(true);
@@ -2780,8 +2509,7 @@ function hideErrorBanner() {
 }
 
 function updateLapDisplay() {
-  const lap = Math.min(CFG.SPRINT_LAPS, state.sprint.leaderLap + 1);
-  lapValue.textContent = `S${state.sprint.num} · ${String(lap).padStart(2, '0')}/${String(CFG.SPRINT_LAPS).padStart(2, '0')}`;
+  lapValue.textContent = `${String(state.leaderLapsCompleted + 1).padStart(3, '0')} / ∞`;
 }
 
 /* =====================================================================
@@ -2874,9 +2602,7 @@ function showTooltip(car, x, y) {
     <div class="tt-row"><span class="tt-label">1h</span><span class="tt-value">${fmtPct(p1h)}</span></div>
     <div class="tt-row"><span class="tt-label">24h</span><span class="tt-value">${fmtPct(p24)}</span></div>
     <div class="tt-row"><span class="tt-label">7d</span><span class="tt-value">${fmtPct(p7d)}</span></div>
-    <div class="tt-row"><span class="tt-label">Speed</span><span class="tt-value">${Math.round(90 + car.speedMul * 150)} km/h</span></div>
-    <div class="tt-row"><span class="tt-label">Gap</span><span class="tt-value">${gapToLeader(car)}</span></div>
-    ${state.pickId === car.id ? '<div class="tt-row"><span class="tt-label" style="color:var(--gold)">🎯 YOUR PICK</span><span class="tt-value"></span></div>' : ''}
+    <div class="tt-row"><span class="tt-label">Speed</span><span class="tt-value">${(car.speedMul * 100).toFixed(0)}%</span></div>
   `;
   // clamp position so it stays on screen
   const stageW = stage.clientWidth;
@@ -2901,7 +2627,6 @@ tfSelector.addEventListener('click', (e) => {
   // Refresh perf values & rerender list
   for (const c of state.cars) c.perf = getPerf(c.coin);
   positionLeaderboardRows();
-  setWeatherFromMarket();
 });
 
 gridSegment.addEventListener('click', async (e) => {
@@ -2953,13 +2678,8 @@ pauseBtn.addEventListener('click', () => {
 });
 
 window.addEventListener('resize', () => {
-  const oldArc = state.totalArc;
   resizeCanvas();
   generateTrack();
-  if (oldArc > 0 && state.totalArc > 0) {
-    const k = state.totalArc / oldArc;
-    for (const c of state.cars) c.sprintDist *= k;
-  }
   regenerateTrackCache();
   // re-distribute lane offsets and clamp distance
   const tw = state.trackWidth;
@@ -2994,7 +2714,6 @@ async function refresh() {
     rebuildLeaderboardDOM();
     state.lastUpdate = new Date();
     setStatus('live', 'LIVE');
-    onMarketData();
   } else if (state.cars.length === 0) {
     // first failure: use fallback so the UI works as a demo
     state.coins = FALLBACK_COINS.slice(0, state.carCount);
@@ -3002,7 +2721,6 @@ async function refresh() {
     rebuildLeaderboardDOM();
     state.lastUpdate = new Date();
     setStatus('error', 'DEMO MODE');
-    onMarketData();
   } else {
     setStatus('error', 'OFFLINE');
   }
@@ -3017,524 +2735,11 @@ async function init() {
   await refresh();
   positionLeaderboardRows(true);
   loadingOverlay.classList.add('hidden');
-  startSprint(true);
-  const hint = document.getElementById('pick-hint');
-  hint.classList.add('visible');
-  setTimeout(() => hint.classList.remove('visible'), 7000);
   // Polling
   state.pollTimer = setInterval(() => {
     if (!state.paused) refresh();
   }, CFG.POLL_INTERVAL_MS);
   requestAnimationFrame(loop);
-}
-
-
-/* =====================================================================
- *                    S2 — SPRINT RACE ENGINE
- * ===================================================================== */
-const podiumOverlay = document.getElementById('podium-overlay');
-const podiumSteps = document.getElementById('podium-steps');
-const podiumPick = document.getElementById('podium-pick');
-const podiumNum = document.getElementById('podium-num');
-const podiumCount = document.getElementById('podium-count');
-const podiumRestart = document.getElementById('podium-restart');
-const confettiCanvas = document.getElementById('podium-confetti');
-const radioFeed = document.getElementById('radio-feed');
-const weatherBadge = document.getElementById('weather-badge');
-const weatherIco = document.getElementById('weather-ico');
-const weatherTxt = document.getElementById('weather-txt');
-const ppVal = document.getElementById('pp-val');
-const ppStreak = document.getElementById('pp-streak');
-const pointsPill = document.getElementById('points-pill');
-const soundBtn = document.getElementById('sound-btn');
-
-function sprintRanking() {
-  return [...state.cars].sort((a, b) => b.sprintDist - a.sprintDist);
-}
-
-function startSprint(first = false) {
-  clearInterval(state.sprint.autoTimer);
-  for (const c of state.cars) c.sprintDist = 0;
-  state.sprint.leaderLap = 0;
-  state.sprint.finished = false;
-  state.pickLocked = false;
-  state.lastOrder = [];
-  state.pitAnnounced.clear();
-  podiumOverlay.classList.add('hidden');
-  stopConfetti();
-  if (!first) state.sprint.num++;
-  updateLapDisplay();
-  radio('flag', 'FLAG', `LIGHTS OUT — SPRINT ${state.sprint.num} · ${CFG.SPRINT_LAPS} LAPS`);
-  if (state.pickId) {
-    const car = state.cars.find(c => c.id === state.pickId);
-    if (car) radio('pick', 'PICK', `${car.symbol} carries your colours this sprint`);
-    else { state.pickId = null; }
-  }
-  beep(440, 0.08); setTimeout(() => beep(440, 0.08), 180); setTimeout(() => beep(660, 0.16), 380);
-}
-
-function updateSprint() {
-  if (state.sprint.finished || state.cars.length === 0) return;
-  const ranked = sprintRanking();
-  const leader = ranked[0];
-  const lap = Math.floor(leader.sprintDist / state.totalArc);
-  if (lap !== state.sprint.leaderLap) {
-    state.sprint.leaderLap = lap;
-    if (lap === 1 && state.pickId && !state.pickLocked) {
-      state.pickLocked = true;
-      radio('flag', 'FLAG', 'PICKS LOCKED — no changes until the flag');
-    }
-    if (lap === CFG.SPRINT_LAPS - 1) {
-      radio('flag', 'FLAG', `FINAL LAP — ${leader.symbol} leads the sprint`);
-    }
-  }
-  if (lap >= CFG.SPRINT_LAPS) finishSprint(ranked);
-}
-
-function finishSprint(ranked) {
-  state.sprint.finished = true;
-  const top3 = ranked.slice(0, 3);
-  const winner = top3[0];
-
-  // Pick scoring
-  let pickHTML = `No pick this sprint — tap a car to play the next one.`;
-  let pickClass = '';
-  if (state.pickId) {
-    const pickCar = state.cars.find(c => c.id === state.pickId);
-    const pickPos = ranked.findIndex(c => c.id === state.pickId) + 1;
-    if (state.pickId === winner.id) {
-      state.streak++;
-      const gain = 25 + (state.streak - 1) * 10;
-      state.points += gain;
-      pickHTML = `🎯 ${pickCar ? pickCar.symbol : '—'} WINS — <b>+${gain} PTS</b>${state.streak > 1 ? ` · streak ×${state.streak}` : ''}`;
-      pickClass = 'win';
-      setTimeout(() => { beep(523, .12); setTimeout(() => beep(659, .12), 130); setTimeout(() => beep(784, .22), 260); }, 300);
-    } else {
-      state.streak = 0;
-      pickHTML = `🎯 Your pick ${pickCar ? pickCar.symbol : '—'} finished P${pickPos || '—'} — no points, streak reset.`;
-      pickClass = 'lose';
-    }
-    updatePointsDisplay(true);
-  }
-
-  // Build podium steps: P2 · P1 · P3
-  const order = [top3[1], top3[0], top3[2]].filter(Boolean);
-  const cls = ['p2', 'p1', 'p3'];
-  const place = ['2', '1', '3'];
-  podiumSteps.innerHTML = order.map((c, i) => {
-    const p = c.perf;
-    const pctCls = p >= 0 ? 'up' : 'down';
-    const arrow = p >= 0 ? '▲' : '▼';
-    const idx = order.length === 3 ? i : (i === 0 ? 1 : 0); // degrade gracefully if <3 cars
-    const k = order.length === 3 ? cls[i] : cls[idx];
-    const lbl = order.length === 3 ? place[i] : place[idx];
-    return `<div class="p-step ${k}">
-      <div class="p-icon" style="--pc: ${c.color}">${c.coin.image ? `<img src="${c.coin.image}" alt="" referrerpolicy="no-referrer" />` : c.symbol.slice(0, 3)}</div>
-      <div class="p-sym" style="color:${c.color}">${c.symbol}</div>
-      <div class="p-pct ${pctCls}">${arrow} ${p.toFixed(2)}%</div>
-      <div class="p-block">${lbl}</div>
-    </div>`;
-  }).join('');
-
-  podiumNum.textContent = state.sprint.num;
-  podiumPick.innerHTML = pickHTML;
-  podiumPick.className = 'podium-pick ' + pickClass;
-  podiumOverlay.classList.remove('hidden');
-  startConfetti();
-  radio('flag', 'FLAG', `🏁 ${winner.symbol} WINS SPRINT ${state.sprint.num} (${winner.perf >= 0 ? '+' : ''}${winner.perf.toFixed(2)}%)`);
-
-  // Auto-next countdown
-  state.sprint.countLeft = CFG.PODIUM_AUTONEXT_S;
-  podiumCount.textContent = `auto in ${state.sprint.countLeft}s`;
-  state.sprint.autoTimer = setInterval(() => {
-    state.sprint.countLeft--;
-    if (state.sprint.countLeft <= 0) { startSprint(); return; }
-    podiumCount.textContent = `auto in ${state.sprint.countLeft}s`;
-  }, 1000);
-}
-
-podiumRestart.addEventListener('click', () => startSprint());
-
-/* ---------- Confetti ---------- */
-let confettiRAF = null;
-function startConfetti() {
-  const cv = confettiCanvas;
-  const cctx = cv.getContext('2d');
-  cv.width = stage.clientWidth; cv.height = stage.clientHeight;
-  const colors = ['#ffd24a', '#10b981', '#22d3ee', '#ef4444', '#c084fc', '#f4f4f6'];
-  const parts = Array.from({ length: 130 }, () => ({
-    x: Math.random() * cv.width,
-    y: -20 - Math.random() * cv.height * 0.5,
-    w: 5 + Math.random() * 6,
-    h: 8 + Math.random() * 8,
-    vy: 70 + Math.random() * 120,
-    vx: (Math.random() - 0.5) * 50,
-    rot: Math.random() * Math.PI,
-    vr: (Math.random() - 0.5) * 6,
-    color: colors[(Math.random() * colors.length) | 0]
-  }));
-  let last = performance.now();
-  function tick(ts) {
-    const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
-    cctx.clearRect(0, 0, cv.width, cv.height);
-    for (const p of parts) {
-      p.y += p.vy * dt; p.x += p.vx * dt + Math.sin(p.y * 0.02) * 0.6; p.rot += p.vr * dt;
-      if (p.y > cv.height + 20) { p.y = -20; p.x = Math.random() * cv.width; }
-      cctx.save();
-      cctx.translate(p.x, p.y); cctx.rotate(p.rot);
-      cctx.fillStyle = p.color; cctx.globalAlpha = 0.9;
-      cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      cctx.restore();
-    }
-    confettiRAF = requestAnimationFrame(tick);
-  }
-  stopConfetti();
-  confettiRAF = requestAnimationFrame(tick);
-}
-function stopConfetti() {
-  if (confettiRAF) cancelAnimationFrame(confettiRAF);
-  confettiRAF = null;
-  const cctx = confettiCanvas.getContext('2d');
-  cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-}
-
-/* =====================================================================
- *                    S2 — PICK'EM (prediction)
- * ===================================================================== */
-function setPick(id) {
-  if (state.pickLocked && !state.sprint.finished) {
-    radio('pick', 'PICK', 'PICKS LOCKED — wait for the chequered flag');
-    return;
-  }
-  if (state.pickId === id) {
-    state.pickId = null;
-  } else {
-    state.pickId = id;
-    const car = state.cars.find(c => c.id === id);
-    if (car) radio('pick', 'PICK', `🎯 You back ${car.symbol} to win sprint ${state.sprint.num + (state.sprint.finished ? 1 : 0)}`);
-    beep(740, 0.07);
-  }
-  for (const child of lbList.children) {
-    child.classList.toggle('picked', child.dataset.id === state.pickId);
-  }
-}
-
-canvas.addEventListener('click', (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-  let hit = null, best = 40 * 40;
-  for (const c of state.cars) {
-    const dx = c.x - mx, dy = c.y - my;
-    const d2 = dx * dx + dy * dy;
-    if (d2 < best) { best = d2; hit = c; }
-  }
-  if (hit) setPick(hit.id);
-});
-
-function drawPickMarker() {
-  if (!state.pickId) return;
-  const c = state.cars.find(k => k.id === state.pickId);
-  if (!c || c.x == null) return;
-  const t = performance.now() / 1000;
-  const r = 30 + Math.sin(t * 4) * 3;
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255, 210, 74, 0.9)';
-  ctx.lineWidth = 2.5;
-  ctx.shadowColor = 'rgba(255, 210, 74, 0.9)';
-  ctx.shadowBlur = 14;
-  ctx.setLineDash([10, 7]);
-  ctx.lineDashOffset = -t * 30;
-  ctx.beginPath();
-  ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function updatePointsDisplay(bump = false) {
-  ppVal.textContent = state.points;
-  ppStreak.textContent = state.streak > 1 ? `×${state.streak}` : '';
-  if (bump) {
-    pointsPill.classList.remove('bump');
-    void pointsPill.offsetWidth;
-    pointsPill.classList.add('bump');
-  }
-}
-
-function gapToLeader(car) {
-  const ranked = sprintRanking();
-  if (!ranked.length || ranked[0].id === car.id) return 'LEADER';
-  const gapPx = ranked[0].sprintDist - car.sprintDist;
-  return `+${(gapPx / CFG.BASE_SPEED_PX_S).toFixed(1)}s`;
-}
-
-/* =====================================================================
- *                    S2 — RACE RADIO
- * ===================================================================== */
-function radio(kind, tag, text) {
-  state.radioQueue.push({ kind, tag, text });
-  drainRadio();
-}
-function drainRadio() {
-  const now = performance.now();
-  if (!state.radioQueue.length) return;
-  if (now - state.radioLastTs < CFG.RADIO_DRAIN_MS) {
-    setTimeout(drainRadio, CFG.RADIO_DRAIN_MS - (now - state.radioLastTs) + 30);
-    return;
-  }
-  state.radioLastTs = now;
-  const { kind, tag, text } = state.radioQueue.shift();
-  const el = document.createElement('div');
-  el.className = `radio-msg r-${kind}`;
-  el.innerHTML = `<span class="r-tag">${tag}</span><span>${text}</span>`;
-  radioFeed.appendChild(el);
-  while (radioFeed.children.length > 4) radioFeed.removeChild(radioFeed.firstChild);
-  setTimeout(() => el.classList.add('fading'), CFG.RADIO_TTL_MS);
-  setTimeout(() => el.remove(), CFG.RADIO_TTL_MS + 700);
-  if (state.radioQueue.length) setTimeout(drainRadio, CFG.RADIO_DRAIN_MS + 30);
-}
-
-function detectOvertakes(dt) {
-  state.orderTimer += dt;
-  if (state.orderTimer < CFG.OVERTAKE_CHECK_S) return;
-  state.orderTimer = 0;
-  const order = sprintRanking().map(c => c.id);
-  if (state.lastOrder.length && !state.sprint.finished) {
-    let bestEvent = null;
-    for (let i = 0; i < Math.min(6, order.length); i++) {
-      const id = order[i];
-      const prev = state.lastOrder.indexOf(id);
-      if (prev > i) {
-        const passedId = state.lastOrder[i];
-        if (!bestEvent || i < bestEvent.pos) bestEvent = { pos: i, id, passedId };
-      }
-    }
-    if (bestEvent && state.radioQueue.length < 2) {
-      const a = state.cars.find(c => c.id === bestEvent.id);
-      const b = state.cars.find(c => c.id === bestEvent.passedId);
-      if (a && b && a.id !== b.id) {
-        const pickMark = a.id === state.pickId ? '🎯 ' : '';
-        radio('overtake', 'OVERTAKE', `${pickMark}${a.symbol} passes ${b.symbol} for P${bestEvent.pos + 1}`);
-        if (a.id === state.pickId) beep(880, 0.06);
-      }
-    }
-  }
-  state.lastOrder = order;
-}
-
-/* Called after every successful market refresh */
-function onMarketData() {
-  setWeatherFromMarket();
-  // Fastest lap — strongest gainer in current timeframe
-  if (state.cars.length) {
-    const fast = state.cars.reduce((a, b) => a.perf > b.perf ? a : b);
-    if (fast.perf > 0.2 && fast.id !== state.lastFastLapId) {
-      state.lastFastLapId = fast.id;
-      radio('fastlap', 'FASTEST LAP', `${fast.symbol} purple sector — +${fast.perf.toFixed(2)}% (${state.timeframe})`);
-    }
-    // Pit stop — heavy losses
-    for (const c of state.cars) {
-      if (c.perf <= -4 && !state.pitAnnounced.has(c.id)) {
-        state.pitAnnounced.add(c.id);
-        radio('pit', 'PIT STOP', `${c.symbol} boxes — heavy losses ${c.perf.toFixed(2)}%`);
-        break;
-      }
-    }
-  }
-  updatePointsDisplay();
-}
-
-/* =====================================================================
- *                    S2 — MARKET WEATHER
- * ===================================================================== */
-function setWeatherFromMarket() {
-  if (!state.cars.length) return;
-  const avg = state.cars.reduce((s, c) => s + c.perf, 0) / state.cars.length;
-  const div = { '1h': 0.6, '24h': 2, '7d': 5 }[state.timeframe] || 2;
-  const n = avg / div;
-  const w = state.weather;
-  const prev = w.mode;
-  if (n <= -1)        { w.mode = 'storm';  w.target = 1; }
-  else if (n <= -0.3) { w.mode = 'rain';   w.target = 0.65; }
-  else if (n >= 0.35) { w.mode = 'clear';  w.target = 0; }
-  else                { w.mode = 'cloudy'; w.target = 0; }
-  w.avg = avg;
-  const cfgs = {
-    clear:  { ico: '☀',  txt: `DRY TRACK · MKT +${avg.toFixed(2)}%`, cls: 'w-clear' },
-    cloudy: { ico: '☁',  txt: `OVERCAST · MKT ${avg >= 0 ? '+' : ''}${avg.toFixed(2)}%`, cls: '' },
-    rain:   { ico: '🌧', txt: `RAIN · MKT ${avg.toFixed(2)}%`, cls: 'w-rain' },
-    storm:  { ico: '⛈', txt: `STORM · MKT ${avg.toFixed(2)}%`, cls: 'w-storm' }
-  };
-  const k = cfgs[w.mode];
-  weatherIco.textContent = k.ico;
-  weatherTxt.textContent = k.txt;
-  weatherBadge.className = 'weather-badge ' + k.cls;
-  if (prev !== w.mode) {
-    const msgs = {
-      clear:  'GREEN FLAG — market warming up, dry racing line',
-      cloudy: 'Conditions neutral — clouds over the paddock',
-      rain:   'RAIN ON TRACK — market in the red, grip is low',
-      storm:  '⛈ RED SECTOR — market storm, intermediates on'
-    };
-    radio('flag', 'WEATHER', msgs[w.mode]);
-  }
-}
-
-function updateWeather(dt) {
-  const w = state.weather;
-  w.intensity += (w.target - w.intensity) * Math.min(1, dt * 0.8);
-  if (w.intensity > 0.03) {
-    const W = canvas.clientWidth, H = canvas.clientHeight;
-    const want = Math.round(150 * w.intensity);
-    while (w.drops.length < want) {
-      w.drops.push({ x: Math.random() * (W + 120) - 60, y: Math.random() * H, len: 9 + Math.random() * 13, sp: 480 + Math.random() * 380 });
-    }
-    if (w.drops.length > want) w.drops.length = want;
-    for (const d of w.drops) {
-      d.y += d.sp * dt;
-      d.x += d.sp * 0.18 * dt;
-      if (d.y > H + 20) { d.y = -20; d.x = Math.random() * (W + 120) - 60; }
-    }
-  } else {
-    w.drops.length = 0;
-  }
-  // Lightning (storm only)
-  if (w.mode === 'storm' && w.intensity > 0.6) {
-    w.nextBolt -= dt;
-    if (w.nextBolt <= 0) {
-      w.flash = 0.32;
-      w.nextBolt = 5 + Math.random() * 9;
-      beepNoise(0.18);
-    }
-  }
-  if (w.flash > 0) w.flash = Math.max(0, w.flash - dt * 1.4);
-}
-
-function drawWeatherFX() {
-  const w = state.weather;
-  const W = canvas.clientWidth, H = canvas.clientHeight;
-  if (w.intensity > 0.03) {
-    // Wet sheen over the whole scene
-    ctx.save();
-    const sheen = ctx.createLinearGradient(0, 0, W, H);
-    sheen.addColorStop(0, `rgba(110, 160, 220, ${0.05 * w.intensity})`);
-    sheen.addColorStop(0.5, `rgba(60, 90, 140, ${0.10 * w.intensity})`);
-    sheen.addColorStop(1, `rgba(110, 160, 220, ${0.05 * w.intensity})`);
-    ctx.fillStyle = sheen;
-    ctx.fillRect(0, 0, W, H);
-    // Rain streaks
-    ctx.strokeStyle = `rgba(165, 205, 245, ${0.34 * w.intensity})`;
-    ctx.lineWidth = 1.1;
-    ctx.beginPath();
-    for (const d of w.drops) {
-      ctx.moveTo(d.x, d.y);
-      ctx.lineTo(d.x - d.len * 0.18, d.y - d.len);
-    }
-    ctx.stroke();
-    ctx.restore();
-  }
-  if (w.flash > 0) {
-    ctx.save();
-    ctx.fillStyle = `rgba(225, 230, 255, ${w.flash})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
-}
-
-function drawSpray(c) {
-  if (!c.spray || c.spray.length === 0) return;
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
-  for (const p of c.spray) {
-    const a = Math.max(0, 1 - p.life / p.ttl) * 0.5;
-    ctx.fillStyle = `rgba(160, 210, 250, ${a})`;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-/* =====================================================================
- *                    S2 — ENGINE SOUND (WebAudio)
- * ===================================================================== */
-let AC = null, engineOsc1 = null, engineOsc2 = null, engineGain = null, engineFilter = null;
-function ensureAudio() {
-  if (AC) return;
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) return;
-  AC = new Ctx();
-  engineGain = AC.createGain(); engineGain.gain.value = 0;
-  engineFilter = AC.createBiquadFilter(); engineFilter.type = 'lowpass'; engineFilter.frequency.value = 420; engineFilter.Q.value = 2;
-  engineOsc1 = AC.createOscillator(); engineOsc1.type = 'sawtooth'; engineOsc1.frequency.value = 70;
-  engineOsc2 = AC.createOscillator(); engineOsc2.type = 'sawtooth'; engineOsc2.frequency.value = 70.8;
-  engineOsc1.connect(engineFilter); engineOsc2.connect(engineFilter);
-  engineFilter.connect(engineGain); engineGain.connect(AC.destination);
-  engineOsc1.start(); engineOsc2.start();
-}
-function soundTick(dt) {
-  if (!state.soundOn || !AC || !engineOsc1) return;
-  let avgMul = 1;
-  if (state.cars.length) {
-    const top = sprintRanking().slice(0, 3);
-    avgMul = top.reduce((s, c) => s + c.speedMul, 0) / top.length;
-  }
-  const f = 55 + avgMul * 55;
-  engineOsc1.frequency.setTargetAtTime(f, AC.currentTime, 0.25);
-  engineOsc2.frequency.setTargetAtTime(f * 1.013, AC.currentTime, 0.25);
-}
-function beep(freq, dur) {
-  if (!state.soundOn || !AC) return;
-  const o = AC.createOscillator(), g = AC.createGain();
-  o.type = 'triangle'; o.frequency.value = freq;
-  g.gain.setValueAtTime(0.001, AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.12, AC.currentTime + 0.015);
-  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
-  o.connect(g); g.connect(AC.destination);
-  o.start(); o.stop(AC.currentTime + dur + 0.05);
-}
-function beepNoise(dur) {
-  if (!state.soundOn || !AC) return;
-  const len = Math.floor(AC.sampleRate * dur);
-  const buf = AC.createBuffer(1, len, AC.sampleRate);
-  const ch = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
-  const srcN = AC.createBufferSource(); srcN.buffer = buf;
-  const g = AC.createGain(); g.gain.value = 0.08;
-  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 600;
-  srcN.connect(f); f.connect(g); g.connect(AC.destination);
-  srcN.start();
-}
-soundBtn.addEventListener('click', () => {
-  ensureAudio();
-  if (!AC) return;
-  if (AC.state === 'suspended') AC.resume();
-  state.soundOn = !state.soundOn;
-  soundBtn.classList.toggle('on', state.soundOn);
-  document.getElementById('snd-waves').style.opacity = state.soundOn ? '1' : '0';
-  if (engineGain) engineGain.gain.setTargetAtTime(state.soundOn ? 0.045 : 0, AC.currentTime, 0.2);
-  if (state.soundOn) beep(660, 0.1);
-});
-
-/* =====================================================================
- *                    S2 — LEADERBOARD SPARKLINES
- * ===================================================================== */
-function buildSparkSVG(car) {
-  const prices = car.coin?.sparkline_in_7d?.price;
-  if (!Array.isArray(prices) || prices.length < 8) return '';
-  const step = Math.max(1, Math.floor(prices.length / 56));
-  const pts = [];
-  for (let i = 0; i < prices.length; i += step) pts.push(prices[i]);
-  pts.push(prices[prices.length - 1]);
-  let mn = Infinity, mx = -Infinity;
-  for (const v of pts) { if (v < mn) mn = v; if (v > mx) mx = v; }
-  const range = (mx - mn) || 1;
-  const W = 100, H = 30;
-  const coords = pts.map((v, i) => `${(i / (pts.length - 1) * W).toFixed(1)},${(H - 3 - ((v - mn) / range) * (H - 6)).toFixed(1)}`).join(' ');
-  const up = pts[pts.length - 1] >= pts[0];
-  const color = up ? 'var(--neon-green)' : 'var(--neon-red)';
-  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
-    <polyline points="${coords}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
-  </svg>`;
 }
 
 init();

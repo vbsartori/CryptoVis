@@ -2,2167 +2,1613 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEO-CRYPTO CITY // SMART GRID v2.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NEO-CRYPTO CITY // SKYLINE v3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  /* =================================================================
-     CYBERPUNK CORE
-     ================================================================= */
-  :root {
-    --bg-deep: #050010;
-    --bg-mid:  #0d0322;
-    --neon-pink:    #ff007a;
-    --neon-magenta: #ff00ff;
-    --neon-cyan:    #00f0ff;
-    --neon-green:   #00ff88;
-    --neon-red:     #ff0844;
-    --neon-yellow:  #f6ff00;
-    --neon-purple:  #b347ff;
-    --grid-line:    rgba(255, 0, 200, 0.18);
-    --txt-dim:      rgba(0, 240, 255, 0.55);
-  }
+/* ════════════════════════════════════════════════════════════════
+   NEO-CRYPTO CITY v3 — "A MONTANHA DE CAPITAL"
+   tokens
+   ════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:        #04020e;
+  --glass:     rgba(8, 4, 26, 0.72);
+  --magenta:   #ff2bd6;
+  --cyan:      #00e5ff;
+  --green:     #00ff9d;
+  --red:       #ff2e54;
+  --amber:     #ffd400;
+  --txt:       #cfeeff;
+  --txt-dim:   rgba(160, 210, 235, 0.55);
+  --line:      rgba(0, 229, 255, 0.22);
+  --line-mag:  rgba(255, 43, 214, 0.30);
+  --f-disp:    'Chakra Petch', sans-serif;
+  --f-mono:    'Share Tech Mono', monospace;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{
+  width:100%; height:100%;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:var(--f-mono);
+  overflow:hidden;
+  user-select:none;
+  -webkit-font-smoothing:antialiased;
+}
+#gl{ position:fixed; inset:0; z-index:0; cursor:grab; }
+#gl.dragging{ cursor:grabbing; }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* CRT overlays — barato, só CSS */
+.scanlines{
+  position:fixed; inset:0; pointer-events:none; z-index:60;
+  background:repeating-linear-gradient(180deg,
+    transparent 0px, transparent 2px,
+    rgba(0,0,0,0.16) 3px, rgba(0,0,0,0.03) 4px);
+  mix-blend-mode:multiply;
+}
+.vignette{
+  position:fixed; inset:0; pointer-events:none; z-index:59;
+  background:radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.62) 100%);
+}
 
-  html, body {
-    width: 100%;
-    height: 100%;
-    background: #000;
-    color: var(--neon-cyan);
-    font-family: 'Share Tech Mono', monospace;
-    overflow: hidden;
-    user-select: none;
-    -webkit-font-smoothing: antialiased;
-  }
+/* ════════ HUD: moldura ════════ */
+.hud{ position:fixed; z-index:70; }
 
-  #canvas-container {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-  }
+#hud-top{
+  top:0; left:0; right:0;
+  display:flex; align-items:stretch; gap:0;
+  background:linear-gradient(180deg, rgba(4,2,14,0.92), rgba(4,2,14,0.55) 75%, transparent);
+  padding:10px 16px 18px;
+  pointer-events:none;
+}
+#hud-top > *{ pointer-events:auto; }
 
-  /* CRT scanlines overlay */
-  .scanlines {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 100;
-    background:
-      repeating-linear-gradient(
-        180deg,
-        rgba(0,0,0,0) 0px,
-        rgba(0,0,0,0) 2px,
-        rgba(0, 0, 0, 0.20) 3px,
-        rgba(0, 0, 0, 0.05) 4px
-      );
-    mix-blend-mode: multiply;
-  }
+.brand{ display:flex; align-items:center; gap:12px; }
+.brand .mark{
+  width:38px; height:38px; flex:none;
+  border:1px solid var(--magenta);
+  box-shadow:0 0 12px rgba(255,43,214,0.5), inset 0 0 10px rgba(255,43,214,0.35);
+  display:grid; place-items:center;
+  font-family:var(--f-disp); font-weight:700; color:var(--magenta);
+  clip-path:polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+}
+.brand h1{
+  font-family:var(--f-disp); font-weight:700; font-size:17px;
+  letter-spacing:0.16em; color:#fff;
+  text-shadow:0 0 14px rgba(0,229,255,0.8);
+  white-space:nowrap;
+}
+.brand small{
+  display:block; font-family:var(--f-mono); font-size:10px;
+  letter-spacing:0.22em; color:var(--txt-dim);
+}
 
-  /* Subtle vignette */
-  .vignette {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 99;
-    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
-  }
+.globals{
+  display:flex; gap:0; margin-left:28px; align-items:center; flex:1;
+  min-width:0; overflow:hidden;
+}
+.g{
+  padding:4px 18px;
+  border-left:1px solid var(--line);
+  white-space:nowrap;
+}
+.g label{
+  display:block; font-size:9px; letter-spacing:0.22em; color:var(--txt-dim);
+}
+.g b{
+  font-family:var(--f-disp); font-weight:600; font-size:16px; color:var(--cyan);
+  text-shadow:0 0 10px rgba(0,229,255,0.55);
+}
+.g b .up{ color:var(--green); } .g b .dn{ color:var(--red); }
 
-  /* Chromatic aberration tinted noise overlay */
-  .noise {
-    position: fixed; inset: 0;
-    pointer-events: none;
-    z-index: 98;
-    opacity: 0.05;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='1'/></svg>");
-  }
+/* Fear & Greed gauge */
+#fng{
+  display:flex; align-items:center; gap:10px;
+  padding:2px 4px 2px 16px;
+  border-left:1px solid var(--line);
+}
+#fng svg{ display:block; }
+#fng .v{ text-align:left; }
+#fng .v b{
+  font-family:var(--f-disp); font-size:20px; font-weight:700; color:var(--amber);
+  text-shadow:0 0 12px currentColor; line-height:1;
+}
+#fng .v span{
+  display:block; font-size:9px; letter-spacing:0.18em; color:var(--txt-dim);
+}
 
-  /* =================================================================
-     LOADING SCREEN
-     ================================================================= */
-  #loader {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at center, var(--bg-mid) 0%, #000 80%);
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    transition: opacity 0.8s ease;
-  }
-  #loader.hidden { opacity: 0; pointer-events: none; }
+/* ════════ Dock de controles (direita) ════════ */
+#dock{
+  top:84px; right:14px;
+  display:flex; flex-direction:column; gap:10px; align-items:flex-end;
+}
+.seg{
+  display:flex; border:1px solid var(--line);
+  background:var(--glass); backdrop-filter:blur(6px);
+}
+.seg button{
+  font-family:var(--f-disp); font-weight:600; font-size:12px; letter-spacing:0.12em;
+  color:var(--txt-dim); background:none; border:none;
+  padding:8px 14px; cursor:pointer; transition:color .15s, background .15s;
+}
+.seg button + button{ border-left:1px solid var(--line); }
+.seg button.on{
+  color:#021018; background:var(--cyan);
+  text-shadow:none; box-shadow:0 0 16px rgba(0,229,255,0.6);
+}
+.seg .lbl{
+  font-size:9px; letter-spacing:0.2em; color:var(--txt-dim);
+  display:grid; place-items:center; padding:0 10px;
+  border-right:1px solid var(--line);
+}
+.tgl{
+  font-family:var(--f-disp); font-size:14px; font-weight:600;
+  width:38px; height:34px;
+  color:var(--txt-dim); background:var(--glass); backdrop-filter:blur(6px);
+  border:1px solid var(--line); cursor:pointer; transition:all .15s;
+}
+.tgl.on{ color:var(--cyan); border-color:var(--cyan); box-shadow:0 0 12px rgba(0,229,255,0.45); }
+#sync{
+  font-size:10px; letter-spacing:0.18em; color:var(--txt-dim);
+  padding:4px 8px; border:1px dashed var(--line); background:var(--glass);
+}
 
-  #loader::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size: 40px 40px;
-    transform: perspective(400px) rotateX(60deg) translateY(20%);
-    transform-origin: center bottom;
-    opacity: 0.6;
-    mask-image: linear-gradient(180deg, transparent, black 50%, transparent);
-  }
+/* ════════ Ticker (rodapé) ════════ */
+#tape{
+  left:0; right:0; bottom:0; height:34px;
+  background:linear-gradient(0deg, rgba(4,2,14,0.95), rgba(4,2,14,0.72));
+  border-top:1px solid var(--line-mag);
+  overflow:hidden; display:flex; align-items:center;
+}
+#tape:hover .tape-track{ animation-play-state:paused; }
+.tape-track{
+  display:flex; gap:0; white-space:nowrap; will-change:transform;
+  animation:tape 70s linear infinite;
+}
+@keyframes tape{ from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+.tk{
+  display:inline-flex; align-items:baseline; gap:7px;
+  padding:0 20px; font-size:12px; cursor:pointer;
+  border-right:1px solid rgba(0,229,255,0.10);
+}
+.tk:hover .sym{ color:#fff; }
+.tk .sym{ font-family:var(--f-disp); font-weight:600; color:var(--cyan); letter-spacing:0.08em; }
+.tk .px{ color:var(--txt-dim); }
+.tk .ch.up{ color:var(--green); text-shadow:0 0 8px rgba(0,255,157,0.55); }
+.tk .ch.dn{ color:var(--red);  text-shadow:0 0 8px rgba(255,46,84,0.55); }
 
-  .loader-content {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    width: min(560px, 88vw);
-  }
+/* ════════ Hover card ════════ */
+#hover-card{
+  position:fixed; z-index:75; pointer-events:none;
+  background:var(--glass); backdrop-filter:blur(8px);
+  border:1px solid var(--cyan);
+  box-shadow:0 0 18px rgba(0,229,255,0.35), inset 0 0 24px rgba(0,229,255,0.06);
+  padding:10px 14px; min-width:190px;
+  opacity:0; transform:translateY(6px); transition:opacity .12s, transform .12s;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+#hover-card.show{ opacity:1; transform:translateY(0); }
+#hover-card .row1{ display:flex; align-items:baseline; gap:8px; }
+#hover-card .sym{ font-family:var(--f-disp); font-weight:700; font-size:18px; color:#fff; }
+#hover-card .rank{ font-size:10px; color:var(--txt-dim); letter-spacing:0.15em; }
+#hover-card .price{ font-size:16px; color:var(--cyan); margin-top:2px; }
+#hover-card .ch{ font-family:var(--f-disp); font-weight:600; font-size:13px; }
+#hover-card .ch.up{ color:var(--green); } #hover-card .ch.dn{ color:var(--red); }
+#hover-card .meta{ margin-top:6px; font-size:10px; color:var(--txt-dim); line-height:1.6; }
 
-  .loader-glitch {
-    font-family: 'Major Mono Display', 'Orbitron', monospace;
-    font-size: clamp(28px, 5vw, 56px);
-    color: var(--neon-cyan);
-    text-shadow:
-      0 0 8px var(--neon-cyan),
-      2px 0 0 var(--neon-pink),
-      -2px 0 0 var(--neon-yellow);
-    letter-spacing: 0.1em;
-    margin-bottom: 18px;
-    animation: glitch 4s infinite;
-  }
-  @keyframes glitch {
-    0%, 92%, 100% { transform: translate(0,0); filter: hue-rotate(0deg); }
-    93% { transform: translate(-2px, 1px); filter: hue-rotate(45deg); }
-    94% { transform: translate(2px, -1px); }
-    95% { transform: translate(0, 0); filter: hue-rotate(0); }
-  }
+/* ════════ Painel de detalhes ════════ */
+#panel{
+  top:84px; right:14px; width:300px; max-width:calc(100vw - 28px);
+  background:var(--glass); backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  box-shadow:0 0 30px rgba(0,229,255,0.18);
+  transform:translateX(120%); transition:transform .28s cubic-bezier(.2,.9,.25,1);
+  z-index:72;
+  clip-path:polygon(0 0, 100% 0, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+#panel.open{ transform:translateX(0); }
+#panel header{
+  display:flex; align-items:center; gap:10px; padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+}
+#panel header img{
+  width:34px; height:34px; border-radius:50%;
+  border:1px solid var(--cyan); box-shadow:0 0 10px rgba(0,229,255,0.5);
+  background:#0a0626;
+}
+#panel header h2{ font-family:var(--f-disp); font-size:16px; color:#fff; line-height:1.1; }
+#panel header .rk{ font-size:10px; color:var(--txt-dim); letter-spacing:0.15em; }
+#panel header button{
+  margin-left:auto; background:none; border:1px solid var(--line);
+  color:var(--txt-dim); width:26px; height:26px; cursor:pointer; font-family:var(--f-mono);
+}
+#panel header button:hover{ color:#fff; border-color:var(--cyan); }
+#panel .big{
+  font-family:var(--f-disp); font-weight:700; font-size:26px; color:var(--cyan);
+  text-shadow:0 0 16px rgba(0,229,255,0.6);
+  padding:12px 14px 2px;
+}
+#panel .delta{ padding:0 14px 10px; font-family:var(--f-disp); font-weight:600; font-size:14px; }
+#panel .delta.up{ color:var(--green); } #panel .delta.dn{ color:var(--red); }
+#panel .rows{ padding:4px 14px 12px; }
+#panel .r{
+  display:flex; justify-content:space-between; padding:7px 0;
+  border-bottom:1px dashed rgba(0,229,255,0.12); font-size:12px;
+}
+#panel .r label{ color:var(--txt-dim); letter-spacing:0.08em; }
+#panel .r b{ color:var(--txt); font-weight:400; }
+#panel .r b.up{ color:var(--green); } #panel .r b.dn{ color:var(--red); }
+#panel a{
+  display:block; margin:4px 14px 16px; padding:9px 0; text-align:center;
+  font-family:var(--f-disp); font-weight:600; font-size:12px; letter-spacing:0.14em;
+  color:#021018; background:var(--cyan); text-decoration:none;
+  box-shadow:0 0 16px rgba(0,229,255,0.5);
+}
+#panel a:hover{ background:#7df3ff; }
 
-  .loader-sub {
-    font-size: 13px;
-    color: var(--neon-pink);
-    letter-spacing: 0.4em;
-    margin-bottom: 32px;
-    text-transform: uppercase;
-  }
+/* ════════ Legenda ════════ */
+#legend{
+  position:fixed; inset:0; z-index:90;
+  background:rgba(2,1,10,0.82); backdrop-filter:blur(6px);
+  display:none; place-items:center;
+}
+#legend.open{ display:grid; }
+#legend .box{
+  width:min(520px, calc(100vw - 32px));
+  background:var(--glass); border:1px solid var(--magenta);
+  box-shadow:0 0 40px rgba(255,43,214,0.30);
+  padding:24px 26px;
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+#legend h2{
+  font-family:var(--f-disp); font-weight:700; font-size:18px; letter-spacing:0.14em;
+  color:#fff; margin-bottom:14px;
+}
+#legend h2 span{ color:var(--magenta); }
+#legend .li{ display:flex; gap:14px; padding:9px 0; border-top:1px dashed rgba(255,43,214,0.25); font-size:12px; line-height:1.55; }
+#legend .ic{
+  flex:none; width:44px; font-family:var(--f-disp); font-weight:700; font-size:11px;
+  color:var(--cyan); letter-spacing:0.06em; padding-top:1px;
+}
+#legend .li p b{ color:#fff; font-weight:400; }
+#legend .up{ color:var(--green); } #legend .dn{ color:var(--red); }
+#legend .mg{ color:var(--magenta); } #legend .cy{ color:var(--cyan); } #legend .am{ color:var(--amber); }
+#legend footer{ margin-top:16px; font-size:10px; color:var(--txt-dim); letter-spacing:0.06em; line-height:1.7; }
+#legend .close{
+  margin-top:14px; width:100%; padding:10px;
+  font-family:var(--f-disp); font-weight:600; letter-spacing:0.16em; font-size:12px;
+  background:none; border:1px solid var(--cyan); color:var(--cyan); cursor:pointer;
+}
+#legend .close:hover{ background:rgba(0,229,255,0.12); }
 
-  .loader-bar-wrap {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 0, 122, 0.15);
-    border: 1px solid var(--neon-pink);
-    box-shadow: 0 0 12px rgba(255, 0, 122, 0.6), inset 0 0 8px rgba(255, 0, 122, 0.3);
-    overflow: hidden;
-    position: relative;
-  }
-  .loader-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
-    box-shadow: 0 0 18px var(--neon-cyan);
-    transition: width 0.4s ease;
-  }
-  .loader-status {
-    margin-top: 16px;
-    font-size: 11px;
-    color: var(--txt-dim);
-    letter-spacing: 0.2em;
-    min-height: 16px;
-  }
+/* ════════ Dica / banner ════════ */
+#hint{
+  left:16px; bottom:46px; font-size:10px; letter-spacing:0.2em; color:var(--txt-dim);
+  transition:opacity 1.2s; z-index:70;
+}
+#hint.gone{ opacity:0; }
+#banner{
+  top:64px; left:50%; transform:translateX(-50%);
+  background:rgba(60,8,20,0.85); border:1px solid var(--red);
+  color:#ffb9c6; font-size:11px; letter-spacing:0.08em;
+  padding:7px 16px; display:none; z-index:80;
+  box-shadow:0 0 18px rgba(255,46,84,0.4);
+}
+#banner.show{ display:block; }
 
-  /* =================================================================
-     TOP HUD
-     ================================================================= */
-  .hud-top {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 50;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 18px 24px;
-    pointer-events: none;
-    gap: 20px;
-  }
-  .hud-top > * { pointer-events: auto; }
+/* ════════ Loader ════════ */
+#loader{
+  position:fixed; inset:0; z-index:100;
+  background:radial-gradient(ellipse at 50% 65%, #16043a 0%, #04020e 70%);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  transition:opacity .9s ease;
+}
+#loader.hidden{ opacity:0; pointer-events:none; }
+#loader .t{
+  font-family:var(--f-disp); font-weight:700; font-size:clamp(22px, 5vw, 42px);
+  letter-spacing:0.22em; color:#fff;
+  text-shadow:0 0 18px var(--cyan), 0 0 50px rgba(0,229,255,0.5);
+  animation:glitch 2.4s infinite steps(1);
+}
+@keyframes glitch{
+  0%,92%{ transform:none; text-shadow:0 0 18px var(--cyan), 0 0 50px rgba(0,229,255,.5); }
+  93%{ transform:translate(2px,-1px) skewX(3deg); text-shadow:-3px 0 var(--magenta), 3px 0 var(--cyan); }
+  95%{ transform:translate(-2px,1px); text-shadow:3px 0 var(--red), -3px 0 var(--cyan); }
+  97%{ transform:none; }
+}
+#loader .sub{ font-size:11px; letter-spacing:0.4em; color:var(--magenta); }
+#loader .bar{
+  width:min(420px, 70vw); height:3px; background:rgba(0,229,255,0.15);
+  overflow:hidden; position:relative;
+}
+#loader .bar i{
+  position:absolute; inset:0; right:100%; background:var(--cyan);
+  box-shadow:0 0 14px var(--cyan); transition:right .3s ease;
+}
+#loader .st{ font-size:10px; letter-spacing:0.24em; color:var(--txt-dim); min-height:14px; }
 
-  .brand {
-    display: flex;
-    flex-direction: column;
-  }
-  .brand-title {
-    font-family: 'Major Mono Display', monospace;
-    font-size: 26px;
-    color: var(--neon-cyan);
-    text-shadow: 0 0 14px var(--neon-cyan), 0 0 4px var(--neon-cyan);
-    letter-spacing: 0.06em;
-    line-height: 1;
-  }
-  .brand-title .accent { color: var(--neon-pink); text-shadow: 0 0 14px var(--neon-pink); }
-  .brand-sub {
-    font-size: 10px;
-    color: var(--neon-magenta);
-    letter-spacing: 0.45em;
-    margin-top: 6px;
-    text-transform: uppercase;
-  }
-  .brand-coords {
-    font-size: 9px;
-    color: var(--txt-dim);
-    letter-spacing: 0.2em;
-    margin-top: 2px;
-  }
-
-  /* Filter (24h / 7d) */
-  .filter-block {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: linear-gradient(135deg, rgba(255, 0, 200, 0.08), rgba(0, 240, 255, 0.05));
-    border: 1px solid rgba(255, 0, 200, 0.4);
-    box-shadow: 0 0 16px rgba(255, 0, 200, 0.2), inset 0 0 8px rgba(0, 240, 255, 0.05);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  }
-  .filter-label {
-    font-size: 10px;
-    color: var(--neon-pink);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-right: 6px;
-  }
-  .filter-btn {
-    background: transparent;
-    border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 12px;
-    padding: 6px 14px;
-    cursor: pointer;
-    letter-spacing: 0.15em;
-    transition: all 0.18s ease;
-    text-transform: uppercase;
-  }
-  .filter-btn:hover {
-    background: rgba(0, 240, 255, 0.12);
-    box-shadow: 0 0 12px var(--neon-cyan);
-  }
-  .filter-btn.active {
-    background: var(--neon-cyan);
-    color: #000;
-    box-shadow: 0 0 18px var(--neon-cyan);
-  }
-
-  /* Height mode (Market Cap / Top Movers) — pink theme to differentiate */
-  .height-block {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: linear-gradient(135deg, rgba(255, 0, 200, 0.10), rgba(255, 130, 0, 0.04));
-    border: 1px solid rgba(255, 0, 200, 0.55);
-    box-shadow: 0 0 16px rgba(255, 0, 200, 0.25), inset 0 0 8px rgba(255, 0, 200, 0.05);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  }
-  .height-label {
-    font-size: 10px;
-    color: var(--neon-cyan);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-right: 6px;
-  }
-  .height-btn {
-    background: transparent;
-    border: 1px solid var(--neon-pink);
-    color: var(--neon-pink);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 12px;
-    padding: 6px 12px;
-    cursor: pointer;
-    letter-spacing: 0.15em;
-    transition: all 0.18s ease;
-    text-transform: uppercase;
-  }
-  .height-btn:hover {
-    background: rgba(255, 0, 200, 0.12);
-    box-shadow: 0 0 12px var(--neon-pink);
-  }
-  .height-btn.active {
-    background: var(--neon-pink);
-    color: #000;
-    box-shadow: 0 0 18px var(--neon-pink);
-  }
-  .height-btn.rebuilding { opacity: 0.5; pointer-events: none; }
-
-  /* Fear & Greed display */
-  .fg-block {
-    text-align: right;
-    padding: 10px 16px;
-    background: linear-gradient(135deg, rgba(255, 0, 200, 0.06), rgba(0, 240, 255, 0.06));
-    border: 1px solid var(--neon-pink);
-    box-shadow: 0 0 16px rgba(255, 0, 200, 0.25);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    min-width: 200px;
-  }
-  .fg-label {
-    font-size: 9px;
-    letter-spacing: 0.4em;
-    color: var(--neon-cyan);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
-  .fg-meter {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    justify-content: flex-end;
-  }
-  .fg-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 32px;
-    font-weight: 900;
-    line-height: 1;
-    color: var(--neon-yellow);
-    text-shadow: 0 0 12px currentColor;
-    transition: color 0.4s;
-  }
-  .fg-class {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--neon-yellow);
-    transition: color 0.4s;
-  }
-
-  /* =================================================================
-     SIDE STATS PANEL
-     ================================================================= */
-  .hud-side {
-    position: fixed;
-    top: 50%;
-    left: 24px;
-    transform: translateY(-50%);
-    z-index: 40;
-    width: 240px;
-    max-height: 70vh;
-    overflow: hidden;
-    pointer-events: auto;
-  }
-  .panel {
-    background: linear-gradient(180deg, rgba(15, 0, 30, 0.85), rgba(5, 0, 16, 0.85));
-    border: 1px solid var(--neon-magenta);
-    box-shadow: 0 0 22px rgba(255, 0, 255, 0.25), inset 0 0 12px rgba(255, 0, 255, 0.05);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 14px 16px;
-    margin-bottom: 12px;
-    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
-  }
-  .panel-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.3em;
-    color: var(--neon-pink);
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    border-bottom: 1px solid rgba(255, 0, 200, 0.3);
-    padding-bottom: 6px;
-  }
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 11px;
-    margin-bottom: 6px;
-    color: var(--txt-dim);
-  }
-  .stat-row .v {
-    color: var(--neon-cyan);
-    font-weight: 700;
-    text-shadow: 0 0 6px var(--neon-cyan);
-  }
-  .stat-row.up .v { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
-  .stat-row.down .v { color: var(--neon-red); text-shadow: 0 0 8px var(--neon-red); }
-
-  /* =================================================================
-     RANKING / LEADERBOARD
-     ================================================================= */
-  .leaderboard {
-    max-height: 360px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-  .leaderboard::-webkit-scrollbar { width: 4px; }
-  .leaderboard::-webkit-scrollbar-track { background: rgba(255, 0, 200, 0.08); }
-  .leaderboard::-webkit-scrollbar-thumb { background: var(--neon-pink); }
-
-  .lb-row {
-    display: grid;
-    grid-template-columns: 24px 1fr auto;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    padding: 5px 0;
-    border-bottom: 1px dashed rgba(255, 0, 200, 0.15);
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-  .lb-row:hover { background: rgba(0, 240, 255, 0.07); }
-  .lb-rank {
-    color: var(--neon-yellow);
-    font-weight: 700;
-    text-align: right;
-  }
-  .lb-name {
-    color: var(--neon-cyan);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .lb-pct.up { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
-  .lb-pct.down { color: var(--neon-red); text-shadow: 0 0 6px var(--neon-red); }
-
-  /* =================================================================
-     HOVER TOOLTIP (when hovering a building in 3D)
-     ================================================================= */
-  .hover-card {
-    position: fixed;
-    z-index: 60;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(0, 0, 20, 0.95), rgba(20, 0, 40, 0.95));
-    border: 1px solid var(--neon-cyan);
-    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 12px rgba(0, 240, 255, 0.1);
-    padding: 14px 18px;
-    min-width: 240px;
-    transform: translate(12px, 12px);
-    opacity: 0;
-    transition: opacity 0.18s;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  }
-  .hover-card.visible { opacity: 1; }
-  .hc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .hc-icon {
-    width: 28px; height: 28px;
-    border: 1px solid var(--neon-pink);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--neon-pink);
-    background: #000;
-  }
-  .hc-name { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--neon-cyan); font-size: 14px; }
-  .hc-symbol { color: var(--neon-pink); font-size: 11px; letter-spacing: 0.2em; }
-  .hc-data { font-size: 11px; color: var(--txt-dim); margin-top: 2px; }
-  .hc-data b { color: #fff; font-weight: 400; }
-  .hc-pct.up { color: var(--neon-green); }
-  .hc-pct.down { color: var(--neon-red); }
-
-  /* =================================================================
-     BOTTOM LEGEND
-     ================================================================= */
-  .hud-bottom {
-    position: fixed;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 40;
-    display: flex;
-    gap: 18px;
-    padding: 10px 22px;
-    background: rgba(5, 0, 16, 0.7);
-    border: 1px solid rgba(0, 240, 255, 0.4);
-    box-shadow: 0 0 18px rgba(0, 240, 255, 0.18);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-    max-width: 92vw;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    color: var(--txt-dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .legend-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    box-shadow: 0 0 8px currentColor;
-  }
-  .ld-height  { background: var(--neon-cyan); color: var(--neon-cyan); }
-  .ld-up      { background: var(--neon-green); color: var(--neon-green); }
-  .ld-down    { background: var(--neon-red); color: var(--neon-red); }
-  .ld-traffic { background: var(--neon-yellow); color: var(--neon-yellow); }
-  .ld-sun     { background: var(--neon-magenta); color: var(--neon-magenta); }
-
-  /* =================================================================
-     CONTROLS HINT
-     ================================================================= */
-  .controls-hint {
-    position: fixed;
-    bottom: 18px;
-    right: 24px;
-    z-index: 40;
-    font-size: 10px;
-    color: var(--txt-dim);
-    letter-spacing: 0.2em;
-    text-align: right;
-    text-transform: uppercase;
-    line-height: 1.6;
-  }
-  .controls-hint kbd {
-    display: inline-block;
-    padding: 2px 6px;
-    border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    font-family: inherit;
-    font-size: 9px;
-    margin: 0 2px;
-    box-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
-  }
-
-  /* Marquee error / status banner */
-  .banner {
-    position: fixed;
-    bottom: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 41;
-    padding: 6px 14px;
-    background: rgba(255, 0, 60, 0.12);
-    border: 1px solid var(--neon-red);
-    color: var(--neon-red);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    box-shadow: 0 0 14px rgba(255, 0, 60, 0.4);
-    display: none;
-  }
-  .banner.visible { display: block; }
-
-  @media (max-width: 900px) {
-    .hud-side { display: none; }
-    .brand-title { font-size: 18px; }
-    .fg-block { min-width: 140px; }
-    .fg-value { font-size: 22px; }
-    .controls-hint { display: none; }
-  }
+/* ════════ Responsivo ════════ */
+@media (max-width: 980px){
+  .globals .g:nth-child(n+3){ display:none; }
+}
+@media (max-width: 720px){
+  .globals{ display:none; }
+  #hud-top{ justify-content:space-between; }
+  #dock{ top:auto; bottom:46px; right:10px; }
+  #panel{ top:auto; bottom:46px; right:10px; }
+  #hint{ display:none; }
+}
+@media (prefers-reduced-motion: reduce){
+  .tape-track{ animation-duration:240s; }
+  #loader .t{ animation:none; }
+}
 </style>
 </head>
 <body>
-<style>
-.home-link{--hl:#00f0ff;display:inline-flex;align-items:center;height:40px;min-width:40px;border-radius:999px;background:rgba(8,9,14,.55);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;flex:0 0 auto;margin-right:8px;align-self:center;backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'Share Tech Mono',monospace;z-index:50;}
-.home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
-.home-link .hl-ico svg{width:18px;height:18px;display:block;}
-.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
-.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(8,9,14,.55));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl);}
-.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
-.home-link:active{transform:scale(.94);}
-</style>
 
-<!-- Loading screen -->
-<div id="loader">
-  <div class="loader-content">
-    <div class="loader-glitch">NEO-CRYPTO CITY</div>
-    <div class="loader-sub">// SMART GRID v2.0 // BOOT SEQUENCE</div>
-    <div class="loader-bar-wrap"><div class="loader-bar" id="loaderBar"></div></div>
-    <div class="loader-status" id="loaderStatus">INITIALIZING NEURAL UPLINK...</div>
-  </div>
-</div>
-
-<!-- 3D scene -->
-<div id="canvas-container"></div>
-
-<!-- Visual overlays -->
+<div id="gl"></div>
 <div class="vignette"></div>
-<div class="noise"></div>
 <div class="scanlines"></div>
 
-<!-- Top HUD -->
-<div class="hud-top">
-  <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
+<!-- ════════ HUD ════════ -->
+<header id="hud-top" class="hud">
   <div class="brand">
-    <div class="brand-title">NEO–<span class="accent">CRYPTO</span> CITY</div>
-    <div class="brand-sub">SMART GRID v2.0 // LIVE FEED</div>
-    <div class="brand-coords">SECTOR 7G // LAT 25.42°S // LONG 49.27°W</div>
-  </div>
-
-  <div class="filter-block">
-    <span class="filter-label">PERFORMANCE</span>
-    <button class="filter-btn active" data-filter="24h">24H</button>
-    <button class="filter-btn" data-filter="7d">7D</button>
-  </div>
-
-  <div class="height-block">
-    <span class="height-label">HEIGHT</span>
-    <button class="height-btn active" data-height="mcap">MARKET CAP</button>
-    <button class="height-btn" data-height="movers">TOP MOVERS</button>
-  </div>
-
-  <div class="fg-block">
-    <div class="fg-label">MARKET SENTIMENT // FEAR &amp; GREED</div>
-    <div class="fg-meter">
-      <div class="fg-value" id="fgValue">--</div>
-      <div class="fg-class" id="fgClass">SCANNING</div>
-    </div>
-  </div>
-</div>
-
-<!-- Side HUD -->
-<div class="hud-side">
-  <div class="panel">
-    <div class="panel-title">▚ GRID TELEMETRY</div>
-    <div class="stat-row"><span>ASSETS ONLINE</span><span class="v" id="statAssets">--</span></div>
-    <div class="stat-row"><span>TOTAL MARKET CAP</span><span class="v" id="statMcap">--</span></div>
-    <div class="stat-row"><span>24H VOLUME</span><span class="v" id="statVolume">--</span></div>
-    <div class="stat-row up"><span>BULL DISTRICT</span><span class="v" id="statUp">--</span></div>
-    <div class="stat-row down"><span>BEAR DISTRICT</span><span class="v" id="statDown">--</span></div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">▚ TOP MOVERS</div>
-    <div class="leaderboard" id="leaderboard"></div>
-  </div>
-</div>
-
-<!-- Hover tooltip -->
-<div class="hover-card" id="hoverCard">
-  <div class="hc-row">
-    <img class="hc-icon" id="hcIcon" alt="">
+    <div class="mark">◢</div>
     <div>
-      <div class="hc-name" id="hcName">--</div>
-      <div class="hc-symbol" id="hcSymbol">--</div>
+      <h1>NEO-CRYPTO CITY</h1>
+      <small>SKYLINE PROTOCOL v3 · COINGECKO LIVE</small>
     </div>
   </div>
-  <div class="hc-data">RANK <b id="hcRank">--</b></div>
-  <div class="hc-data">PRICE <b id="hcPrice">--</b></div>
-  <div class="hc-data">MCAP <b id="hcMcap">--</b></div>
-  <div class="hc-data">24H VOL <b id="hcVol">--</b></div>
-  <div class="hc-data">24H <span class="hc-pct" id="hcPct">--</span> // 7D <span class="hc-pct" id="hcPct7">--</span></div>
+  <div class="globals">
+    <div class="g"><label>CAP. DA CIDADE</label><b id="gMcap">—</b></div>
+    <div class="g"><label>VOLUME 24H</label><b id="gVol">—</b></div>
+    <div class="g"><label>DOMÍNIO BTC</label><b id="gDom">—</b></div>
+    <div class="g"><label>ALTAS / QUEDAS</label><b id="gBreadth">—</b></div>
+  </div>
+  <div id="fng" title="Índice Fear &amp; Greed (alternative.me)">
+    <svg width="74" height="44" viewBox="0 0 74 44">
+      <defs>
+        <linearGradient id="fngGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="#ff2e54"/>
+          <stop offset="35%" stop-color="#ff8a1a"/>
+          <stop offset="55%" stop-color="#ffd400"/>
+          <stop offset="78%" stop-color="#9dff3c"/>
+          <stop offset="100%" stop-color="#00ff9d"/>
+        </linearGradient>
+      </defs>
+      <path d="M7,40 A30,30 0 0 1 67,40" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="6"/>
+      <path d="M7,40 A30,30 0 0 1 67,40" fill="none" stroke="url(#fngGrad)" stroke-width="6" stroke-linecap="round"/>
+      <g id="fngNeedle" transform="rotate(0 37 40)">
+        <line x1="37" y1="40" x2="37" y2="14" stroke="#fff" stroke-width="2"/>
+        <circle cx="37" cy="40" r="3.4" fill="#fff"/>
+      </g>
+    </svg>
+    <div class="v"><b id="fngVal">··</b><span id="fngLabel">SINTONIZANDO</span></div>
+  </div>
+</header>
+
+<nav id="dock" class="hud">
+  <div class="seg" id="segPeriod">
+    <span class="lbl">PERÍODO</span>
+    <button data-v="24h" class="on">24H</button>
+    <button data-v="7d">7D</button>
+  </div>
+  <div class="seg" id="segCount">
+    <span class="lbl">ATIVOS</span>
+    <button data-v="50">50</button>
+    <button data-v="100" class="on">100</button>
+  </div>
+  <button id="btnOrbit" class="tgl on" title="Órbita automática">⟲</button>
+  <button id="btnLegend" class="tgl" title="Como ler a cidade">?</button>
+  <div id="sync">SYNC --s</div>
+</nav>
+
+<div id="hover-card"></div>
+
+<aside id="panel" class="hud">
+  <header>
+    <img id="pIcon" alt="">
+    <div><h2 id="pName">—</h2><span class="rk" id="pRank"></span></div>
+    <button id="pClose" title="Fechar">✕</button>
+  </header>
+  <div class="big" id="pPrice">—</div>
+  <div class="delta" id="pDelta"></div>
+  <div class="rows">
+    <div class="r"><label>MARKET CAP</label><b id="pMcap">—</b></div>
+    <div class="r"><label>VOLUME 24H</label><b id="pVol">—</b></div>
+    <div class="r"><label>PESO NA CIDADE</label><b id="pShare">—</b></div>
+    <div class="r"><label>VARIAÇÃO 24H</label><b id="pC24">—</b></div>
+    <div class="r"><label>VARIAÇÃO 7D</label><b id="pC7">—</b></div>
+  </div>
+  <a id="pLink" href="#" target="_blank" rel="noopener">VER NA COINGECKO ↗</a>
+</aside>
+
+<div id="legend">
+  <div class="box">
+    <h2>COMO LER <span>A CIDADE</span></h2>
+    <div class="li"><div class="ic">ALTURA</div><p><b>Market cap</b> em escala logarítmica. O rank #1 ocupa o centro e a skyline desce em espiral — a cidade é uma <b>montanha de capital</b>.</p></div>
+    <div class="li"><div class="ic">NEON</div><p>Variação no período: <span class="up">verde/ciano subindo</span> = alta; <span class="dn">vermelho/magenta descendo e piscando</span> = queda. O feixe vertical é o <b>elevador de luz</b> — quanto mais rápido, maior o movimento.</p></div>
+    <div class="li"><div class="ic">VAGA-<br>LUMES</div><p>Volume negociado. Enxames densos e <b>redemoinhos furiosos</b> indicam pico de liquidez em relação ao tamanho do ativo.</p></div>
+    <div class="li"><div class="ic">SOL</div><p>O sol no horizonte é o índice <span class="am">Fear &amp; Greed</span>: <span class="dn">vermelho = medo extremo</span> → <span class="up">verde = ganância extrema</span>.</p></div>
+    <div class="li"><div class="ic">MALHA</div><p>Os <span class="cy">pulsos ciano</span> e <span class="mg">magenta</span> correndo pela grade partem do prédio do BTC — o coração da rede.</p></div>
+    <footer>Dados: CoinGecko (mercados) · alternative.me (Fear &amp; Greed) · atualização a cada 90s.<br>Arraste para orbitar · role para zoom · clique num prédio para detalhes.</footer>
+    <button class="close" id="legendClose">FECHAR TRANSMISSÃO</button>
+  </div>
 </div>
 
-<!-- Bottom legend -->
-<div class="hud-bottom">
-  <div class="legend-item"><span class="legend-dot ld-height"></span>Altura = Market Cap (log)</div>
-  <div class="legend-item"><span class="legend-dot ld-up"></span>Neon Verde = Em Alta</div>
-  <div class="legend-item"><span class="legend-dot ld-down"></span>Neon Vermelho = Em Queda</div>
-  <div class="legend-item"><span class="legend-dot ld-traffic"></span>Tráfego = Volume 24h</div>
-  <div class="legend-item"><span class="legend-dot ld-sun"></span>Sol = Fear &amp; Greed</div>
-</div>
+<div id="hint" class="hud">ARRASTE ▸ ORBITAR &nbsp;·&nbsp; SCROLL ▸ ZOOM &nbsp;·&nbsp; CLIQUE ▸ DETALHES</div>
+<div id="banner">⚠ MODO SIMULAÇÃO — API indisponível, exibindo dados sintéticos</div>
 
-<!-- Controls hint -->
-<div class="controls-hint">
-  <kbd>DRAG</kbd> rotate &nbsp; <kbd>SCROLL</kbd> zoom<br>
-  <kbd>HOVER</kbd> inspect tower
-</div>
+<div id="tape" class="hud"><div class="tape-track" id="tapeTrack"></div></div>
 
-<!-- Banner for fallback message -->
-<div class="banner" id="banner">!! USING CACHED DATA - LIVE FEED OFFLINE !!</div>
+<div id="loader">
+  <div class="t">NEO-CRYPTO CITY</div>
+  <div class="sub">// SKYLINE PROTOCOL v3 //</div>
+  <div class="bar"><i id="loadBar"></i></div>
+  <div class="st" id="loadSt">INICIALIZANDO…</div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
 
-/* =====================================================================
-   CONSTANTS / STATE
-   ===================================================================== */
-const NUM_BUILDINGS = 50;
-const TOP_ICON_COUNT = 8;         // top N buildings get icon sprite
-const MAX_PARTICLES = 500;
-// City block layout: blocks of 4 buildings separated by streets
-const BLOCK_SIZE = 14;             // each block 14x14 units
-const STREET_WIDTH = 7;            // wide street between blocks
-const BLOCKS_PER_SIDE = 4;         // 4x4 = 16 blocks (we use ~13 closest)
-const SUB_GRID_GAP = 6;            // distance between building slots in a block
+/* ════════════════════════════════════════════════════════════════
+   CONFIG / ESTADO
+   ════════════════════════════════════════════════════════════════ */
+const SPACING      = 11;     // lado da célula da malha
+const H_MIN        = 5.0;
+const H_MAX        = 62.0;
+const TOP_HOLO     = 10;     // hologramas persistentes (com ícone)
+const REFRESH_MS   = 90000;
+const FETCH_COUNT  = 100;
 
 const state = {
-  coins: [],
-  fearGreed: { value: 50, classification: 'NEUTRAL' },
-  filter: '24h',          // '24h' | '7d'
-  heightMode: 'mcap',     // 'mcap' | 'movers' — building height drives this
-  buildings: [],
-  particleData: [],
-  hoveredBuilding: null,
-  time: 0,
-  sunTarget: null,
+  coins: [],            // dados crus (sempre 100)
+  count: 100,           // 50 | 100 exibidos
+  period: '24h',        // '24h' | '7d'
+  fng: { value: null, label: 'NEUTRO' },
+  city: [],             // [{coin,x,z,w,h}]
+  hover: -1,
+  selected: -1,
+  autoOrbit: true,
+  mock: false,
+  nextSync: 0,
 };
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reducedMotion) state.autoOrbit = false;
 
-/* =====================================================================
-   LOADER UI
-   ===================================================================== */
-const loaderEl = document.getElementById('loader');
-const loaderBar = document.getElementById('loaderBar');
-const loaderStatus = document.getElementById('loaderStatus');
-function setLoader(pct, msg) {
-  loaderBar.style.width = pct + '%';
-  if (msg) loaderStatus.textContent = msg;
+/* ════════════════════════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+function setLoader(pct, msg){
+  $('loadBar').style.right = (100 - pct) + '%';
+  if (msg) $('loadSt').textContent = msg;
 }
+function fmtPrice(p){
+  if (p == null) return '—';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (p >= 1)    return '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 0.01) return '$' + p.toFixed(4);
+  return '$' + p.toPrecision(3);
+}
+function fmtBig(n){
+  if (n == null) return '—';
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(1)  + 'M';
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function pctOf(coin, period){
+  const v = period === '7d'
+    ? coin.price_change_percentage_7d_in_currency
+    : coin.price_change_percentage_24h;
+  return (v == null || isNaN(v)) ? 0 : v;
+}
+function fmtPct(v){ return (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 
-/* =====================================================================
-   FETCH DATA
-   ===================================================================== */
-async function fetchCoins() {
-  setLoader(15, 'PINGING COINGECKO MAINFRAME...');
-  const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=' + NUM_BUILDINGS + '&page=1&sparkline=false&price_change_percentage=24h%2C7d';
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    setLoader(45, 'DOWNLOADED ' + data.length + ' ASSETS');
-    return data;
-  } catch (e) {
-    console.warn('CoinGecko fetch failed, using fallback', e);
-    document.getElementById('banner').classList.add('visible');
-    return generateMockCoins();
+/* Fear & Greed → cor + rótulo PT */
+function fngColor(v){
+  const stops = [
+    [0,   [255, 46, 84]],
+    [25,  [255,138, 26]],
+    [50,  [255,212,  0]],
+    [75,  [157,255, 60]],
+    [100, [  0,255,157]],
+  ];
+  for (let i = 0; i < stops.length - 1; i++){
+    const [a, ca] = stops[i], [b, cb] = stops[i+1];
+    if (v <= b){
+      const t = (v - a) / (b - a);
+      return ca.map((c, k) => Math.round(c + (cb[k] - c) * t));
+    }
   }
+  return stops[stops.length - 1][1];
+}
+function fngLabel(v){
+  if (v < 25) return 'MEDO EXTREMO';
+  if (v < 45) return 'MEDO';
+  if (v <= 55) return 'NEUTRO';
+  if (v <= 75) return 'GANÂNCIA';
+  return 'GANÂNCIA EXTREMA';
 }
 
-async function fetchFearGreed() {
-  setLoader(60, 'READING MARKET SENTIMENT...');
+/* ════════════════════════════════════════════════════════════════
+   DADOS — CoinGecko + alternative.me (fallback sintético)
+   ════════════════════════════════════════════════════════════════ */
+async function fetchCoins(){
+  const url = 'https://api.coingecko.com/api/v3/coins/markets'
+    + '?vs_currency=usd&order=market_cap_desc&per_page=' + FETCH_COUNT
+    + '&page=1&sparkline=false&price_change_percentage=24h%2C7d';
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (!Array.isArray(data) || data.length < 10) throw new Error('payload inválido');
+  return data;
+}
+async function fetchFng(){
   try {
     const res = await fetch('https://api.alternative.me/fng/?limit=1');
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data && data.data && data.data[0]) {
-      return {
-        value: parseInt(data.data[0].value),
-        classification: data.data[0].value_classification.toUpperCase()
-      };
-    }
-  } catch (e) {
-    console.warn('FNG fetch failed', e);
-  }
-  return { value: 50, classification: 'NEUTRAL' };
+    const d = await res.json();
+    const v = parseInt(d?.data?.[0]?.value);
+    if (!isNaN(v)) return { value: v, label: fngLabel(v) };
+  } catch(e){ /* segue neutro */ }
+  return { value: 50, label: 'NEUTRO' };
 }
-
-function generateMockCoins() {
-  const SYMBOLS = ['BTC','ETH','USDT','BNB','SOL','XRP','USDC','ADA','DOGE','AVAX','TRX','SHIB','DOT','LINK','BCH','MATIC','LTC','UNI','ATOM','XLM','ETC','XMR','OKB','ICP','FIL','HBAR','APT','VET','LDO','ARB','OP','MKR','NEAR','GRT','AAVE','ALGO','EOS','XTZ','SAND','MANA','EGLD','FTM','THETA','AXS','RUNE','ZEC','CHZ','FLOW','GALA','KAVA','RSR','ENJ','CRV','SNX','BAT','COMP','DASH','1INCH','YFI','BAL','LRC','OMG','REN','ZRX','SUSHI','ANKR','STORJ','SKL','BAND','CVC','MTL','POLY','ICX','QNT','HOT','NANO','DGB','RVN','SC','XEM','BTG','LSK','STEEM','ARDR','SYS','GAS','GLMR','MOVR','ASTR','ROSE','JST','TWT','MASK','AUDIO','LPT','DYDX','IMX','ENS','GMT','APE'];
-  return SYMBOLS.slice(0, NUM_BUILDINGS).map((s, i) => {
-    const rank = i + 1;
-    const mcap = Math.pow(10, 12 - i * 0.04) * (0.5 + Math.random());
-    const price = mcap / (1e6 * Math.pow(10, 1 + Math.random() * 3));
-    const ch24 = (Math.random() - 0.45) * 18;
-    const ch7 = (Math.random() - 0.45) * 30;
+function mockCoins(){
+  const SYMS = ('BTC ETH USDT XRP BNB SOL USDC DOGE ADA TRX AVAX LINK SHIB TON XLM SUI DOT BCH LTC NEAR'
+    + ' UNI PEPE APT ICP ETC RENDER FET VET XMR ARB FIL ALGO ATOM OP INJ IMX STX GRT SEI TIA'
+    + ' RUNE FLOKI LDO BONK JUP PYTH WLD AAVE MKR QNT EGLD FLOW HBAR KAS MNT CRO OKB TAO AR ORDI'
+    + ' BEAM GALA AXS SAND MANA CHZ ENS DYDX SNX CRV COMP ZEC DASH MINA ROSE KAVA CFX GMT APE 1INCH'
+    + ' XTZ EOS NEO IOTA KSM ZIL ENJ BAT LRC WAVES RVN HOT QTUM ONT ICX SC DGB NANO XEM STEEM').split(/\s+/);
+  return SYMS.slice(0, FETCH_COUNT).map((s, i) => {
+    const mcap = 1.95e12 * Math.pow(0.915, i) * (0.85 + Math.random() * 0.3);
+    const ch24 = (Math.random() - 0.46) * 16;
+    const ch7  = ch24 * 1.4 + (Math.random() - 0.5) * 14;
     return {
-      id: s.toLowerCase(),
-      symbol: s.toLowerCase(),
-      name: s,
-      image: '',
-      current_price: price,
-      market_cap: mcap,
-      market_cap_rank: rank,
-      total_volume: mcap * (0.02 + Math.random() * 0.15),
+      id: s.toLowerCase(), symbol: s.toLowerCase(), name: s, image: '',
+      current_price: mcap / (2e7 * Math.pow(10, Math.random() * 3)),
+      market_cap: mcap, market_cap_rank: i + 1,
+      total_volume: mcap * (0.015 + Math.pow(Math.random(), 2) * 0.30),
       price_change_percentage_24h: ch24,
       price_change_percentage_7d_in_currency: ch7,
     };
   });
 }
 
-/* =====================================================================
-   THREE.JS SETUP
-   ===================================================================== */
-const container = document.getElementById('canvas-container');
+/* ════════════════════════════════════════════════════════════════
+   THREE — base
+   ════════════════════════════════════════════════════════════════ */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+const BASE_PX = Math.min(window.devicePixelRatio || 1, 1.75);
+let pxScale = BASE_PX;
+renderer.setPixelRatio(pxScale);
+renderer.setSize(innerWidth, innerHeight);
+$('gl').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x040010);
-scene.fog = new THREE.FogExp2(0x12002a, 0.0065);
+scene.background = new THREE.Color(0x04020e);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.5, 1600);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-container.appendChild(renderer.domElement);
+const FOG_COLOR = new THREE.Color(0x150330);
+const COL_UP_A = new THREE.Color(0x00ff9d);  // verde alta
+const COL_UP_B = new THREE.Color(0x00e5ff);  // ciano
+const COL_DN_A = new THREE.Color(0xff2e54);  // vermelho queda
+const COL_DN_B = new THREE.Color(0xff2bd6);  // magenta
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-/* =====================================================================
-   CAMERA CONTROLS (custom orbit)
-   ===================================================================== */
-const cameraState = {
-  angle: Math.PI * 0.25,
-  tilt: 0.55,                  // 0 = horizon, PI/2 = top-down
-  distance: 105,
-  target: new THREE.Vector3(0, 10, 0),
-  autoRotate: true,
-  autoRotateSpeed: 0.0007,
+const uniforms = {
+  uTime:     { value: 0 },
+  uHover:    { value: -1 },
+  uSelected: { value: -1 },
+  uFog:      { value: FOG_COLOR },
+  uUpA: { value: COL_UP_A }, uUpB: { value: COL_UP_B },
+  uDnA: { value: COL_DN_A }, uDnB: { value: COL_DN_B },
+  uPx:  { value: pxScale },
+  uSunDir: { value: new THREE.Vector3(0, 0.14, -1).normalize() },
+  uSunA: { value: new THREE.Color(0xffd400) },
+  uSunB: { value: new THREE.Color(0xffeebb) },
 };
 
-function updateCameraPosition() {
-  const r = cameraState.distance;
-  const t = cameraState.tilt;
-  camera.position.x = cameraState.target.x + Math.sin(cameraState.angle) * r * Math.cos(t);
-  camera.position.z = cameraState.target.z + Math.cos(cameraState.angle) * r * Math.cos(t);
-  camera.position.y = cameraState.target.y + Math.sin(t) * r;
-  camera.lookAt(cameraState.target);
+/* ── controles de órbita (mínimos, com inércia) ── */
+const orbit = {
+  az: 0.55, pol: 1.02,            // azimute / ângulo polar (do eixo Y)
+  radius: 175, target: new THREE.Vector3(0, 16, 0),
+  vAz: 0, vPol: 0, vR: 0,
+  dragging: false, lastX: 0, lastY: 0, pinch: 0,
+};
+function applyCamera(){
+  orbit.pol = clamp(orbit.pol, 0.42, 1.34);
+  orbit.radius = clamp(orbit.radius, 60, 420);
+  const sp = Math.sin(orbit.pol), cp = Math.cos(orbit.pol);
+  camera.position.set(
+    orbit.target.x + orbit.radius * sp * Math.sin(orbit.az),
+    orbit.target.y + orbit.radius * cp,
+    orbit.target.z + orbit.radius * sp * Math.cos(orbit.az)
+  );
+  camera.lookAt(orbit.target);
 }
-updateCameraPosition();
-
-let isDragging = false;
-let lastMouse = { x: 0, y: 0 };
-const dom = renderer.domElement;
-
-dom.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  cameraState.autoRotate = false;
-  lastMouse.x = e.clientX;
-  lastMouse.y = e.clientY;
+const glEl = $('gl');
+glEl.addEventListener('pointerdown', e => {
+  orbit.dragging = true; orbit.lastX = e.clientX; orbit.lastY = e.clientY;
+  glEl.classList.add('dragging'); glEl.setPointerCapture(e.pointerId);
 });
-window.addEventListener('mouseup', () => { isDragging = false; });
-window.addEventListener('mousemove', (e) => {
-  if (isDragging) {
-    cameraState.angle -= (e.clientX - lastMouse.x) * 0.005;
-    cameraState.tilt = Math.max(0.15, Math.min(1.35, cameraState.tilt + (e.clientY - lastMouse.y) * 0.005));
-    lastMouse.x = e.clientX;
-    lastMouse.y = e.clientY;
-  }
+addEventListener('pointerup', e => {
+  orbit.dragging = false; glEl.classList.remove('dragging');
 });
-dom.addEventListener('wheel', (e) => {
+addEventListener('pointermove', e => {
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  mouse.px = e.clientX; mouse.py = e.clientY; mouse.fresh = true;
+  if (!orbit.dragging) return;
+  const dx = e.clientX - orbit.lastX, dy = e.clientY - orbit.lastY;
+  orbit.lastX = e.clientX; orbit.lastY = e.clientY;
+  orbit.vAz  = -dx * 0.0045;
+  orbit.vPol = -dy * 0.0035;
+  orbit.az  += orbit.vAz;
+  orbit.pol += orbit.vPol;
+});
+glEl.addEventListener('wheel', e => {
   e.preventDefault();
-  cameraState.distance = Math.max(40, Math.min(180, cameraState.distance + e.deltaY * 0.1));
+  orbit.vR = orbit.radius * (e.deltaY > 0 ? 0.045 : -0.045);
 }, { passive: false });
-
-// Touch
-let lastTouch = null;
-dom.addEventListener('touchstart', (e) => {
-  if (e.touches.length === 1) {
-    isDragging = true;
-    cameraState.autoRotate = false;
-    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+/* pinch zoom */
+glEl.addEventListener('touchmove', e => {
+  if (e.touches.length === 2){
+    const d = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY);
+    if (orbit.pinch) orbit.radius *= orbit.pinch / d;
+    orbit.pinch = d;
+    e.preventDefault();
   }
-});
-dom.addEventListener('touchmove', (e) => {
-  if (e.touches.length === 1 && isDragging && lastTouch) {
-    cameraState.angle -= (e.touches[0].clientX - lastTouch.x) * 0.005;
-    cameraState.tilt  = Math.max(0.15, Math.min(1.35, cameraState.tilt + (e.touches[0].clientY - lastTouch.y) * 0.005));
-    lastTouch.x = e.touches[0].clientX;
-    lastTouch.y = e.touches[0].clientY;
-  }
-}, { passive: true });
-dom.addEventListener('touchend', () => { isDragging = false; lastTouch = null; });
+}, { passive: false });
+glEl.addEventListener('touchend', () => { orbit.pinch = 0; });
 
-/* =====================================================================
-   ENVIRONMENT
-   ===================================================================== */
-function createSkybox() {
-  const skyGeo = new THREE.SphereGeometry(450, 32, 16);
-  const skyMat = new THREE.ShaderMaterial({
-    uniforms: {
-      topColor:    { value: new THREE.Color(0x040018) },
-      midColor:    { value: new THREE.Color(0x2a0844) },
-      bottomColor: { value: new THREE.Color(0x6a0c4f) },
-    },
-    vertexShader: `
-      varying vec3 vWorldPos;
-      void main() {
-        vec4 wp = modelMatrix * vec4(position, 1.0);
-        vWorldPos = wp.xyz;
-        gl_Position = projectionMatrix * viewMatrix * wp;
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vWorldPos;
-      uniform vec3 topColor;
-      uniform vec3 midColor;
-      uniform vec3 bottomColor;
-      void main() {
-        float h = normalize(vWorldPos).y;
-        vec3 col;
-        if (h > 0.0) col = mix(midColor, topColor, smoothstep(0.0, 0.7, h));
-        else         col = mix(midColor, bottomColor, smoothstep(0.0, 0.4, -h));
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `,
-    side: THREE.BackSide,
-    depthWrite: false,
-  });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
+/* ════════════════════════════════════════════════════════════════
+   SHADERS
+   ════════════════════════════════════════════════════════════════ */
+const GLSL_HASH = `
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+`;
+
+/* ── CÉU: cúpula com sol synthwave + estrelas procedurais ── */
+const skyVert = `
+varying vec3 vDir;
+void main(){
+  vDir = position;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mv;
 }
+`;
+const skyFrag = `
+precision highp float;
+uniform float uTime;
+uniform vec3 uSunDir, uSunA, uSunB;
+varying vec3 vDir;
+${GLSL_HASH}
+void main(){
+  vec3 d = normalize(vDir);
+  float h = d.y;
+  vec3 zenith  = vec3(0.008, 0.004, 0.045);
+  vec3 horizon = mix(vec3(0.16, 0.02, 0.27), uSunA * 0.32, 0.45);
+  vec3 col = mix(horizon, zenith, smoothstep(-0.04, 0.55, h));
 
-function createStars() {
-  const positions = [];
-  const colors = [];
-  for (let i = 0; i < 1500; i++) {
-    const phi = Math.acos(2 * Math.random() - 1);
-    const theta = Math.random() * Math.PI * 2;
-    const r = 380;
-    const y = Math.cos(phi);
-    if (y < -0.05) continue;
-    positions.push(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * y,
-      r * Math.sin(phi) * Math.sin(theta)
-    );
-    const tint = Math.random();
-    if (tint > 0.92)      colors.push(1.0, 0.4, 0.9);
-    else if (tint > 0.85) colors.push(0.5, 1.0, 1.0);
-    else if (tint > 0.78) colors.push(1.0, 0.9, 0.4);
-    else                  colors.push(0.85, 0.9, 1.0);
+  /* sol gigante fatiado */
+  float dt  = dot(d, uSunDir);
+  float ang = acos(clamp(dt, -1.0, 1.0));
+  float R = 0.21;
+  float disc = 1.0 - smoothstep(R * 0.96, R, ang);
+  float y01 = clamp((d.y - (uSunDir.y - R)) / (2.0 * R), 0.0, 1.0);
+  float slat = 1.0;
+  if (y01 < 0.55){
+    float gap = mix(0.55, 0.05, y01 / 0.55);
+    slat = step(gap, fract(y01 * 11.0 - uTime * 0.06));
+  }
+  vec3 sunCol = mix(uSunA, uSunB, smoothstep(0.15, 0.9, y01));
+  col += sunCol * disc * slat * 1.35;
+  col += uSunA * pow(max(dt, 0.0), 12.0) * 0.30;   /* halo amplo   */
+  col += uSunB * pow(max(dt, 0.0), 80.0) * 0.55;   /* halo intenso */
+
+  /* estrelas */
+  if (h > 0.06){
+    vec2 sc = vec2(atan(d.x, d.z) * 42.0, d.y * 170.0);
+    vec2 cell = floor(sc);
+    float hs = hash(cell);
+    if (hs > 0.991){
+      vec2 sp = vec2(hash(cell + 1.3), hash(cell + 4.7)) * 0.6 + 0.2;
+      float ds = length(fract(sc) - sp);
+      float tw = 0.55 + 0.45 * sin(uTime * (1.0 + hash(cell + 7.0) * 3.0) + hs * 60.0);
+      col += vec3(0.75, 0.88, 1.0) * smoothstep(0.16, 0.0, ds) * tw * smoothstep(0.06, 0.4, h);
+    }
+  }
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* ── CHÃO: malha neon com pulsos radiais ── */
+const groundVert = `
+varying vec2 vXZ;
+varying float vDist;
+void main(){
+  vec4 w = modelMatrix * vec4(position, 1.0);
+  vXZ = w.xz;
+  vec4 mv = viewMatrix * w;
+  vDist = -mv.z;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const groundFrag = `
+precision highp float;
+uniform float uTime;
+uniform vec3 uFog;
+varying vec2 vXZ;
+varying float vDist;
+float lineMask(float x, float spacing, float w){
+  float d = abs(fract(x / spacing + 0.5) - 0.5) * spacing;
+  float aa = fwidth(x) * 1.2 + 0.02;
+  return 1.0 - smoothstep(w - aa, w + aa, d);
+}
+void main(){
+  float r = length(vXZ);
+  float minor = max(lineMask(vXZ.x, ${SPACING}.0, 0.07), lineMask(vXZ.y, ${SPACING}.0, 0.07));
+  float major = max(lineMask(vXZ.x, ${SPACING * 5}.0, 0.16), lineMask(vXZ.y, ${SPACING * 5}.0, 0.16));
+  vec3 col = vec3(0.012, 0.005, 0.032);
+  col += vec3(1.0, 0.10, 0.72) * minor * 0.22;
+  col += vec3(0.0, 0.85, 1.0) * major * 0.30;
+
+  /* pulsos de energia partindo do centro (BTC) */
+  float p1 = 1.0 - smoothstep(0.0, 3.2, abs(r - mod(uTime * 26.0, 360.0)));
+  float p2 = 1.0 - smoothstep(0.0, 5.5, abs(r - mod(uTime * 14.0 + 150.0, 360.0)));
+  float lines = max(minor, major);
+  col += vec3(0.0, 0.95, 1.0) * p1 * lines * 1.0;
+  col += vec3(1.0, 0.12, 0.75) * p2 * lines * 0.55;
+
+  /* clarão central sob o distrito #1 */
+  col += vec3(0.16, 0.02, 0.30) * smoothstep(70.0, 0.0, r) * 0.7;
+
+  col = mix(col, uFog, smoothstep(180.0, 520.0, vDist));
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* ── PRÉDIOS: InstancedMesh com janelas, bordas e elevador de luz ── */
+const bldgVert = `
+#ifndef USE_INSTANCING
+  mat4 instanceMatrix = mat4(1.0);
+#endif
+attribute float aPerf;
+attribute float aRand;
+attribute float aId;
+varying vec3 vLocal;
+varying vec3 vScale;
+varying vec3 vNormal;
+varying float vPerf;
+varying float vRand;
+varying float vId;
+varying float vDist;
+void main(){
+  vLocal = position;
+  vNormal = normalize(mat3(instanceMatrix) * normal);
+  vScale = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
+  vPerf = aPerf; vRand = aRand; vId = aId;
+  vec4 mv = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+  vDist = -mv.z;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const bldgFrag = `
+precision highp float;
+uniform float uTime, uHover, uSelected;
+uniform vec3 uFog, uUpA, uUpB, uDnA, uDnB;
+varying vec3 vLocal, vScale, vNormal;
+varying float vPerf, vRand, vId, vDist;
+${GLSL_HASH}
+void main(){
+  vec3 n = normalize(vNormal);
+  float mag = clamp(abs(vPerf), 0.06, 1.0);
+  vec3 neon = vPerf >= 0.0
+    ? mix(uUpB, uUpA, 0.30 + 0.70 * mag)
+    : mix(uDnB, uDnA, 0.30 + 0.70 * mag);
+
+  float topFace = step(0.5, abs(n.y));
+  float wy = vLocal.y * vScale.y;
+  float u  = abs(n.x) > 0.5 ? (vLocal.z + 0.5) * vScale.z
+                            : (vLocal.x + 0.5) * vScale.x;
+
+  /* corpo */
+  float shade = 0.70 + 0.30 * max(dot(n, normalize(vec3(0.45, 0.75, 0.5))), 0.0);
+  vec3 col = vec3(0.028, 0.014, 0.070) * shade;
+  col += vec3(0.05, 0.0, 0.10) * (1.0 - clamp(vLocal.y * 1.4, 0.0, 1.0)); /* brilho da rua subindo na base */
+
+  /* janelas procedurais (faces laterais) */
+  if (topFace < 0.5){
+    vec2 cell = vec2(floor(u / 1.05), floor(wy / 1.45));
+    vec2 f = vec2(fract(u / 1.05), fract(wy / 1.45));
+    float lit = step(0.40, hash(cell + vRand * 37.0));
+    float win = step(0.18, f.x) * step(f.x, 0.82) * step(0.22, f.y) * step(f.y, 0.80);
+    float h2 = hash(cell * 1.7 + vRand * 11.0);
+    float fl = 0.55 + 0.45 * sin(uTime * (0.35 + h2 * 1.5) + h2 * 40.0);
+    fl *= 1.0 - 0.55 * step(0.985, hash(cell + floor(uTime * 3.0)));
+    vec3 winCol = mix(vec3(0.50, 0.82, 1.0), neon, 0.42);
+    col += winCol * win * lit * fl * 0.55;
+  }
+
+  /* bordas neon */
+  float ex = (0.5 - abs(vLocal.x)) * vScale.x;
+  float ez = (0.5 - abs(vLocal.z)) * vScale.z;
+  float edges = 0.0;
+  if (topFace > 0.5){
+    edges = 1.0 - smoothstep(0.04, 0.22, min(ex, ez));
+    col += neon * 0.18; /* teto levemente tingido */
+  } else {
+    float dV = abs(n.x) > 0.5 ? ez : ex;            /* arestas verticais */
+    float dT = (1.0 - vLocal.y) * vScale.y;          /* aresta do topo   */
+    edges = max(1.0 - smoothstep(0.02, 0.16, dV),
+                1.0 - smoothstep(0.04, 0.24, dT));
+  }
+
+  /* elevador de luz: sobe se alta, desce em cascata se queda */
+  float spd  = 5.0 + 17.0 * mag;
+  float span = vScale.y + 9.0;
+  float c = mod(uTime * spd + vRand * span, span) - 4.5;
+  float bpos = vPerf >= 0.0 ? c : (vScale.y - c);
+  float beam = smoothstep(2.8, 0.0, abs(wy - bpos)) * (1.0 - topFace);
+
+  /* queda pisca */
+  float flick = vPerf < 0.0
+    ? (0.55 + 0.45 * step(0.42, fract(uTime * 5.0 + vRand * 9.0)))
+    : 1.0;
+
+  col += neon * (edges * (0.75 + 0.65 * mag) + beam * (0.45 + 0.75 * mag)) * flick;
+
+  /* hover / seleção */
+  float isH = step(abs(vId - uHover), 0.5);
+  float isS = step(abs(vId - uSelected), 0.5);
+  col += neon * (isH * 0.40 + isS * 0.55);
+  col += vec3(1.0) * edges * (isH * 0.45 + isS * 0.6);
+
+  col = mix(col, uFog, smoothstep(170.0, 540.0, vDist));
+  gl_FragColor = vec4(col, 1.0);
+}
+`;
+
+/* ── VAGALUMES: 100% GPU — órbita, bob e piscar no vertex shader ── */
+const flyVert = `
+attribute vec3 aCenter;
+attribute vec4 aOrb;    /* raio, vel. angular (com sinal), fase, amplitude do bob */
+attribute vec3 aColor;
+attribute vec2 aMisc;   /* tamanho, taxa de piscar */
+uniform float uTime, uPx;
+varying vec3 vColor;
+varying float vGlow;
+void main(){
+  float ang = uTime * aOrb.y + aOrb.z;
+  vec3 p = aCenter + vec3(cos(ang) * aOrb.x,
+                          sin(uTime * 0.7 + aOrb.z * 3.0) * aOrb.w,
+                          sin(ang) * aOrb.x);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  vGlow = 0.25 + 0.75 * pow(0.5 + 0.5 * sin(uTime * aMisc.y + aOrb.z * 7.0), 2.0);
+  vColor = aColor;
+  gl_PointSize = aMisc.x * (300.0 / max(-mv.z, 1.0)) * uPx;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+const flyFrag = `
+precision highp float;
+varying vec3 vColor;
+varying float vGlow;
+void main(){
+  vec2 q = gl_PointCoord - 0.5;
+  float d = length(q);
+  float a = smoothstep(0.5, 0.04, d);
+  a *= a;
+  gl_FragColor = vec4(vColor * (0.55 + 1.0 * vGlow), a * vGlow);
+}
+`;
+
+/* ── TRÁFEGO DAS AVENIDAS: fluxo linear na malha, também na GPU ── */
+const flowVert = `
+attribute vec4 aFlow;   /* eixo (0=x,1=z), offset perpendicular, velocidade, fase */
+attribute vec3 aColor;
+attribute vec2 aMisc;   /* altura y, tamanho */
+uniform float uTime, uPx;
+varying vec3 vColor;
+varying float vGlow;
+void main(){
+  float L = 330.0;
+  float s = mod(aFlow.w + uTime * aFlow.z, L) - L * 0.5;
+  float y = aMisc.x + sin(uTime * 1.4 + aFlow.w) * 0.25;
+  vec3 p = aFlow.x < 0.5 ? vec3(s, y, aFlow.y) : vec3(aFlow.y, y, s);
+  vec4 mv = modelViewMatrix * vec4(p, 1.0);
+  vGlow = 0.8;
+  vColor = aColor;
+  gl_PointSize = aMisc.y * (300.0 / max(-mv.z, 1.0)) * uPx;
+  gl_Position = projectionMatrix * mv;
+}
+`;
+
+/* ════════════════════════════════════════════════════════════════
+   CENA ESTÁTICA (céu + chão + tráfego)
+   ════════════════════════════════════════════════════════════════ */
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(760, 40, 20),
+  new THREE.ShaderMaterial({
+    uniforms, vertexShader: skyVert, fragmentShader: skyFrag,
+    side: THREE.BackSide, depthWrite: false,
+  })
+));
+
+const groundMat = new THREE.ShaderMaterial({
+  uniforms, vertexShader: groundVert, fragmentShader: groundFrag,
+});
+groundMat.extensions = { derivatives: true };
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(1500, 1500), groundMat);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+function buildTraffic(){
+  const N = 420;
+  const flow = new Float32Array(N * 4);
+  const col  = new Float32Array(N * 3);
+  const misc = new Float32Array(N * 2);
+  const lanes = [];
+  for (let k = -3; k <= 3; k++) lanes.push((k + 0.5) * SPACING); /* avenidas entre células */
+  for (let i = 0; i < N; i++){
+    const axis = Math.random() < 0.5 ? 0 : 1;
+    const lane = lanes[(Math.random() * lanes.length) | 0];
+    const dirSign = Math.random() < 0.5 ? 1 : -1;
+    flow[i*4+0] = axis;
+    flow[i*4+1] = lane + dirSign * (0.9 + Math.random() * 1.2);
+    flow[i*4+2] = dirSign * (9 + Math.random() * 26);
+    flow[i*4+3] = Math.random() * 330;
+    const cyan = Math.random() < 0.6;
+    const c = cyan ? [0.25, 0.95, 1.0] : [1.0, 0.3, 0.85];
+    col[i*3] = c[0]; col[i*3+1] = c[1]; col[i*3+2] = c[2];
+    misc[i*2]   = 1.0 + Math.random() * 1.6;   /* altura */
+    misc[i*2+1] = 1.6 + Math.random() * 1.6;   /* tamanho */
   }
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  const m = new THREE.PointsMaterial({
-    size: 1.1,
-    sizeAttenuation: false,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.9,
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 3), 3));
+  g.setAttribute('aFlow',  new THREE.BufferAttribute(flow, 4));
+  g.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('aMisc',  new THREE.BufferAttribute(misc, 2));
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 400);
+  const m = new THREE.ShaderMaterial({
+    uniforms, vertexShader: flowVert, fragmentShader: flyFrag,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   });
-  scene.add(new THREE.Points(g, m));
+  const pts = new THREE.Points(g, m);
+  pts.frustumCulled = false;
+  scene.add(pts);
 }
+buildTraffic();
 
-function createGround() {
-  // Dark base
-  const baseGeo = new THREE.PlaneGeometry(500, 500);
-  const baseMat = new THREE.MeshStandardMaterial({
-    color: 0x040010,
-    metalness: 0.7,
-    roughness: 0.55,
-    emissive: 0x0a0220,
-    emissiveIntensity: 0.4,
-  });
-  const base = new THREE.Mesh(baseGeo, baseMat);
-  base.rotation.x = -Math.PI / 2;
-  base.receiveShadow = false;
-  scene.add(base);
-
-  // Magenta finer grid (deep background texture)
-  const gridFine = new THREE.GridHelper(300, 60, 0xff00aa, 0x440022);
-  gridFine.position.y = 0.01;
-  gridFine.material.transparent = true;
-  gridFine.material.opacity = 0.22;
-  scene.add(gridFine);
-
-  // Cyan major grid
-  const gridMajor = new THREE.GridHelper(300, 12, 0x00f0ff, 0x00f0ff);
-  gridMajor.position.y = 0.02;
-  gridMajor.material.transparent = true;
-  gridMajor.material.opacity = 0.18;
-  scene.add(gridMajor);
-
-  // === NEON STREET GRID (the avenues between city blocks) =================
-  const span = BLOCK_SIZE + STREET_WIDTH;
-  const half = (BLOCKS_PER_SIDE - 1) / 2;
-  const cityExtent = span * BLOCKS_PER_SIDE; // total reach
-  const roadLen = cityExtent + 30;            // extend past edges
-  const roadGroup = new THREE.Group();
-
-  // Asphalt strips (dark) - 1 between each adjacent pair of blocks
-  for (let i = 0; i < BLOCKS_PER_SIDE - 1; i++) {
-    const pos = (i - half + 0.5) * span;
-    // North-South street
-    const nsGeo = new THREE.PlaneGeometry(STREET_WIDTH, roadLen);
-    const nsMat = new THREE.MeshBasicMaterial({ color: 0x0a0218, transparent: true, opacity: 0.55 });
-    const ns = new THREE.Mesh(nsGeo, nsMat);
-    ns.rotation.x = -Math.PI / 2;
-    ns.position.set(pos, 0.025, 0);
-    roadGroup.add(ns);
-
-    // East-West street
-    const ewGeo = new THREE.PlaneGeometry(roadLen, STREET_WIDTH);
-    const ewMat = new THREE.MeshBasicMaterial({ color: 0x0a0218, transparent: true, opacity: 0.55 });
-    const ew = new THREE.Mesh(ewGeo, ewMat);
-    ew.rotation.x = -Math.PI / 2;
-    ew.position.set(0, 0.025, pos);
-    roadGroup.add(ew);
-
-    // Glowing edge lines along each street (magenta on N-S, cyan on E-W = dual-tone cyberpunk)
-    for (const sign of [-1, 1]) {
-      // N-S edges → magenta
-      const edgeNS = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.18, roadLen),
-        new THREE.MeshBasicMaterial({
-          color: 0xff00aa,
-          transparent: true,
-          opacity: 0.9,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      edgeNS.rotation.x = -Math.PI / 2;
-      edgeNS.position.set(pos + sign * STREET_WIDTH / 2, 0.04, 0);
-      roadGroup.add(edgeNS);
-
-      // E-W edges → cyan
-      const edgeEW = new THREE.Mesh(
-        new THREE.PlaneGeometry(roadLen, 0.18),
-        new THREE.MeshBasicMaterial({
-          color: 0x00f0ff,
-          transparent: true,
-          opacity: 0.9,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      edgeEW.rotation.x = -Math.PI / 2;
-      edgeEW.position.set(0, 0.04, pos + sign * STREET_WIDTH / 2);
-      roadGroup.add(edgeEW);
-    }
-
-    // Center dashed lane markers (yellow) along each street
-    const dashCount = 28;
-    for (let d = 0; d < dashCount; d++) {
-      const dt = (d / dashCount - 0.5) * roadLen;
-      // N-S center dashes
-      const dashNS = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.35, 1.6),
-        new THREE.MeshBasicMaterial({
-          color: 0xf6ff00,
-          transparent: true,
-          opacity: 0.55,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      dashNS.rotation.x = -Math.PI / 2;
-      dashNS.position.set(pos, 0.05, dt);
-      roadGroup.add(dashNS);
-      // E-W center dashes
-      const dashEW = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.6, 0.35),
-        new THREE.MeshBasicMaterial({
-          color: 0xf6ff00,
-          transparent: true,
-          opacity: 0.55,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        })
-      );
-      dashEW.rotation.x = -Math.PI / 2;
-      dashEW.position.set(dt, 0.05, pos);
-      roadGroup.add(dashEW);
-    }
-  }
-
-  // Intersection accents: small glowing diamond at every street crossing
-  for (let i = 0; i < BLOCKS_PER_SIDE - 1; i++) {
-    for (let j = 0; j < BLOCKS_PER_SIDE - 1; j++) {
-      const x = (i - half + 0.5) * span;
-      const z = (j - half + 0.5) * span;
-      const dGeo = new THREE.CircleGeometry(0.9, 4);
-      const dMat = new THREE.MeshBasicMaterial({
-        color: 0xff00ff,
-        transparent: true,
-        opacity: 0.85,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const d = new THREE.Mesh(dGeo, dMat);
-      d.rotation.x = -Math.PI / 2;
-      d.rotation.z = Math.PI / 4;
-      d.position.set(x, 0.06, z);
-      roadGroup.add(d);
-    }
-  }
-
-  scene.add(roadGroup);
-
-  // Glowing center disc (downtown halo)
-  const discGeo = new THREE.CircleGeometry(28, 64);
-  const discMat = new THREE.MeshBasicMaterial({
-    color: 0xff00aa,
-    transparent: true,
-    opacity: 0.07,
-    side: THREE.DoubleSide,
-  });
-  const disc = new THREE.Mesh(discGeo, discMat);
-  disc.rotation.x = -Math.PI / 2;
-  disc.position.y = 0.03;
-  scene.add(disc);
-}
-
-/* The Sun/Moon - Fear & Greed visualization */
-let sunGroup;
-function createSun() {
-  sunGroup = new THREE.Group();
-
-  const core = new THREE.Mesh(
-    new THREE.SphereGeometry(16, 48, 48),
-    new THREE.MeshBasicMaterial({ color: 0xff6622 })
-  );
-  sunGroup.add(core);
-
-  const halo1 = new THREE.Mesh(
-    new THREE.SphereGeometry(22, 32, 32),
-    new THREE.MeshBasicMaterial({
-      color: 0xff6622,
-      transparent: true,
-      opacity: 0.35,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-  );
-  sunGroup.add(halo1);
-
-  const halo2 = new THREE.Mesh(
-    new THREE.SphereGeometry(34, 32, 32),
-    new THREE.MeshBasicMaterial({
-      color: 0xff6622,
-      transparent: true,
-      opacity: 0.12,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-  );
-  sunGroup.add(halo2);
-
-  // Decorative ring
-  const ringGeo = new THREE.RingGeometry(30, 31, 96);
-  const ringMat = new THREE.MeshBasicMaterial({
-    color: 0xff6622,
-    transparent: true,
-    opacity: 0.5,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-  });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  sunGroup.add(ring);
-
-  const ring2 = new THREE.Mesh(
-    new THREE.RingGeometry(38, 38.4, 96),
-    new THREE.MeshBasicMaterial({ color: 0xff6622, transparent: true, opacity: 0.3, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
-  );
-  sunGroup.add(ring2);
-
-  sunGroup.position.set(0, 55, -180);
-  sunGroup.userData = { core, halo1, halo2, ring, ring2 };
-  scene.add(sunGroup);
-
-  // Big point light from the sun
-  const sunLight = new THREE.PointLight(0xff6622, 1.4, 400);
-  sunLight.position.copy(sunGroup.position);
-  sunGroup.userData.light = sunLight;
-  scene.add(sunLight);
-
-  // Atmospheric haze line on horizon
-  const hazeGeo = new THREE.PlaneGeometry(800, 60);
-  const hazeMat = new THREE.MeshBasicMaterial({
-    color: 0xff0080,
-    transparent: true,
-    opacity: 0.18,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const haze = new THREE.Mesh(hazeGeo, hazeMat);
-  haze.position.set(0, 8, -200);
-  scene.add(haze);
-}
-
-function fearGreedColor(value) {
-  // 0 -> deep red, 25 -> red-orange, 50 -> magenta, 75 -> lime, 100 -> green
-  if (value < 25)  return new THREE.Color(0xff0033);
-  if (value < 45)  return new THREE.Color(0xff5511);
-  if (value < 55)  return new THREE.Color(0xb347ff);
-  if (value < 75)  return new THREE.Color(0xa3ff00);
-  return new THREE.Color(0x00ff77);
-}
-function fearGreedHex(value) {
-  if (value < 25)  return '#ff0033';
-  if (value < 45)  return '#ff5511';
-  if (value < 55)  return '#b347ff';
-  if (value < 75)  return '#a3ff00';
-  return '#00ff77';
-}
-
-function applyFearGreed(value, classification) {
-  const c = fearGreedColor(value);
-  if (sunGroup) {
-    sunGroup.userData.core.material.color.copy(c);
-    sunGroup.userData.halo1.material.color.copy(c);
-    sunGroup.userData.halo2.material.color.copy(c);
-    sunGroup.userData.ring.material.color.copy(c);
-    sunGroup.userData.ring2.material.color.copy(c);
-    sunGroup.userData.light.color.copy(c);
-  }
-  document.getElementById('fgValue').textContent = value;
-  document.getElementById('fgValue').style.color = fearGreedHex(value);
-  document.getElementById('fgClass').textContent = classification;
-  document.getElementById('fgClass').style.color = fearGreedHex(value);
-}
-
-/* =====================================================================
-   GLOBAL LIGHTS
-   ===================================================================== */
-scene.add(new THREE.AmbientLight(0x331b66, 0.55));
-
-const keyLight = new THREE.DirectionalLight(0xff00aa, 0.5);
-keyLight.position.set(60, 80, 30);
-scene.add(keyLight);
-
-const fillLight = new THREE.DirectionalLight(0x00ddff, 0.35);
-fillLight.position.set(-60, 50, -40);
-scene.add(fillLight);
-
-/* =====================================================================
-   SHARED RESOURCES
-   ===================================================================== */
-
-// Glow sprite texture (radial)
-function makeRadialTexture(innerColor = 'rgba(255,255,255,1)', outerColor = 'rgba(255,255,255,0)') {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const ctx = c.getContext('2d');
-  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  g.addColorStop(0, innerColor);
-  g.addColorStop(0.4, 'rgba(255,255,255,0.6)');
-  g.addColorStop(1, outerColor);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
-const PARTICLE_TEX = makeRadialTexture();
-
-/* =====================================================================
-   BUILDING FACTORY
-   ===================================================================== */
-function formatPrice(p) {
-  if (p == null || isNaN(p)) return '0';
-  if (p >= 1000) return p.toLocaleString('en-US', { maximumFractionDigits: 0 });
-  if (p >= 1)    return p.toFixed(2);
-  if (p >= 0.01) return p.toFixed(4);
-  if (p >= 0.0001) return p.toFixed(6);
-  return p.toExponential(2);
-}
-function formatBig(n) {
-  if (n == null || isNaN(n)) return '0';
-  if (n >= 1e12) return (n/1e12).toFixed(2) + 'T';
-  if (n >= 1e9)  return (n/1e9).toFixed(2) + 'B';
-  if (n >= 1e6)  return (n/1e6).toFixed(2) + 'M';
-  if (n >= 1e3)  return (n/1e3).toFixed(2) + 'K';
-  return n.toFixed(0);
-}
-
-function drawHologramCanvas(coin, mode) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  redrawHologram(ctx, canvas.width, canvas.height, coin, mode);
-  return canvas;
-}
-
-function redrawHologram(ctx, w, h, coin, mode) {
-  ctx.clearRect(0, 0, w, h);
-
-  const change = (mode === '7d')
-    ? (coin.price_change_percentage_7d_in_currency || 0)
-    : (coin.price_change_percentage_24h || 0);
-  const isUp = change >= 0;
-  const color = isUp ? '#00ff88' : '#ff0844';
-  const accent = isUp ? '#00f0ff' : '#ff00ff';
-
-  // Translucent panel
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, 'rgba(8, 0, 24, 0.78)');
-  grad.addColorStop(1, 'rgba(28, 0, 48, 0.55)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  // Outer border w/ glow
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 24;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(8, 8, w - 16, h - 16);
-
-  // Inner border
-  ctx.shadowBlur = 8;
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.4;
-  ctx.strokeRect(18, 18, w - 36, h - 36);
-
-  // Corner brackets
-  ctx.shadowBlur = 18;
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = color;
-  ctx.beginPath(); ctx.moveTo(8, 36);  ctx.lineTo(8, 8);   ctx.lineTo(36, 8);   ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(w-36, 8); ctx.lineTo(w-8, 8); ctx.lineTo(w-8, 36); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(8, h-36); ctx.lineTo(8, h-8); ctx.lineTo(36, h-8); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(w-36, h-8); ctx.lineTo(w-8, h-8); ctx.lineTo(w-8, h-36); ctx.stroke();
-
-  // Top label band
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(0,0,0,0.4)';
-  ctx.fillRect(28, 28, w - 56, 32);
-  ctx.fillStyle = accent;
-  ctx.shadowColor = accent;
-  ctx.shadowBlur = 6;
-  ctx.font = "bold 18px 'Share Tech Mono', monospace";
-  ctx.textAlign = 'left';
-  ctx.fillText('// NCC-' + String(coin.market_cap_rank || 0).padStart(3, '0'), 38, 50);
-  ctx.textAlign = 'right';
-  ctx.fillText(mode === '7d' ? '7D' : '24H', w - 38, 50);
-
-  // Big ticker
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 22;
-  ctx.fillStyle = color;
-  ctx.font = "900 70px 'Orbitron','Share Tech Mono', monospace";
-  ctx.textAlign = 'center';
-  ctx.fillText((coin.symbol || '').toUpperCase(), w / 2, 130);
-
-  // Price
-  ctx.shadowBlur = 6;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = "bold 36px 'Share Tech Mono', monospace";
-  ctx.fillText('$' + formatPrice(coin.current_price), w / 2, 178);
-
-  // Change
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 14;
-  ctx.fillStyle = color;
-  ctx.font = "bold 44px 'Orbitron', monospace";
-  const sign = isUp ? '▲ +' : '▼ ';
-  ctx.fillText(sign + Math.abs(change).toFixed(2) + '%', w / 2, 230);
-}
-
-function createBuilding(coin, position, height, isTop) {
-  const group = new THREE.Group();
-  group.position.copy(position);
-
-  const change = (state.filter === '7d')
-    ? (coin.price_change_percentage_7d_in_currency || 0)
-    : (coin.price_change_percentage_24h || 0);
-  const isUp = change >= 0;
-  const accentColor = new THREE.Color(isUp ? 0x00ff88 : 0xff0844);
-  const altColor = new THREE.Color(isUp ? 0x00f0ff : 0xff00ff);
-
-  const width = isTop ? 4.4 : 3.0;
-
-  // Track meshes that get recolored on filter switch
-  const recolorMeshes = [];   // their material.color = accent
-  const recolorEmissive = []; // their material.emissive = accent (StandardMaterial)
-  const sweepMeshes = [];     // animated cascading beams
-
-  // Main body
-  const bodyGeo = new THREE.BoxGeometry(width, height, width);
-  const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x080418,
-    emissive: accentColor.clone().multiplyScalar(0.18),
-    metalness: 0.92,
-    roughness: 0.28,
-  });
-  const body = new THREE.Mesh(bodyGeo, bodyMat);
-  body.position.y = height / 2;
-  group.add(body);
-  recolorEmissive.push({ mat: bodyMat, intensity: 0.18 });
-
-  // Top capstone for top buildings
-  if (isTop) {
-    const capGeo = new THREE.BoxGeometry(width * 1.15, 0.6, width * 1.15);
-    const capMat = new THREE.MeshStandardMaterial({
-      color: 0x100828,
-      emissive: accentColor.clone(),
-      emissiveIntensity: 0.6,
-      metalness: 0.9,
-      roughness: 0.3,
-    });
-    const cap = new THREE.Mesh(capGeo, capMat);
-    cap.position.y = height + 0.3;
-    group.add(cap);
-    recolorEmissive.push({ mat: capMat, intensity: 1.0 });
-  }
-
-  // Edge beams (the corner verticals)
-  const beamH = height * 0.96;
-  const beamGeo = new THREE.BoxGeometry(0.13, beamH, 0.13);
-  for (let i = 0; i < 4; i++) {
-    const angle = i * Math.PI / 2 + Math.PI / 4;
-    const beamMat = new THREE.MeshBasicMaterial({
-      color: accentColor.clone(), transparent: true, opacity: 0.95,
-    });
-    const beam = new THREE.Mesh(beamGeo, beamMat);
-    beam.position.x = Math.cos(angle) * (width / 2);
-    beam.position.z = Math.sin(angle) * (width / 2);
-    beam.position.y = beamH / 2;
-    group.add(beam);
-    recolorMeshes.push(beamMat);
-  }
-
-  // Window strips (horizontal neon bands per floor)
-  const numFloors = Math.max(3, Math.floor(height / 1.2));
-  const stripGeo = new THREE.PlaneGeometry(width * 0.92, 0.13);
-  const floorStrips = [];
-  for (let i = 0; i < numFloors; i++) {
-    const yPos = (i + 1) * (height / (numFloors + 1));
-    const lit = Math.random() > 0.25;
-    const opacity = lit ? 0.4 + Math.random() * 0.5 : 0.08;
-    for (let s = 0; s < 4; s++) {
-      const stripMat = new THREE.MeshBasicMaterial({
-        color: accentColor.clone(),
-        transparent: true,
-        opacity,
-        side: THREE.DoubleSide,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const strip = new THREE.Mesh(stripGeo, stripMat);
-      const angle = s * Math.PI / 2;
-      strip.position.x = Math.cos(angle) * (width / 2 + 0.015);
-      strip.position.z = Math.sin(angle) * (width / 2 + 0.015);
-      strip.position.y = yPos;
-      strip.rotation.y = angle + Math.PI / 2;
-      group.add(strip);
-      floorStrips.push({ strip, baseOpacity: opacity, lit });
-      recolorMeshes.push(stripMat);
-    }
-  }
-
-  // Top platform glow
-  const topGlowMat = new THREE.MeshBasicMaterial({
-    color: accentColor.clone(),
-    transparent: true,
-    opacity: 0.5,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const topGlow = new THREE.Mesh(
-    new THREE.PlaneGeometry(width + 1.5, width + 1.5),
-    topGlowMat
-  );
-  topGlow.rotation.x = -Math.PI / 2;
-  topGlow.position.y = height + (isTop ? 0.65 : 0.05);
-  group.add(topGlow);
-  recolorMeshes.push(topGlowMat);
-
-  // Vertical sweep beams (the elevator of light) - one per side
-  const sweepGeo = new THREE.PlaneGeometry(width * 1.1, 1.4);
-  const sweepConfigs = [
-    { pos: [0, 0, width / 2 + 0.04], rot: 0 },
-    { pos: [0, 0, -width / 2 - 0.04], rot: 0 },
-    { pos: [width / 2 + 0.04, 0, 0], rot: Math.PI / 2 },
-    { pos: [-width / 2 - 0.04, 0, 0], rot: Math.PI / 2 },
-  ];
-  for (const cfg of sweepConfigs) {
-    const m = new THREE.MeshBasicMaterial({
-      color: accentColor.clone(),
-      transparent: true,
-      opacity: 0.55,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(sweepGeo, m);
-    mesh.position.set(...cfg.pos);
-    mesh.rotation.y = cfg.rot;
-    group.add(mesh);
-    sweepMeshes.push(mesh);
-    recolorMeshes.push(m);
-  }
-
-  // Hologram (always faces camera)
-  const holoCanvas = drawHologramCanvas(coin, state.filter);
-  const holoTex = new THREE.CanvasTexture(holoCanvas);
-  holoTex.minFilter = THREE.LinearFilter;
-  const holoMat = new THREE.SpriteMaterial({
-    map: holoTex,
-    transparent: true,
-    depthWrite: false,
-    depthTest: true,
-    blending: THREE.NormalBlending,
-  });
-  const holo = new THREE.Sprite(holoMat);
-  const holoScale = isTop ? 9 : 6;
-  holo.scale.set(holoScale, holoScale * 0.5, 1);
-  holo.position.y = height + (isTop ? 5 : 3.4);
-  group.add(holo);
-
-  // Coin icon for top N
-  let iconSprite = null;
-  if (isTop) {
-    iconSprite = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: PARTICLE_TEX, color: accentColor.clone(),
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
-    }));
-    iconSprite.scale.set(3.4, 3.4, 1);
-    iconSprite.position.y = height + 9.8;
-    group.add(iconSprite);
-
-    if (coin.image) {
-      const tl = new THREE.TextureLoader();
-      tl.setCrossOrigin('anonymous');
-      tl.load(
-        coin.image,
-        (tex) => {
-          tex.minFilter = THREE.LinearFilter;
-          iconSprite.material = new THREE.SpriteMaterial({
-            map: tex, transparent: true, depthWrite: false,
-          });
-        },
-        undefined,
-        () => { /* silent fail; keep glowing dot */ }
-      );
-    }
-  }
-
-  // Point light at top (illuminates building)
-  const ptLight = new THREE.PointLight(accentColor.clone(), 1.0, 22);
-  ptLight.position.y = height + 0.8;
-  group.add(ptLight);
-
-  // Base antenna for top buildings
-  if (isTop) {
-    const antMat = new THREE.MeshBasicMaterial({ color: accentColor.clone() });
-    const ant = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.08, 0.08, 4, 6),
-      antMat
-    );
-    ant.position.y = height + 2.3;
-    group.add(ant);
-    recolorMeshes.push(antMat);
-    const antTip = new THREE.Mesh(
-      new THREE.SphereGeometry(0.28, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
-    antTip.position.y = height + 4.4;
-    group.add(antTip);
-  }
-
-  group.userData = {
-    coin, height, isTop,
-    accentColor, altColor,
-    body, bodyMat,
-    holoMat, holoTex, holoCanvas, holoSprite: holo,
-    floorStrips,
-    sweepMeshes,
-    topGlow,
-    iconSprite,
-    pointLight: ptLight,
-    recolorMeshes, recolorEmissive,
-    pulseOffset: Math.random() * Math.PI * 2,
-    width,
-    isBuilding: true,
-  };
-
-  scene.add(group);
-  return group;
-}
-
-/* =====================================================================
-   LAYOUT - irregular downtown blocks separated by streets
-   ===================================================================== *
-   The city is divided into a coarse grid of "blocks". Each block holds up
-   to 4 buildings on a jittered sub-grid, with random rotation. Streets run
-   between blocks. Some outer blocks are left empty as plazas. Building
-   slots are sorted by distance-from-center so the highest market caps land
-   in the downtown core (BTC at the heart), with smaller caps spread to the
-   suburbs and natural "plazas" at the edges.
-   ===================================================================== */
-let cachedSlots = null;
-function generateCitySlots(seed) {
-  // Deterministic-ish per page-load (don't reseed if cached)
-  if (cachedSlots) return cachedSlots;
-  const blocks = [];
-  const span = (BLOCK_SIZE + STREET_WIDTH);
-  const half = (BLOCKS_PER_SIDE - 1) / 2;
-  for (let bx = 0; bx < BLOCKS_PER_SIDE; bx++) {
-    for (let bz = 0; bz < BLOCKS_PER_SIDE; bz++) {
-      const cx = (bx - half) * span;
-      const cz = (bz - half) * span;
-      blocks.push({ cx, cz, dist: Math.hypot(cx, cz) });
-    }
-  }
-  // Shuffle, then sort with distance bias — gives organic ordering, not perfectly radial
-  blocks.sort((a, b) => (a.dist + Math.random() * 4) - (b.dist + Math.random() * 4));
-
-  const slots = [];
-  for (const block of blocks) {
-    // 2x2 sub-grid inside the block, jittered
-    const sub = [];
-    for (let sx = 0; sx < 2; sx++) {
-      for (let sz = 0; sz < 2; sz++) {
-        const ox = (sx - 0.5) * SUB_GRID_GAP;
-        const oz = (sz - 0.5) * SUB_GRID_GAP;
-        const jx = (Math.random() - 0.5) * 1.6;
-        const jz = (Math.random() - 0.5) * 1.6;
-        const rot = (Math.random() - 0.5) * 0.35; // small irregular twist
-        sub.push({
-          x: block.cx + ox + jx,
-          z: block.cz + oz + jz,
-          rot,
-          blockDist: block.dist,
-        });
+/* ════════════════════════════════════════════════════════════════
+   A CIDADE — espiral de Ulam: rank #1 no centro
+   ════════════════════════════════════════════════════════════════ */
+function spiralCells(n){
+  const pts = [[0, 0]];
+  let x = 0, y = 0, leg = 1, dir = 0;
+  const dx = [1, 0, -1, 0], dy = [0, 1, 0, -1];
+  while (pts.length < n){
+    for (let r = 0; r < 2 && pts.length < n; r++){
+      for (let s = 0; s < leg && pts.length < n; s++){
+        x += dx[dir]; y += dy[dir];
+        pts.push([x, y]);
       }
+      dir = (dir + 1) % 4;
     }
-    // Maybe drop one slot to keep blocks irregular (15% chance per slot)
-    const filtered = sub.filter(() => Math.random() > 0.12);
-    // Shuffle within block so ordering is organic
-    for (let i = filtered.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-    }
-    slots.push(...filtered);
+    leg++;
   }
-  cachedSlots = slots;
-  return slots;
+  return pts;
 }
 
-/* =====================================================================
-   HEIGHT MAP — supports two modes:
-     'mcap'   : log10(market_cap), normalized → towering BTC, modest small caps
-     'movers' : |% change| (24h or 7d, follows current filter), normalized
-                so the day's biggest mover is the tallest building
-   ===================================================================== */
-function buildHeightFn(coins, mode, filter) {
-  const minH = 4;
-  const maxH = 38;
-  if (mode === 'movers') {
-    const key = (filter === '7d')
-      ? 'price_change_percentage_7d_in_currency'
-      : 'price_change_percentage_24h';
-    const abs = coins.map(c => Math.abs(c[key] || 0));
-    const maxA = Math.max(0.001, ...abs);
-    return (coin) => {
-      const a = Math.abs(coin[key] || 0);
-      const t = Math.min(1, a / maxA);
-      // Slight curve so mid-range movers don't all sit too low
-      return minH + Math.pow(t, 0.85) * (maxH - minH);
+const cityGroup = new THREE.Group();
+scene.add(cityGroup);
+let instMesh = null;
+let flyPoints = null;
+const holoSprites = [];     /* persistentes do top 10 */
+let hoverHolo = null;       /* compartilhado para o resto */
+const texLoader = new THREE.TextureLoader();
+texLoader.crossOrigin = 'anonymous';
+
+function disposeCity(){
+  cityGroup.traverse(o => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material){
+      if (o.material.map) o.material.map.dispose();
+      o.material.dispose();
+    }
+  });
+  cityGroup.clear();
+  holoSprites.length = 0;
+  instMesh = null; flyPoints = null; hoverHolo = null;
+  state.hover = -1; uniforms.uHover.value = -1;
+}
+
+function buildCity(){
+  disposeCity();
+  const coins = state.coins.slice(0, state.count);
+  const n = coins.length;
+  const cells = spiralCells(n);
+
+  /* normalizações (log) */
+  const mcaps = coins.map(c => Math.max(c.market_cap || 1, 1));
+  const vols  = coins.map(c => Math.max(c.total_volume || 1, 1));
+  const lmMin = Math.log10(Math.min(...mcaps)), lmMax = Math.log10(Math.max(...mcaps));
+  const lvMin = Math.log10(Math.min(...vols)),  lvMax = Math.log10(Math.max(...vols));
+  const mNorm = m => lmMax > lmMin ? (Math.log10(m) - lmMin) / (lmMax - lmMin) : 1;
+  const vNorm = v => lvMax > lvMin ? (Math.log10(v) - lvMin) / (lvMax - lvMin) : 1;
+
+  state.city = coins.map((coin, i) => {
+    const t = mNorm(mcaps[i]);
+    return {
+      coin,
+      x: cells[i][0] * SPACING,
+      z: cells[i][1] * SPACING,
+      h: H_MIN + (H_MAX - H_MIN) * t,
+      w: 3.0 + 4.2 * t,
+      vN: vNorm(vols[i]),
+      turnover: vols[i] / mcaps[i],
     };
+  });
+
+  /* ── prédios instanciados ── */
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  geo.translate(0, 0.5, 0);
+  const aPerf = new Float32Array(n);
+  const aRand = new Float32Array(n);
+  const aId   = new Float32Array(n);
+  for (let i = 0; i < n; i++){
+    aPerf[i] = clamp(pctOf(state.city[i].coin, state.period) / 12, -1, 1);
+    aRand[i] = Math.random();
+    aId[i] = i;
   }
-  // Default: market cap, log scale
-  const logs = coins.map(c => Math.log10(Math.max(1, c.market_cap || 1)));
-  const minL = Math.min(...logs);
-  const maxL = Math.max(...logs);
-  return (coin) => {
-    const l = Math.log10(Math.max(1, coin.market_cap || 1));
-    const t = (l - minL) / Math.max(0.001, (maxL - minL));
-    return minH + t * (maxH - minH);
+  geo.setAttribute('aPerf', new THREE.InstancedBufferAttribute(aPerf, 1));
+  geo.setAttribute('aRand', new THREE.InstancedBufferAttribute(aRand, 1));
+  geo.setAttribute('aId',   new THREE.InstancedBufferAttribute(aId, 1));
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms, vertexShader: bldgVert, fragmentShader: bldgFrag,
+  });
+  instMesh = new THREE.InstancedMesh(geo, mat, n);
+  instMesh.frustumCulled = false;  /* posições reais vivem nas matrizes de instância */
+  const m4 = new THREE.Matrix4();
+  for (let i = 0; i < n; i++){
+    const b = state.city[i];
+    m4.makeScale(b.w, b.h, b.w);
+    m4.setPosition(b.x, 0, b.z);
+    instMesh.setMatrixAt(i, m4);
+  }
+  instMesh.instanceMatrix.needsUpdate = true;
+  cityGroup.add(instMesh);
+
+  /* ── vagalumes (volume) ── */
+  buildFireflies();
+
+  /* ── hologramas do top N ── */
+  for (let i = 0; i < Math.min(TOP_HOLO, n); i++){
+    const b = state.city[i];
+    const spr = makeHoloSprite(b.coin, false);
+    spr.position.set(b.x, b.h + 7.5, b.z);
+    spr.userData.idx = i;
+    cityGroup.add(spr);
+    holoSprites.push(spr);
+    if (b.coin.image) attachIcon(b, i);
+  }
+
+  /* holograma de hover compartilhado */
+  hoverHolo = makeHoloSprite(coins[0], true);
+  hoverHolo.visible = false;
+  cityGroup.add(hoverHolo);
+}
+
+function buildFireflies(){
+  const counts = state.city.map(b => {
+    let c = 2 + Math.round(Math.pow(b.vN, 1.25) * 30);
+    if (b.turnover > 0.22) c += 10;           /* pico de liquidez = enxame */
+    return c;
+  });
+  const total = counts.reduce((a, b) => a + b, 0);
+  const aCenter = new Float32Array(total * 3);
+  const aOrb    = new Float32Array(total * 4);
+  const aColor  = new Float32Array(total * 3);
+  const aMisc   = new Float32Array(total * 2);
+  let k = 0;
+  for (let i = 0; i < state.city.length; i++){
+    const b = state.city[i];
+    const perf = pctOf(b.coin, state.period);
+    const mag = clamp(Math.abs(perf) / 12, 0.1, 1);
+    const up = perf >= 0;
+    const swirl = b.turnover > 0.22;          /* redemoinho furioso */
+    const c0 = up ? COL_UP_A : COL_DN_A;
+    const c1 = up ? COL_UP_B : COL_DN_B;
+    for (let j = 0; j < counts[i]; j++, k++){
+      const hFrac = 0.12 + Math.random() * 0.95;
+      aCenter[k*3]   = b.x;
+      aCenter[k*3+1] = b.h * hFrac + 1.0;
+      aCenter[k*3+2] = b.z;
+      const radius = b.w * (swirl ? 0.75 : 0.95) + 1.2 + Math.random() * (swirl ? 2.0 : 4.0);
+      const speed  = (Math.random() < 0.5 ? -1 : 1)
+                   * (0.25 + Math.random() * 0.55)
+                   * (swirl ? 3.4 : 1.0)
+                   * (0.7 + mag * 0.8);
+      aOrb[k*4]   = radius;
+      aOrb[k*4+1] = speed;
+      aOrb[k*4+2] = Math.random() * Math.PI * 2;
+      aOrb[k*4+3] = 0.4 + Math.random() * 1.6;
+      const mixT = Math.random();
+      aColor[k*3]   = c0.r + (c1.r - c0.r) * mixT;
+      aColor[k*3+1] = c0.g + (c1.g - c0.g) * mixT;
+      aColor[k*3+2] = c0.b + (c1.b - c0.b) * mixT;
+      aMisc[k*2]   = 1.6 + Math.random() * 2.4 + (swirl ? 0.8 : 0);
+      aMisc[k*2+1] = 1.2 + Math.random() * 3.0;  /* taxa de piscar */
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(total * 3), 3));
+  g.setAttribute('aCenter', new THREE.BufferAttribute(aCenter, 3));
+  g.setAttribute('aOrb',    new THREE.BufferAttribute(aOrb, 4));
+  g.setAttribute('aColor',  new THREE.BufferAttribute(aColor, 3));
+  g.setAttribute('aMisc',   new THREE.BufferAttribute(aMisc, 2));
+  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 30, 0), 400);
+  const m = new THREE.ShaderMaterial({
+    uniforms, vertexShader: flyVert, fragmentShader: flyFrag,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  flyPoints = new THREE.Points(g, m);
+  flyPoints.frustumCulled = false;
+  cityGroup.add(flyPoints);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HOLOGRAMAS (canvas → sprite; redesenhados só quando dados mudam)
+   ════════════════════════════════════════════════════════════════ */
+function drawHolo(ctx, W, Hc, coin){
+  ctx.clearRect(0, 0, W, Hc);
+  const pct = pctOf(coin, state.period);
+  const up = pct >= 0;
+  const main = up ? '#00ff9d' : '#ff2e54';
+  const edge = up ? '#00e5ff' : '#ff2bd6';
+
+  /* painel */
+  ctx.fillStyle = 'rgba(6, 10, 34, 0.58)';
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = edge; ctx.shadowBlur = 22;
+  const r = 14, x = 8, y = 8, w = W - 16, h = Hc - 16;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - 28, y); ctx.lineTo(x + w, y + 28);
+  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  /* scanlines do holograma */
+  ctx.fillStyle = 'rgba(0, 229, 255, 0.05)';
+  for (let sy = y + 4; sy < y + h; sy += 7) ctx.fillRect(x + 3, sy, w - 6, 2);
+
+  /* ticker + variação */
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 16;
+  ctx.font = '700 76px "Chakra Petch"';
+  ctx.textAlign = 'left';
+  ctx.fillText(coin.symbol.toUpperCase(), 34, 96);
+
+  ctx.textAlign = 'right';
+  ctx.fillStyle = main;
+  ctx.shadowColor = main;
+  ctx.font = '700 52px "Chakra Petch"';
+  ctx.fillText((up ? '▲ ' : '▼ ') + fmtPct(pct), W - 34, 88);
+
+  /* preço */
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#bdf3ff';
+  ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 10;
+  ctx.font = '400 58px "Share Tech Mono"';
+  ctx.fillText(fmtPrice(coin.current_price), 34, 168);
+
+  /* rodapé */
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(160, 215, 235, 0.75)';
+  ctx.font = '400 26px "Share Tech Mono"';
+  ctx.fillText('MCAP ' + fmtBig(coin.market_cap) + '   VOL ' + fmtBig(coin.total_volume), 34, 212);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = 'rgba(160, 215, 235, 0.45)';
+  ctx.fillText('#' + (coin.market_cap_rank || '·'), W - 34, 212);
+}
+function makeHoloSprite(coin, isHover){
+  const cv = document.createElement('canvas');
+  cv.width = 640; cv.height = 240;
+  const ctx = cv.getContext('2d');
+  drawHolo(ctx, cv.width, cv.height, coin);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthWrite: false,
+    opacity: isHover ? 0.98 : 0.92,
+  });
+  const spr = new THREE.Sprite(mat);
+  spr.scale.set(19, 19 * (cv.height / cv.width), 1);
+  spr.renderOrder = 10;
+  spr.userData.cv = cv;
+  spr.userData.ctx = ctx;
+  return spr;
+}
+function redrawHoloSprite(spr, coin){
+  drawHolo(spr.userData.ctx, spr.userData.cv.width, spr.userData.cv.height, coin);
+  spr.material.map.needsUpdate = true;
+}
+function attachIcon(b, idx){
+  texLoader.load(b.coin.image, tex => {
+    if (!instMesh) return;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const spr = new THREE.Sprite(mat);
+    const s = 3.2 + 1.4 * (1 - idx / TOP_HOLO);
+    spr.scale.set(s, s, 1);
+    spr.position.set(b.x, b.h + 13.6, b.z);
+    spr.renderOrder = 11;
+    spr.userData.bob = Math.random() * Math.PI * 2;
+    spr.userData.baseY = b.h + 13.6;
+    spr.userData.isIcon = true;
+    cityGroup.add(spr);
+  }, undefined, () => { /* sem ícone, segue o jogo */ });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   HUD — dados globais, ticker, F&G
+   ════════════════════════════════════════════════════════════════ */
+function refreshHud(){
+  const coins = state.coins.slice(0, state.count);
+  const totM = coins.reduce((a, c) => a + (c.market_cap || 0), 0);
+  const totV = coins.reduce((a, c) => a + (c.total_volume || 0), 0);
+  const ups = coins.filter(c => pctOf(c, state.period) >= 0).length;
+  const btc = coins.find(c => c.symbol === 'btc');
+  $('gMcap').textContent = fmtBig(totM);
+  $('gVol').textContent = fmtBig(totV);
+  $('gDom').textContent = btc ? (100 * btc.market_cap / totM).toFixed(1) + '%' : '—';
+  $('gBreadth').innerHTML = '<span class="up">' + ups + '▲</span> / <span class="dn">' + (coins.length - ups) + '▼</span>';
+
+  /* ticker */
+  const mk = c => {
+    const p = pctOf(c, state.period);
+    return '<span class="tk" data-id="' + c.id + '">'
+      + '<span class="sym">' + c.symbol.toUpperCase() + '</span>'
+      + '<span class="px">' + fmtPrice(c.current_price) + '</span>'
+      + '<span class="ch ' + (p >= 0 ? 'up' : 'dn') + '">' + (p >= 0 ? '▲' : '▼') + fmtPct(p) + '</span>'
+      + '</span>';
   };
+  const html = coins.map(mk).join('');
+  $('tapeTrack').innerHTML = html + html;  /* duplicado para loop contínuo */
+}
+function refreshFng(){
+  const v = state.fng.value == null ? 50 : state.fng.value;
+  const [r, g, b] = fngColor(v);
+  const css = `rgb(${r},${g},${b})`;
+  $('fngVal').textContent = state.fng.value == null ? '··' : v;
+  $('fngVal').style.color = css;
+  $('fngLabel').textContent = state.fng.label;
+  $('fngNeedle').setAttribute('transform', `rotate(${-90 + v * 1.8} 37 40)`);
+  uniforms.uSunA.value.setRGB(r / 255, g / 255, b / 255);
+  uniforms.uSunB.value.copy(uniforms.uSunA.value).lerp(new THREE.Color(1, 0.95, 0.8), 0.55);
 }
 
-/* =====================================================================
-   PARTICLES - flying cars + volume vortex
-   ===================================================================== */
-let particleSystem;
-
-function buildParticles(coins) {
-  const positions = new Float32Array(MAX_PARTICLES * 3);
-  const colors = new Float32Array(MAX_PARTICLES * 3);
-
-  state.particleData = [];
-
-  // Distribute by volume
-  const volScores = state.buildings.map(b => Math.log10(Math.max(1, b.userData.coin.total_volume || 1)));
-  const totalScore = volScores.reduce((s, v) => s + v, 0);
-
-  let pIdx = 0;
-  for (let i = 0; i < state.buildings.length && pIdx < MAX_PARTICLES; i++) {
-    const b = state.buildings[i];
-    const share = volScores[i] / totalScore;
-    const count = Math.max(1, Math.round(MAX_PARTICLES * share));
-    for (let j = 0; j < count && pIdx < MAX_PARTICLES; j++) {
-      const angle = Math.random() * Math.PI * 2;
-      const orbitR = 4 + Math.random() * 7;
-      const yOff = 1.5 + Math.random() * (b.userData.height + 4);
-      const orbitSpeed = (0.4 + Math.random() * 0.9) * (Math.random() > 0.5 ? 1 : -1);
-      const yVel = (Math.random() - 0.5) * 0.04;
-      const c = b.userData.accentColor;
-      const variance = 0.6 + Math.random() * 0.4;
-      colors[pIdx * 3]     = Math.min(1, c.r * variance + 0.1);
-      colors[pIdx * 3 + 1] = Math.min(1, c.g * variance + 0.1);
-      colors[pIdx * 3 + 2] = Math.min(1, c.b * variance + 0.1);
-      state.particleData.push({
-        building: b,
-        angle,
-        orbitR,
-        yOff,
-        yVel,
-        orbitSpeed,
-        index: pIdx,
-        // For inter-building travel: occasionally migrates
-        nextSwitch: 200 + Math.random() * 600,
-      });
-      pIdx++;
-    }
-  }
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-  const mat = new THREE.PointsMaterial({
-    size: 0.7,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.95,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    map: PARTICLE_TEX,
-    sizeAttenuation: true,
-  });
-
-  particleSystem = new THREE.Points(geo, mat);
-  scene.add(particleSystem);
-}
-
-function updateParticles(dt) {
-  if (!particleSystem) return;
-  const pos = particleSystem.geometry.attributes.position.array;
-  for (let i = 0; i < state.particleData.length; i++) {
-    const p = state.particleData[i];
-    p.angle += p.orbitSpeed * dt * 0.001;
-    p.yOff  += p.yVel;
-    const maxY = p.building.userData.height + 4;
-    if (p.yOff > maxY) { p.yOff = maxY; p.yVel = -Math.abs(p.yVel); }
-    if (p.yOff < 1)    { p.yOff = 1;    p.yVel =  Math.abs(p.yVel); }
-
-    p.nextSwitch -= dt;
-    if (p.nextSwitch <= 0) {
-      // Migrate to a random nearby building (the "flying car" trip)
-      const candidates = state.buildings;
-      const newB = candidates[Math.floor(Math.random() * candidates.length)];
-      p.building = newB;
-      const c = newB.userData.accentColor;
-      const colors = particleSystem.geometry.attributes.color.array;
-      const v = 0.6 + Math.random() * 0.4;
-      colors[p.index * 3]     = Math.min(1, c.r * v + 0.1);
-      colors[p.index * 3 + 1] = Math.min(1, c.g * v + 0.1);
-      colors[p.index * 3 + 2] = Math.min(1, c.b * v + 0.1);
-      particleSystem.geometry.attributes.color.needsUpdate = true;
-      p.nextSwitch = 400 + Math.random() * 1200;
-    }
-
-    const bx = p.building.position.x;
-    const bz = p.building.position.z;
-    pos[p.index * 3]     = bx + Math.cos(p.angle) * p.orbitR;
-    pos[p.index * 3 + 1] = p.yOff;
-    pos[p.index * 3 + 2] = bz + Math.sin(p.angle) * p.orbitR;
-  }
-  particleSystem.geometry.attributes.position.needsUpdate = true;
-}
-
-/* =====================================================================
-   HOVER / RAYCASTING
-   ===================================================================== */
+/* ════════════════════════════════════════════════════════════════
+   INTERAÇÃO — hover, clique, painel
+   ════════════════════════════════════════════════════════════════ */
+const mouse = { x: 0, y: 0, px: 0, py: 0, fresh: false, downX: 0, downY: 0 };
 const raycaster = new THREE.Raycaster();
-const mouseNDC = new THREE.Vector2(-2, -2);
-let lastMouseClient = { x: 0, y: 0 };
 
-window.addEventListener('mousemove', (e) => {
-  mouseNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouseNDC.y = -(e.clientY / window.innerHeight) * 2 + 1;
-  lastMouseClient.x = e.clientX;
-  lastMouseClient.y = e.clientY;
+function pickBuilding(){
+  if (!instMesh) return -1;
+  raycaster.setFromCamera({ x: mouse.x, y: mouse.y }, camera);
+  const hit = raycaster.intersectObject(instMesh);
+  return hit.length ? hit[0].instanceId : -1;
+}
+function setHover(idx){
+  if (idx === state.hover) return;
+  state.hover = idx;
+  uniforms.uHover.value = idx;
+  const card = $('hover-card');
+  if (idx < 0){
+    card.classList.remove('show');
+    if (hoverHolo) hoverHolo.visible = false;
+    return;
+  }
+  const b = state.city[idx];
+  const p = pctOf(b.coin, state.period);
+  card.innerHTML =
+    '<div class="row1"><span class="sym">' + b.coin.symbol.toUpperCase() + '</span>'
+    + '<span class="rank">RANK #' + (b.coin.market_cap_rank || idx + 1) + '</span></div>'
+    + '<div class="price">' + fmtPrice(b.coin.current_price)
+    + ' <span class="ch ' + (p >= 0 ? 'up' : 'dn') + '">' + fmtPct(p) + '</span></div>'
+    + '<div class="meta">MCAP ' + fmtBig(b.coin.market_cap)
+    + '<br>VOL 24H ' + fmtBig(b.coin.total_volume) + '</div>';
+  card.classList.add('show');
+
+  /* holograma compartilhado para quem não é top 10 */
+  if (idx >= TOP_HOLO && hoverHolo){
+    redrawHoloSprite(hoverHolo, b.coin);
+    hoverHolo.position.set(b.x, b.h + 7.5, b.z);
+    hoverHolo.visible = true;
+  } else if (hoverHolo){
+    hoverHolo.visible = false;
+  }
+}
+function placeHoverCard(){
+  const card = $('hover-card');
+  if (!card.classList.contains('show')) return;
+  const pad = 18;
+  let cx = mouse.px + pad, cy = mouse.py + pad;
+  const r = card.getBoundingClientRect();
+  if (cx + r.width > innerWidth - 8)  cx = mouse.px - r.width - pad;
+  if (cy + r.height > innerHeight - 42) cy = mouse.py - r.height - pad;
+  card.style.left = cx + 'px';
+  card.style.top = cy + 'px';
+}
+
+function openPanel(idx){
+  const b = state.city[idx];
+  if (!b) return;
+  state.selected = idx;
+  uniforms.uSelected.value = idx;
+  const c = b.coin;
+  const coins = state.coins.slice(0, state.count);
+  const totM = coins.reduce((a, x) => a + (x.market_cap || 0), 0);
+  $('pIcon').src = c.image || makeMonogram(c.symbol);
+  $('pName').textContent = c.name || c.symbol.toUpperCase();
+  $('pRank').textContent = 'RANK #' + (c.market_cap_rank || idx + 1) + ' · ' + c.symbol.toUpperCase();
+  $('pPrice').textContent = fmtPrice(c.current_price);
+  const p = pctOf(c, state.period);
+  const d = $('pDelta');
+  d.textContent = (p >= 0 ? '▲ ' : '▼ ') + fmtPct(p) + ' · ' + (state.period === '7d' ? '7 DIAS' : '24 HORAS');
+  d.className = 'delta ' + (p >= 0 ? 'up' : 'dn');
+  $('pMcap').textContent = fmtBig(c.market_cap);
+  $('pVol').textContent = fmtBig(c.total_volume);
+  $('pShare').textContent = totM ? (100 * c.market_cap / totM).toFixed(2) + '%' : '—';
+  const c24 = c.price_change_percentage_24h ?? 0;
+  const c7  = c.price_change_percentage_7d_in_currency ?? 0;
+  const e24 = $('pC24'); e24.textContent = fmtPct(c24); e24.className = c24 >= 0 ? 'up' : 'dn';
+  const e7  = $('pC7');  e7.textContent = fmtPct(c7);  e7.className = c7 >= 0 ? 'up' : 'dn';
+  $('pLink').href = 'https://www.coingecko.com/pt/moedas/' + c.id;
+  $('panel').classList.add('open');
+}
+function closePanel(){
+  state.selected = -1;
+  uniforms.uSelected.value = -1;
+  $('panel').classList.remove('open');
+}
+function makeMonogram(sym){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#0a0626'; ctx.beginPath(); ctx.arc(32, 32, 31, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#00e5ff'; ctx.font = '700 22px "Chakra Petch"';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(sym.slice(0, 3).toUpperCase(), 32, 34);
+  return cv.toDataURL();
+}
+
+/* clique = selecionar (mas não após arrastar) */
+glEl.addEventListener('pointerdown', e => { mouse.downX = e.clientX; mouse.downY = e.clientY; });
+glEl.addEventListener('pointerup', e => {
+  if (Math.hypot(e.clientX - mouse.downX, e.clientY - mouse.downY) > 6) return;
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+  const idx = pickBuilding();
+  if (idx >= 0) openPanel(idx); else closePanel();
+});
+$('pClose').addEventListener('click', closePanel);
+
+/* ticker → painel */
+$('tape').addEventListener('click', e => {
+  const tk = e.target.closest('.tk');
+  if (!tk) return;
+  const idx = state.city.findIndex(b => b.coin.id === tk.dataset.id);
+  if (idx >= 0) openPanel(idx);
 });
 
-function getBuildingFromObject(obj) {
-  let cur = obj;
-  while (cur && !cur.userData?.isBuilding) cur = cur.parent;
-  return (cur && cur.userData?.coin) ? cur : null;
-}
-
-function updateHover() {
-  if (state.buildings.length === 0) return;
-  raycaster.setFromCamera(mouseNDC, camera);
-  // Test against building bodies only (perf)
-  const targets = state.buildings.map(b => b.userData.body);
-  const hits = raycaster.intersectObjects(targets, false);
-  let hovered = null;
-  if (hits.length > 0) {
-    hovered = getBuildingFromObject(hits[0].object);
-  }
-
-  if (hovered !== state.hoveredBuilding) {
-    if (state.hoveredBuilding) {
-      state.hoveredBuilding.userData.bodyMat.emissiveIntensity = 0.18;
-    }
-    state.hoveredBuilding = hovered;
-    if (hovered) {
-      hovered.userData.bodyMat.emissiveIntensity = 0.85;
-    }
-  }
-
-  const card = document.getElementById('hoverCard');
-  if (hovered) {
-    const coin = hovered.userData.coin;
-    document.getElementById('hcName').textContent = coin.name;
-    document.getElementById('hcSymbol').textContent = (coin.symbol || '').toUpperCase();
-    document.getElementById('hcRank').textContent = '#' + (coin.market_cap_rank || '?');
-    document.getElementById('hcPrice').textContent = '$' + formatPrice(coin.current_price);
-    document.getElementById('hcMcap').textContent = '$' + formatBig(coin.market_cap);
-    document.getElementById('hcVol').textContent = '$' + formatBig(coin.total_volume);
-
-    const c24 = coin.price_change_percentage_24h || 0;
-    const c7  = coin.price_change_percentage_7d_in_currency || 0;
-    const ePct = document.getElementById('hcPct');
-    ePct.textContent = (c24 >= 0 ? '+' : '') + c24.toFixed(2) + '%';
-    ePct.className = 'hc-pct ' + (c24 >= 0 ? 'up' : 'down');
-    const ePct7 = document.getElementById('hcPct7');
-    ePct7.textContent = (c7 >= 0 ? '+' : '') + c7.toFixed(2) + '%';
-    ePct7.className = 'hc-pct ' + (c7 >= 0 ? 'up' : 'down');
-
-    const icon = document.getElementById('hcIcon');
-    if (coin.image) icon.src = coin.image; else icon.removeAttribute('src');
-
-    // Position card near cursor but constrained
-    const w = 280, h = 200;
-    let x = lastMouseClient.x + 18;
-    let y = lastMouseClient.y + 18;
-    if (x + w > window.innerWidth) x = lastMouseClient.x - w - 18;
-    if (y + h > window.innerHeight) y = lastMouseClient.y - h - 18;
-    card.style.left = x + 'px';
-    card.style.top = y + 'px';
-    card.classList.add('visible');
-  } else {
-    card.classList.remove('visible');
-  }
-}
-
-/* =====================================================================
-   FILTER SWITCHING (24h / 7d)
-   ===================================================================== */
-function applyFilter(mode) {
-  state.filter = mode;
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === mode);
+/* ════════════════════════════════════════════════════════════════
+   CONTROLES DO DOCK
+   ════════════════════════════════════════════════════════════════ */
+function segWire(id, fn){
+  $(id).addEventListener('click', e => {
+    const btn = e.target.closest('button[data-v]');
+    if (!btn || btn.classList.contains('on')) return;
+    $(id).querySelectorAll('button').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    fn(btn.dataset.v);
   });
-  // Repaint all holograms + recolor accents
-  state.buildings.forEach(b => {
-    const coin = b.userData.coin;
-    const change = (mode === '7d')
-      ? (coin.price_change_percentage_7d_in_currency || 0)
-      : (coin.price_change_percentage_24h || 0);
-    const isUp = change >= 0;
-    const newAccent = new THREE.Color(isUp ? 0x00ff88 : 0xff0844);
-    const ud = b.userData;
-    ud.accentColor.copy(newAccent);
-
-    // All neon-colored basic meshes (edge beams, window strips, top glow, sweeps, antenna)
-    ud.recolorMeshes.forEach(m => m.color.copy(newAccent));
-
-    // Standard materials with emissive (body + capstone) — preserve original intensity
-    ud.recolorEmissive.forEach(({ mat, intensity }) => {
-      mat.emissive.copy(newAccent).multiplyScalar(intensity);
-    });
-
-    // Building point light
-    ud.pointLight.color.copy(newAccent);
-
-    // Repaint hologram
-    const ctx = b.userData.holoCanvas.getContext('2d');
-    redrawHologram(ctx, b.userData.holoCanvas.width, b.userData.holoCanvas.height, coin, mode);
-    b.userData.holoTex.needsUpdate = true;
-  });
-
-  // Repaint particles colors based on new accents
-  if (particleSystem) {
-    const colors = particleSystem.geometry.attributes.color.array;
-    for (let i = 0; i < state.particleData.length; i++) {
-      const p = state.particleData[i];
-      const c = p.building.userData.accentColor;
-      const v = 0.6 + Math.random() * 0.4;
-      colors[p.index * 3]     = Math.min(1, c.r * v + 0.1);
-      colors[p.index * 3 + 1] = Math.min(1, c.g * v + 0.1);
-      colors[p.index * 3 + 2] = Math.min(1, c.b * v + 0.1);
-    }
-    particleSystem.geometry.attributes.color.needsUpdate = true;
-  }
-
-  updateLeaderboard();
-  updateTelemetry();
 }
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    applyFilter(btn.dataset.filter);
-    // Top-movers mode is filter-dependent (uses current 24h or 7d %),
-    // so rebuild heights when filter changes.
-    if (state.heightMode === 'movers') applyHeightMode('movers', /*skipFilter*/true);
-  });
+segWire('segPeriod', v => {
+  state.period = v;
+  applyPeriod();
 });
-
-/* =====================================================================
-   HEIGHT MODE SWITCHING (Market Cap / Top Movers)
-   - Replaces every building's geometry/materials with new ones built at
-     the new height. Colors and animation phase are preserved.
-   ===================================================================== */
-function disposeBuildingChildren(b) {
-  // Properly dispose all GPU resources attached to the building's children
-  const children = b.children.slice();
-  for (const c of children) {
-    b.remove(c);
-    if (c.geometry) c.geometry.dispose();
-    if (c.material) {
-      const mats = Array.isArray(c.material) ? c.material : [c.material];
-      for (const m of mats) {
-        if (m.map) m.map.dispose();
-        m.dispose();
-      }
-    }
-    if (c.isLight && c.dispose) c.dispose();
-  }
-}
-
-let _heightSwitching = false;
-function applyHeightMode(mode, skipFilter) {
-  if (_heightSwitching) return;
-  _heightSwitching = true;
-  state.heightMode = mode;
-
-  document.querySelectorAll('.height-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.height === mode);
-    btn.classList.add('rebuilding');
-  });
-
-  // Defer the heavy rebuild one frame so the button click feedback paints first
-  requestAnimationFrame(() => {
-    const heightFn = buildHeightFn(state.coins, mode, state.filter);
-    for (let i = 0; i < state.buildings.length; i++) {
-      const b = state.buildings[i];
-      const coin = b.userData.coin;
-      const isTop = b.userData.isTop;
-      const oldPulseOffset = b.userData.pulseOffset;
-      const newH = heightFn(coin);
-
-      // Dispose old GPU resources
-      disposeBuildingChildren(b);
-      if (b.userData.holoTex) b.userData.holoTex.dispose();
-
-      // Build a fresh tower at same world position with new height
-      const fresh = createBuilding(coin, b.position, newH, isTop);
-      // Transplant children from fresh → b (preserving b's identity for particles)
-      while (fresh.children.length > 0) {
-        const c = fresh.children[0];
-        fresh.remove(c);
-        b.add(c);
-      }
-      // Adopt fresh's userData but keep b's pulseOffset for animation continuity
-      b.userData = fresh.userData;
-      b.userData.pulseOffset = oldPulseOffset;
-      // The fresh group was added to scene by createBuilding — remove it (now empty)
-      scene.remove(fresh);
-    }
-
-    document.querySelectorAll('.height-btn').forEach(btn => btn.classList.remove('rebuilding'));
-
-    // The fresh buildings already used current state.filter for their initial
-    // accent colors, so we don't strictly need a recolor — but call applyFilter
-    // anyway to refresh particles, leaderboard, and telemetry.
-    if (!skipFilter) applyFilter(state.filter);
-
-    _heightSwitching = false;
-  });
-}
-
-document.querySelectorAll('.height-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    if (btn.dataset.height === state.heightMode) return;
-    applyHeightMode(btn.dataset.height);
-  });
+segWire('segCount', v => {
+  state.count = parseInt(v);
+  closePanel();
+  buildCity();
+  refreshHud();
 });
+$('btnOrbit').addEventListener('click', () => {
+  state.autoOrbit = !state.autoOrbit;
+  $('btnOrbit').classList.toggle('on', state.autoOrbit);
+});
+$('btnLegend').addEventListener('click', () => $('legend').classList.add('open'));
+$('legendClose').addEventListener('click', () => $('legend').classList.remove('open'));
+$('legend').addEventListener('click', e => { if (e.target.id === 'legend') $('legend').classList.remove('open'); });
 
-/* =====================================================================
-   HUD - leaderboard + telemetry
-   ===================================================================== */
-function updateLeaderboard() {
-  const el = document.getElementById('leaderboard');
-  if (!el) return;
-  const key = state.filter === '7d' ? 'price_change_percentage_7d_in_currency' : 'price_change_percentage_24h';
-  const sorted = [...state.coins]
-    .filter(c => c[key] != null && !isNaN(c[key]))
-    .sort((a, b) => Math.abs(b[key]) - Math.abs(a[key]))
-    .slice(0, 18);
-
-  el.innerHTML = sorted.map(c => {
-    const v = c[key] || 0;
-    const cls = v >= 0 ? 'up' : 'down';
-    const sign = v >= 0 ? '+' : '';
-    return `<div class="lb-row" data-id="${c.id}">
-      <div class="lb-rank">${c.market_cap_rank || '?'}</div>
-      <div class="lb-name">${(c.symbol || '').toUpperCase()} <span style="opacity:.5;font-size:9px">${c.name}</span></div>
-      <div class="lb-pct ${cls}">${sign}${v.toFixed(2)}%</div>
-    </div>`;
-  }).join('');
-
-  // Click to focus camera on building
-  el.querySelectorAll('.lb-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const id = row.dataset.id;
-      const b = state.buildings.find(b => b.userData.coin.id === id);
-      if (b) {
-        cameraState.target.set(b.position.x, b.userData.height / 2 + 6, b.position.z);
-        cameraState.distance = 50;
-      }
-    });
-  });
+function applyPeriod(){
+  /* atualiza atributo aPerf sem reconstruir nada */
+  if (instMesh){
+    const attr = instMesh.geometry.getAttribute('aPerf');
+    for (let i = 0; i < state.city.length; i++){
+      attr.array[i] = clamp(pctOf(state.city[i].coin, state.period) / 12, -1, 1);
+    }
+    attr.needsUpdate = true;
+  }
+  holoSprites.forEach(s => redrawHoloSprite(s, state.city[s.userData.idx].coin));
+  if (state.hover >= 0){ const h = state.hover; state.hover = -2; setHover(h); }
+  if (state.selected >= 0) openPanel(state.selected);
+  refreshHud();
 }
 
-function updateTelemetry() {
-  const totalMcap = state.coins.reduce((s, c) => s + (c.market_cap || 0), 0);
-  const totalVol = state.coins.reduce((s, c) => s + (c.total_volume || 0), 0);
-  const key = state.filter === '7d' ? 'price_change_percentage_7d_in_currency' : 'price_change_percentage_24h';
-  const ups = state.coins.filter(c => (c[key] || 0) >= 0).length;
-  const downs = state.coins.length - ups;
-
-  document.getElementById('statAssets').textContent = state.coins.length.toString().padStart(3, '0');
-  document.getElementById('statMcap').textContent = '$' + formatBig(totalMcap);
-  document.getElementById('statVolume').textContent = '$' + formatBig(totalVol);
-  document.getElementById('statUp').textContent = ups + ' ▲';
-  document.getElementById('statDown').textContent = downs + ' ▼';
+/* ════════════════════════════════════════════════════════════════
+   SYNC PERIÓDICO
+   ════════════════════════════════════════════════════════════════ */
+async function resync(){
+  try {
+    const [coins, fng] = await Promise.all([fetchCoins(), fetchFng()]);
+    state.coins = coins;
+    state.fng = fng;
+    state.mock = false;
+    $('banner').classList.remove('show');
+    buildCity();
+    refreshHud();
+    refreshFng();
+    if (state.selected >= 0) openPanel(state.selected);
+  } catch(e){
+    /* mantém a cidade atual; tenta de novo no próximo ciclo */
+    console.warn('resync falhou', e);
+  }
+  state.nextSync = performance.now() + REFRESH_MS;
 }
+setInterval(() => {
+  if (state.mock) return;
+  resync();
+}, REFRESH_MS);
+setInterval(() => {
+  const s = Math.max(0, Math.ceil((state.nextSync - performance.now()) / 1000));
+  $('sync').textContent = state.mock ? 'OFFLINE' : 'SYNC ' + String(s).padStart(2, '0') + 's';
+}, 1000);
 
-/* =====================================================================
-   ANIMATION LOOP
-   ===================================================================== */
+/* ════════════════════════════════════════════════════════════════
+   LOOP — com resolução adaptativa
+   ════════════════════════════════════════════════════════════════ */
 const clock = new THREE.Clock();
-let frameCount = 0;
+let frameI = 0, ftAcc = 0, ftN = 0;
 
-function animate() {
+function animate(){
   requestAnimationFrame(animate);
-  const dt = clock.getDelta() * 1000;
-  state.time += dt;
-  frameCount++;
+  const dt = Math.min(clock.getDelta(), 0.1);
+  uniforms.uTime.value += dt;
+  frameI++;
 
-  // Auto-rotate camera
-  if (cameraState.autoRotate) {
-    cameraState.angle += cameraState.autoRotateSpeed * dt;
+  /* órbita */
+  if (state.autoOrbit && !orbit.dragging) orbit.az += dt * 0.045;
+  if (!orbit.dragging){
+    orbit.az += orbit.vAz; orbit.pol += orbit.vPol;
+    orbit.vAz *= 0.92; orbit.vPol *= 0.92;
   }
-  updateCameraPosition();
+  orbit.radius += orbit.vR; orbit.vR *= 0.85;
+  applyCamera();
 
-  // Pulse buildings (window flicker + sweep)
-  for (let i = 0; i < state.buildings.length; i++) {
-    const b = state.buildings[i];
-    const ud = b.userData;
-    const t = state.time * 0.001 + ud.pulseOffset;
-
-    // Subtle flicker on a few floors
-    if (frameCount % 3 === 0 && ud.floorStrips.length > 0) {
-      const flickerCount = Math.min(2, ud.floorStrips.length);
-      for (let f = 0; f < flickerCount; f++) {
-        const fs = ud.floorStrips[Math.floor(Math.random() * ud.floorStrips.length)];
-        fs.strip.material.opacity = fs.baseOpacity * (0.7 + Math.random() * 0.6);
-      }
-    }
-
-    // The "elevator of light" - sweep beams animate
-    const change = (state.filter === '7d')
-      ? (ud.coin.price_change_percentage_7d_in_currency || 0)
-      : (ud.coin.price_change_percentage_24h || 0);
-    const isUp = change >= 0;
-    const speed = 1.2;
-    let sweepY;
-    if (isUp) {
-      // Rising sweep - bottom to top (the "ascending elevator")
-      sweepY = ((t * speed) % 1) * ud.height;
-    } else {
-      // Falling cascade - top to bottom (with flicker)
-      sweepY = (1 - ((t * speed) % 1)) * ud.height;
-    }
-    for (let s = 0; s < ud.sweepMeshes.length; s++) {
-      const sm = ud.sweepMeshes[s];
-      sm.position.y = sweepY;
-      if (isUp) {
-        sm.material.opacity = 0.42 + Math.sin(t * 4 + s) * 0.18;
-      } else {
-        // Cascading + flickering downward beams
-        sm.material.opacity = 0.28 + (Math.random() > 0.7 ? 0.55 : 0.0);
-      }
-    }
-
-    // Top glow pulse
-    if (ud.topGlow) {
-      ud.topGlow.material.opacity = 0.35 + Math.sin(t * 2 + ud.pulseOffset) * 0.15;
-    }
-
-    // Hologram subtle vertical bob
-    if (ud.holoSprite) {
-      ud.holoSprite.position.y = ud.height + (ud.isTop ? 5 : 3.4) + Math.sin(t * 1.5 + ud.pulseOffset) * 0.15;
-    }
+  /* hover (a cada 3 frames, só se o mouse mexeu) */
+  if (frameI % 3 === 0 && mouse.fresh && !orbit.dragging){
+    mouse.fresh = false;
+    setHover(pickBuilding());
+    placeHoverCard();
   }
 
-  // Sun pulse
-  if (sunGroup) {
-    const t = state.time * 0.001;
-    sunGroup.userData.halo1.scale.setScalar(1 + Math.sin(t * 0.7) * 0.04);
-    sunGroup.userData.halo2.scale.setScalar(1 + Math.sin(t * 0.5 + 1) * 0.06);
-    sunGroup.userData.ring.rotation.z = t * 0.2;
-    sunGroup.userData.ring2.rotation.z = -t * 0.15;
+  /* bob dos ícones */
+  if (frameI % 2 === 0){
+    const t = uniforms.uTime.value;
+    cityGroup.children.forEach(o => {
+      if (o.userData.isIcon) o.position.y = o.userData.baseY + Math.sin(t * 1.1 + o.userData.bob) * 0.7;
+    });
   }
 
-  // Particles
-  updateParticles(dt);
-
-  // Hover (every 2 frames for perf)
-  if (frameCount % 2 === 0) updateHover();
+  /* qualidade adaptativa: mira ~50fps */
+  ftAcc += dt; ftN++;
+  if (ftN >= 70){
+    const avg = ftAcc / ftN;
+    if (avg > 0.024 && pxScale > 0.70){
+      pxScale = Math.max(0.70, pxScale - 0.25);
+      renderer.setPixelRatio(pxScale);
+      uniforms.uPx.value = pxScale;
+    } else if (avg < 0.014 && pxScale < BASE_PX){
+      pxScale = Math.min(BASE_PX, pxScale + 0.25);
+      renderer.setPixelRatio(pxScale);
+      uniforms.uPx.value = pxScale;
+    }
+    ftAcc = 0; ftN = 0;
+  }
 
   renderer.render(scene, camera);
 }
 
-/* =====================================================================
-   BOOT
-   ===================================================================== */
-async function init() {
-  setLoader(5, 'BOOTING WORLD ENGINE...');
-  createSkybox();
-  createStars();
-  createGround();
-  createSun();
-
-  setLoader(10, 'CONTACTING DATA NEXUS...');
-  const coins = await fetchCoins();
-  state.coins = coins;
-
-  setLoader(50, 'PROCESSING ' + coins.length + ' ASSETS...');
-
-  const fg = await fetchFearGreed();
-  state.fearGreed = fg;
-  setLoader(70, 'SENTIMENT INDEX = ' + fg.value);
-  applyFearGreed(fg.value, fg.classification);
-
-  // Build buildings using the city-block layout
-  setLoader(80, 'CONSTRUCTING SKYLINE...');
-  const heightFn = buildHeightFn(coins, state.heightMode, state.filter);
-  const slots = generateCitySlots();
-  const used = Math.min(coins.length, slots.length);
-  for (let i = 0; i < used; i++) {
-    const coin = coins[i];
-    const slot = slots[i];
-    const pos = new THREE.Vector3(slot.x, 0, slot.z);
-    const h = heightFn(coin);
-    const isTop = i < TOP_ICON_COUNT;
-    const b = createBuilding(coin, pos, h, isTop);
-    b.rotation.y = slot.rot;            // organic non-grid rotation
-    state.buildings.push(b);
-  }
-
-  setLoader(92, 'ACTIVATING TRAFFIC FLOW...');
-  buildParticles(coins);
-
-  setLoader(96, 'CALIBRATING HUD...');
-  updateLeaderboard();
-  updateTelemetry();
-
-  setLoader(100, 'READY // ENTER GRID');
-  setTimeout(() => {
-    loaderEl.classList.add('hidden');
-    setTimeout(() => loaderEl.style.display = 'none', 800);
-  }, 600);
-
-  animate();
-}
-
-init().catch(err => {
-  console.error('Fatal init error', err);
-  setLoader(100, 'ERROR: ' + (err.message || err));
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
 });
 
-// Expose for debugging in console
-window.NCC = { state, scene, camera, cameraState };
+/* ════════════════════════════════════════════════════════════════
+   BOOT
+   ════════════════════════════════════════════════════════════════ */
+(async function init(){
+  setLoader(12, 'CARREGANDO FONTES…');
+  try {
+    await Promise.all([
+      document.fonts.load('700 76px "Chakra Petch"'),
+      document.fonts.load('400 58px "Share Tech Mono"'),
+    ]);
+  } catch(e){ /* fontes do sistema servem */ }
+
+  setLoader(30, 'CONECTANDO À COINGECKO…');
+  let coins;
+  try {
+    coins = await fetchCoins();
+    setLoader(60, coins.length + ' ATIVOS RECEBIDOS');
+  } catch(e){
+    console.warn('CoinGecko indisponível:', e);
+    coins = mockCoins();
+    state.mock = true;
+    $('banner').classList.add('show');
+    setLoader(60, 'GERANDO CIDADE SINTÉTICA…');
+  }
+  state.coins = coins;
+
+  setLoader(72, 'LENDO SENTIMENTO DO MERCADO…');
+  state.fng = await fetchFng();
+
+  setLoader(86, 'ERGUENDO A SKYLINE…');
+  buildCity();
+  refreshHud();
+  refreshFng();
+  state.nextSync = performance.now() + REFRESH_MS;
+
+  setLoader(100, 'TRANSMISSÃO AO VIVO');
+  applyCamera();
+  animate();
+  setTimeout(() => $('loader').classList.add('hidden'), 450);
+  setTimeout(() => $('hint').classList.add('gone'), 9000);
+
+  /* se começou em mock, tenta reconectar a cada ciclo */
+  if (state.mock){
+    setInterval(async () => {
+      if (!state.mock) return;
+      try {
+        const c = await fetchCoins();
+        state.coins = c; state.mock = false;
+        $('banner').classList.remove('show');
+        state.fng = await fetchFng();
+        buildCity(); refreshHud(); refreshFng();
+        state.nextSync = performance.now() + REFRESH_MS;
+      } catch(e){ /* segue offline */ }
+    }, 45000);
+  }
+})();
 </script>
 </body>
 </html>

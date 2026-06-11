@@ -468,151 +468,6 @@
     background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
   }
 
-  /* ─── Focus Panel ─── */
-  #focusPanel {
-    position: fixed;
-    bottom: 26px;
-    left: 50%;
-    transform: translate(-50%, 14px);
-    width: 300px;
-    background: rgba(8, 6, 16, 0.92);
-    border: 1px solid var(--border-soft);
-    border-radius: 16px;
-    padding: 16px 18px 14px;
-    z-index: 220;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .28s ease, transform .28s cubic-bezier(.4,0,.2,1);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    box-shadow:
-      0 24px 50px rgba(0,0,0,.6),
-      0 0 0 1px rgba(247,147,26,.05),
-      inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  #focusPanel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 18px; right: 18px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    opacity: .6;
-  }
-  #focusPanel.visible {
-    opacity: 1;
-    transform: translate(-50%, 0);
-    pointer-events: auto;
-  }
-  #focusClose {
-    position: absolute;
-    top: 10px; right: 10px;
-    width: 26px; height: 26px;
-    border: 1px solid var(--border-faint);
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 11px;
-    cursor: pointer;
-    transition: .2s;
-  }
-  #focusClose:hover { color: var(--gold); border-color: rgba(247,147,26,.4); }
-  .fp-header {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    margin-bottom: 10px;
-  }
-  #fpIcon {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    border: 1px solid var(--border-soft);
-    background: #0a0814;
-  }
-  .fp-id { min-width: 0; }
-  .fp-name {
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: .04em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 150px;
-  }
-  .fp-symbol {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: .22em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-  .fp-rank {
-    margin-left: auto;
-    margin-right: 24px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--gold-warm);
-    border: 1px solid rgba(247,147,26,.3);
-    border-radius: 100px;
-    padding: 3px 9px;
-  }
-  .fp-price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-  #fpPrice {
-    font-family: var(--font-mono);
-    font-size: 21px;
-    font-weight: 500;
-  }
-  #fpChange { font-size: 12px; font-weight: 600; }
-  #fpChange.green, .fp-grid .green { color: var(--green); }
-  #fpChange.red,   .fp-grid .red   { color: var(--red); }
-  #fpSpark {
-    display: block;
-    width: 100%;
-    height: 52px;
-    margin: 2px 0 2px;
-  }
-  .fp-spark-cap {
-    font-size: 9px;
-    letter-spacing: .28em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-  .fp-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 7px 14px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-faint);
-  }
-  .fp-grid > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 8px;
-  }
-  .fp-grid span {
-    font-size: 9px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-  .fp-grid b {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    #focusPanel, #tooltip, .btn, .icon-btn, .stars-toggle { transition: none; }
-  }
-
   /* ─── Mobile ─── */
   @media (max-width: 768px) {
     #header { top: 14px; left: 16px; }
@@ -668,13 +523,6 @@
       max-width: 340px;
       padding: 14px 16px;
     }
-
-    /* focus card floats above the bottom control dock */
-    #focusPanel {
-      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-      width: calc(100vw - 28px);
-      max-width: 340px;
-    }
   }
 
   /* Short / landscape phones: keep header from crowding controls */
@@ -709,13 +557,6 @@
       <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/>
     </svg>
     <span id="starsLabel">Stars On</span>
-  </button>
-  <button class="stars-toggle" id="btnGlow" title="Toggle cinematic bloom">
-    <svg class="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"></circle>
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"></path>
-    </svg>
-    <span id="glowLabel">Glow On</span>
   </button>
   <div class="toggle-group">
     <button class="btn active" id="btn1D">1D</button>
@@ -755,7 +596,6 @@
   <div class="legend-line"><span class="dot green"></span>Clockwise orbit · <span id="legendUp">24h ↑</span></div>
   <div class="legend-line"><span class="dot red"></span>Counter-clockwise orbit · <span id="legendDown">24h ↓</span></div>
   <div class="legend-line" style="margin-top:6px; color: var(--text-muted); font-size:10px;">Speed ∝ |% <span id="legendAbs">24h</span>|</div>
-  <div class="legend-line" style="margin-top:2px; color: var(--text-muted); font-size:10px;">Click a planet to focus · Esc releases</div>
 </div>
 
 <!-- Tooltip -->
@@ -764,47 +604,11 @@
 <!-- Notification -->
 <div id="notification">Data updated</div>
 
-<!-- Focus panel — opens when a world is selected -->
-<div id="focusPanel" role="dialog" aria-label="Coin details">
-  <button id="focusClose" title="Exit focus" aria-label="Exit focus">✕</button>
-  <div class="fp-header">
-    <img id="fpIcon" alt="" onerror="this.style.opacity=0.3">
-    <div class="fp-id">
-      <div id="fpName" class="fp-name"></div>
-      <div id="fpSymbol" class="fp-symbol"></div>
-    </div>
-    <div id="fpRank" class="fp-rank"></div>
-  </div>
-  <div class="fp-price-row">
-    <span id="fpPrice"></span>
-    <span id="fpChange"></span>
-  </div>
-  <canvas id="fpSpark" height="52"></canvas>
-  <div class="fp-spark-cap">7-day price</div>
-  <div class="fp-grid">
-    <div><span>Market Cap</span><b id="fpMcap"></b></div>
-    <div><span>Volume 24h</span><b id="fpVol"></b></div>
-    <div><span>High 24h</span><b id="fpHigh"></b></div>
-    <div><span>Low 24h</span><b id="fpLow"></b></div>
-    <div><span>ATH</span><b id="fpAth"></b></div>
-    <div><span>From ATH</span><b id="fpAthPct"></b></div>
-  </div>
-</div>
-
 <!-- Vignette -->
 <div class="vignette"></div>
 
 <!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<!-- Post-processing (cinematic bloom). If any fail to load, the app
-     gracefully falls back to direct rendering — nothing breaks. -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
 <script>
 /* ════════════════════════════════════════════════════════════════
@@ -818,7 +622,6 @@ const ORBIT_BASE = 22;
 const ORBIT_STEP = 4.6;
 const PLANET_MIN = 0.5;
 const PLANET_MAX = 3.4;
-const TRAIL_SEGS = 26;        // segments per orbital motion trail
 
 // ─────────────── State ───────────────
 let scene, camera, renderer, controls;
@@ -837,18 +640,6 @@ let lastFetchOK = true;
 let refreshTimer = null;
 let isFetching = false;
 let clock;
-// — Fable 5 additions —
-let composer = null, bloomPass = null;
-let bloomOn = true;
-let milkyWay = null;
-let galaxySprites = [];
-let heroStarSprites = [];
-let asteroidBelt = null;
-let focused = null;            // planet/sun object currently followed
-let focusReturning = false;    // camera easing back to origin
-let focusStartedAt = 0;
-let lastHoverRing = null;
-let _downPos = null;           // for click-vs-drag discrimination
 
 // ─────────────── Init ───────────────
 function init() {
@@ -874,8 +665,6 @@ function init() {
   renderer.toneMappingExposure = 1.15;
   renderer.outputEncoding = THREE.sRGBEncoding;
   document.body.appendChild(renderer.domElement);
-
-  setupComposer();
 
   controls = new SimpleOrbitControls(camera, renderer.domElement);
   controls.target.set(0, 0, 0);
@@ -907,9 +696,6 @@ function init() {
 
   buildStarfield();
   buildNebulae();
-  buildMilkyWay();
-  buildGalaxies();
-  buildHeroStars();
   cometSystem = new CometSystem(scene);
 
   // Events
@@ -921,33 +707,6 @@ function init() {
   });
   renderer.domElement.addEventListener('touchstart', onTouchTap);
 
-  // Click vs drag discrimination → click/tap focuses a world
-  renderer.domElement.addEventListener('mousedown', e => {
-    _downPos = { x: e.clientX, y: e.clientY };
-  });
-  window.addEventListener('mouseup', e => {
-    if (!_downPos) return;
-    const dx = e.clientX - _downPos.x, dy = e.clientY - _downPos.y;
-    if (dx * dx + dy * dy < 36) handlePick(e.clientX, e.clientY);
-    _downPos = null;
-  });
-  renderer.domElement.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-      _downPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else _downPos = null;
-  }, { passive: true });
-  renderer.domElement.addEventListener('touchend', e => {
-    if (!_downPos || !e.changedTouches.length) return;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - _downPos.x, dy = t.clientY - _downPos.y;
-    if (dx * dx + dy * dy < 144) handlePick(t.clientX, t.clientY);
-    _downPos = null;
-  });
-  window.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && (focused || focusReturning)) exitFocus();
-  });
-  document.getElementById('focusClose').addEventListener('click', exitFocus);
-
   document.getElementById('btn25').addEventListener('click', () => switchLimit(25));
   document.getElementById('btn50').addEventListener('click', () => switchLimit(50));
   document.getElementById('btn1D').addEventListener('click',  () => switchPeriod('24h'));
@@ -957,13 +716,6 @@ function init() {
     if (!isFetching) loadData(true);
   });
   document.getElementById('btnStars').addEventListener('click', toggleAmbience);
-  document.getElementById('btnGlow').addEventListener('click', toggleGlow);
-
-  // Bloom defaults off on small/portrait screens (GPU budget); one tap enables it
-  if (isNarrowViewport()) {
-    bloomOn = false;
-    syncGlowButton();
-  }
 
   // First fetch + animation loop
   loadData(false);
@@ -1069,117 +821,19 @@ function makeStarTexture() {
   return t;
 }
 
-// ─────────────── Post-processing (cinematic bloom) ───────────────
-// UnrealBloom gives every emissive element — sun corona, star points,
-// comet trails, price labels — a soft photographic halo. A final gamma
-// pass restores sRGB (render targets are linear in r128).
-function setupComposer() {
-  if (!THREE.EffectComposer || !THREE.RenderPass || !THREE.UnrealBloomPass ||
-      !THREE.ShaderPass || !THREE.CopyShader || !THREE.LuminosityHighPassShader ||
-      !THREE.GammaCorrectionShader) {
-    bloomOn = false;
-    const b = document.getElementById('btnGlow');
-    if (b) b.style.display = 'none';
-    return;
-  }
-  composer = new THREE.EffectComposer(renderer);
-  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-  composer.setSize(window.innerWidth, window.innerHeight);
-  composer.addPass(new THREE.RenderPass(scene, camera));
-  bloomPass = new THREE.UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.55,   // strength — restrained; the scene already glows
-    0.85,   // radius — wide, soft falloff
-    0.55    // threshold — only genuinely bright pixels bloom
-  );
-  composer.addPass(bloomPass);
-  composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
-}
-
-function syncGlowButton() {
-  const btn = document.getElementById('btnGlow');
-  if (!btn) return;
-  btn.classList.toggle('off', !bloomOn);
-  document.getElementById('glowLabel').textContent = bloomOn ? 'Glow On' : 'Glow Off';
-}
-
-function toggleGlow() {
-  if (!composer) return;
-  bloomOn = !bloomOn;
-  syncGlowButton();
-}
-
 // ─────────────── Nebulae (atmospheric depth) ───────────────
-// Each nebula is a unique procedural canvas: dozens of soft, hue-jittered
-// blobs under a radial mask, so the clouds read as structured gas rather
-// than a flat radial glow.
-function makeNebulaTexture(baseColor) {
-  const S = 512;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const ctx = c.getContext('2d');
-  const r0 = (baseColor >> 16) & 255, g0 = (baseColor >> 8) & 255, b0 = baseColor & 255;
-
-  for (let i = 0; i < 46; i++) {
-    // Cluster blobs toward the center with gaussian-ish spread
-    const ang = Math.random() * Math.PI * 2;
-    const dist = Math.pow(Math.random(), 1.7) * S * 0.34;
-    const x = S / 2 + Math.cos(ang) * dist;
-    const y = S / 2 + Math.sin(ang) * dist * 0.8;
-    const rad = 30 + Math.random() * 110;
-    const hueJit = (Math.random() - 0.5) * 70;
-    const r = Math.max(0, Math.min(255, r0 + hueJit));
-    const g = Math.max(0, Math.min(255, g0 + hueJit * 0.5));
-    const b = Math.max(0, Math.min(255, b0 - hueJit * 0.4));
-    const a = 0.04 + Math.random() * 0.10;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${a})`);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  // Bright filaments
-  for (let i = 0; i < 9; i++) {
-    const x = S * (0.3 + Math.random() * 0.4);
-    const y = S * (0.3 + Math.random() * 0.4);
-    const rad = 14 + Math.random() * 40;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    grad.addColorStop(0, `rgba(255,255,255,${0.05 + Math.random() * 0.07})`);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  // Embedded micro-stars
-  for (let i = 0; i < 50; i++) {
-    const x = S * (0.2 + Math.random() * 0.6);
-    const y = S * (0.2 + Math.random() * 0.6);
-    ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.random() * 0.5})`;
-    ctx.beginPath();
-    ctx.arc(x, y, 0.5 + Math.random() * 1.1, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Radial mask so the sprite edge never shows
-  const mask = ctx.createRadialGradient(S/2, S/2, S * 0.18, S/2, S/2, S * 0.5);
-  mask.addColorStop(0, 'rgba(0,0,0,0)');
-  mask.addColorStop(1, 'rgba(0,0,0,1)');
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.fillStyle = mask;
-  ctx.fillRect(0, 0, S, S);
-  ctx.globalCompositeOperation = 'source-over';
-  return new THREE.CanvasTexture(c);
-}
-
 function buildNebulae() {
-  const defs = [
-    { color: 0x4a36b8, scale: 720, opacity: 0.55, pos: [-400, 80, -350] },
-    { color: 0xb84a64, scale: 660, opacity: 0.42, pos: [350, -60, -400] },
-    { color: 0x3464c0, scale: 820, opacity: 0.40, pos: [100, 200, -600] },
-    { color: 0x8a48c8, scale: 560, opacity: 0.36, pos: [-300, -150, 200] },
-    { color: 0x2e8a8a, scale: 500, opacity: 0.30, pos: [420, 160, 280] },
+  const colors = [
+    { color: 0x3a2a8a, scale: 700, opacity: 0.13, pos: [-400, 80, -350] },
+    { color: 0x8a3a4a, scale: 650, opacity: 0.10, pos: [350, -60, -400] },
+    { color: 0x2a4a8a, scale: 800, opacity: 0.09, pos: [100, 200, -600] },
+    { color: 0x6a3a8a, scale: 550, opacity: 0.08, pos: [-300, -150, 200] },
   ];
-  defs.forEach(n => {
+  const tex = makeStarTexture();
+  colors.forEach(n => {
     const m = new THREE.SpriteMaterial({
-      map: makeNebulaTexture(n.color),
+      map: tex,
+      color: n.color,
       transparent: true,
       opacity: n.opacity,
       blending: THREE.AdditiveBlending,
@@ -1191,356 +845,6 @@ function buildNebulae() {
     scene.add(s);
     nebulae.push(s);
   });
-}
-
-// ─────────────── Milky Way band ───────────────
-// A vast inward-facing sphere painted with a hazy diagonal band of gas,
-// dust gaps and thousands of pin stars — the backdrop the whole system
-// floats in. Additive, so unpainted black stays invisible.
-function makeMilkyWayCanvas() {
-  const W = 2048, H = 1024;
-  const c = document.createElement('canvas');
-  c.width = W; c.height = H;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, W, H);
-
-  const bandY = (x) => H * 0.5 + Math.sin(x / W * Math.PI * 2) * H * 0.06;
-
-  // Hazy gas blobs along the band
-  for (let i = 0; i < 420; i++) {
-    const x = Math.random() * W;
-    const spread = H * (0.04 + Math.pow(Math.random(), 2.2) * 0.13);
-    const y = bandY(x) + (Math.random() - 0.5) * 2 * spread;
-    const rad = 18 + Math.random() * 90;
-    const warm = Math.random() < 0.3;
-    const rr = warm ? 90 + Math.random() * 60 : 50 + Math.random() * 40;
-    const gg = warm ? 70 + Math.random() * 40 : 60 + Math.random() * 40;
-    const bb = warm ? 50 + Math.random() * 30 : 110 + Math.random() * 70;
-    const a = 0.012 + Math.random() * 0.03;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    grad.addColorStop(0, `rgba(${rr|0},${gg|0},${bb|0},${a})`);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  // Bright core region
-  for (let i = 0; i < 70; i++) {
-    const x = W * 0.5 + (Math.random() - 0.5) * W * 0.22;
-    const y = bandY(x) + (Math.random() - 0.5) * H * 0.07;
-    const rad = 25 + Math.random() * 70;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
-    grad.addColorStop(0, `rgba(255,${215 + Math.random()*30|0},${160 + Math.random()*50|0},${0.02 + Math.random() * 0.035})`);
-    grad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  }
-  // Micro stars — dense in the band, sparse elsewhere
-  for (let i = 0; i < 5200; i++) {
-    const inBand = Math.random() < 0.78;
-    const x = Math.random() * W;
-    const y = inBand
-      ? bandY(x) + (Math.random() - 0.5) * H * 0.30 * Math.pow(Math.random(), 1.4)
-      : Math.random() * H;
-    const a = 0.12 + Math.random() * 0.55;
-    const s = Math.random() < 0.04 ? 1.5 : 0.7;
-    ctx.fillStyle = `rgba(255,255,255,${a})`;
-    ctx.fillRect(x, y, s, s);
-  }
-  return c;
-}
-
-function buildMilkyWay() {
-  const tex = new THREE.CanvasTexture(makeMilkyWayCanvas());
-  const mat = new THREE.MeshBasicMaterial({
-    map: tex,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.7,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    fog: false,
-  });
-  milkyWay = new THREE.Mesh(new THREE.SphereGeometry(2400, 48, 32), mat);
-  milkyWay.rotation.z = 0.42;
-  milkyWay.rotation.x = 0.18;
-  milkyWay.renderOrder = -10;
-  scene.add(milkyWay);
-}
-
-// ─────────────── Distant galaxies ───────────────
-function makeGalaxyCanvas() {
-  const S = 256;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const ctx = c.getContext('2d');
-  ctx.translate(S / 2, S / 2);
-  const tilt = Math.random() * Math.PI;
-  ctx.rotate(tilt);
-  const squash = 0.28 + Math.random() * 0.3;
-  // Disc — layered ellipses, dimmer outward
-  for (let i = 5; i >= 0; i--) {
-    const r = (S * 0.46) * (i + 1) / 6;
-    const a = 0.05 + (5 - i) * 0.035;
-    ctx.fillStyle = `rgba(${190 + Math.random()*40|0},${185 + Math.random()*30|0},${230},${a})`;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, r, r * squash, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Core
-  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.12);
-  core.addColorStop(0, 'rgba(255,245,220,0.95)');
-  core.addColorStop(1, 'rgba(255,235,200,0)');
-  ctx.fillStyle = core;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, S * 0.12, S * 0.12 * (squash + 0.4), 0, 0, Math.PI * 2);
-  ctx.fill();
-  return new THREE.CanvasTexture(c);
-}
-
-function buildGalaxies() {
-  for (let i = 0; i < 6; i++) {
-    const m = new THREE.SpriteMaterial({
-      map: makeGalaxyCanvas(),
-      transparent: true,
-      opacity: 0.22 + Math.random() * 0.22,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      fog: false,
-    });
-    m.rotation = Math.random() * Math.PI * 2;
-    const s = new THREE.Sprite(m);
-    const r = 1700 + Math.random() * 500;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    s.position.set(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta),
-      r * Math.cos(phi)
-    );
-    const sc = 60 + Math.random() * 90;
-    s.scale.set(sc, sc, 1);
-    s.userData.spin = (Math.random() < 0.5 ? -1 : 1) * (0.004 + Math.random() * 0.008);
-    scene.add(s);
-    galaxySprites.push(s);
-  }
-}
-
-// ─────────────── Hero stars (diffraction spikes) ───────────────
-function makeSpikeTexture() {
-  const S = 128;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const ctx = c.getContext('2d');
-  const cx = S / 2;
-  // Center glow
-  const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, S * 0.18);
-  g.addColorStop(0, 'rgba(255,255,255,1)');
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, S, S);
-  // Four spikes
-  const spike = (vert) => {
-    const lg = vert
-      ? ctx.createLinearGradient(cx, 0, cx, S)
-      : ctx.createLinearGradient(0, cx, S, cx);
-    lg.addColorStop(0,   'rgba(255,255,255,0)');
-    lg.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    lg.addColorStop(1,   'rgba(255,255,255,0)');
-    ctx.fillStyle = lg;
-    if (vert) ctx.fillRect(cx - 1, 0, 2, S);
-    else      ctx.fillRect(0, cx - 1, S, 2);
-  };
-  spike(true); spike(false);
-  return new THREE.CanvasTexture(c);
-}
-
-function buildHeroStars() {
-  const tex = makeSpikeTexture();
-  const tints = [0xffffff, 0xcfe2ff, 0xffe8c0, 0xd8ccff, 0xc8fff4];
-  for (let i = 0; i < 26; i++) {
-    const m = new THREE.SpriteMaterial({
-      map: tex,
-      color: tints[Math.floor(Math.random() * tints.length)],
-      transparent: true,
-      opacity: 0.5,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      fog: false,
-    });
-    const s = new THREE.Sprite(m);
-    const r = 900 + Math.random() * 1300;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    s.position.set(
-      r * Math.sin(phi) * Math.cos(theta),
-      r * Math.sin(phi) * Math.sin(theta),
-      r * Math.cos(phi)
-    );
-    const sc = 9 + Math.random() * 16;
-    s.scale.set(sc, sc, 1);
-    s.userData.phase = Math.random() * Math.PI * 2;
-    s.userData.speed = 0.5 + Math.random() * 1.1;
-    s.userData.base  = 0.32 + Math.random() * 0.3;
-    scene.add(s);
-    heroStarSprites.push(s);
-  }
-}
-
-// ─────────────── Asteroid belt (Kuiper fringe) ───────────────
-// A field of instanced rocks just outside the outermost orbit — one draw
-// call regardless of count. Rebuilt whenever the planet limit changes.
-function rebuildAsteroidBelt() {
-  if (asteroidBelt) {
-    scene.remove(asteroidBelt);
-    asteroidBelt.geometry.dispose();
-    asteroidBelt.material.dispose();
-    asteroidBelt = null;
-  }
-  const outer = ORBIT_BASE + (currentLimit - 1) * ORBIT_STEP;
-  const inner = outer + 9;
-  const width = 18;
-  const count = isNarrowViewport() ? 340 : 680;
-
-  const geom = new THREE.DodecahedronGeometry(1, 0);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xffffff, roughness: 0.95, metalness: 0.05,
-  });
-  const mesh = new THREE.InstancedMesh(geom, mat, count);
-  const dummy = new THREE.Object3D();
-  const col = new THREE.Color();
-  for (let i = 0; i < count; i++) {
-    const r = inner + Math.pow(Math.random(), 0.85) * width;
-    const a = Math.random() * Math.PI * 2;
-    dummy.position.set(Math.cos(a) * r, (Math.random() - 0.5) * 2.4, Math.sin(a) * r);
-    const s = 0.07 + Math.random() * 0.30;
-    dummy.scale.set(
-      s * (0.7 + Math.random() * 0.6),
-      s * (0.7 + Math.random() * 0.6),
-      s * (0.7 + Math.random() * 0.6)
-    );
-    dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-    dummy.updateMatrix();
-    mesh.setMatrixAt(i, dummy.matrix);
-    const shade = 0.35 + Math.random() * 0.42;
-    col.setRGB(shade * 1.05, shade * 0.95, shade * 0.85);
-    mesh.setColorAt(i, col);
-  }
-  mesh.instanceMatrix.needsUpdate = true;
-  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  mesh.visible = ambienceOn;
-  asteroidBelt = mesh;
-  scene.add(mesh);
-}
-
-// ─────────────── Saturn-style rings & orbit trails helpers ───────────────
-function hashStr(s) {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
-// Planar ring texture: concentric translucent bands with a Cassini-like gap
-function makeSaturnRingTexture() {
-  const S = 256;
-  const c = document.createElement('canvas');
-  c.width = c.height = S;
-  const ctx = c.getContext('2d');
-  const cx = S / 2;
-  for (let r = S * 0.30; r < S * 0.5; r += 1) {
-    const t = (r - S * 0.30) / (S * 0.2);     // 0 inner → 1 outer
-    let a = 0.55 * (0.35 + 0.65 * Math.sin(t * Math.PI));   // fade both edges
-    a *= 0.6 + 0.4 * Math.sin(t * 40 + Math.sin(t * 13) * 3); // fine banding
-    if (t > 0.62 && t < 0.70) a *= 0.15;       // gap
-    ctx.strokeStyle = `rgba(255,255,255,${Math.max(0, a)})`;
-    ctx.beginPath();
-    ctx.arc(cx, cx, r, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  return new THREE.CanvasTexture(c);
-}
-
-// Lightens a hex color toward white for ring tinting
-function lightenHex(hex, k) {
-  const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
-  const lr = Math.min(255, r + (255 - r) * k) | 0;
-  const lg = Math.min(255, g + (255 - g) * k) | 0;
-  const lb = Math.min(255, b + (255 - b) * k) | 0;
-  return (lr << 16) | (lg << 8) | lb;
-}
-
-// Analytic orbital motion trail: a tapered ribbon laid flat in the orbital
-// plane, tracing the arc the planet just travelled. Length & opacity scale
-// with the coin's % change, and color matches direction (green = direct
-// orbit/gain, red = retrograde/loss). Costs ~26 sin/cos per planet per frame.
-function makeOrbitTrail(p) {
-  const N = TRAIL_SEGS;
-  const posArr = new Float32Array(N * 2 * 3);
-  const colArr = new Float32Array(N * 2 * 3);
-  const indices = [];
-  for (let i = 0; i < N - 1; i++) {
-    const a = i * 2, b = i * 2 + 1, c2 = (i + 1) * 2, d = (i + 1) * 2 + 1;
-    indices.push(a, c2, b, b, c2, d);
-  }
-  const geom = new THREE.BufferGeometry();
-  geom.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-  geom.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
-  geom.setIndex(indices);
-  const mat = new THREE.MeshBasicMaterial({
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.5,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-  });
-  const mesh = new THREE.Mesh(geom, mat);
-  mesh.frustumCulled = false;
-  mesh.renderOrder = 3;
-  scene.add(mesh);
-  const trail = { mesh, geom, mat, posArr, colArr, N };
-  recolorOrbitTrail(trail, p);
-  return trail;
-}
-
-function recolorOrbitTrail(trail, p) {
-  const change = getCoinChange(p.coin);
-  const hex = change >= 0 ? 0x4ade80 : 0xf87171;
-  const r0 = ((hex >> 16) & 255) / 255;
-  const g0 = ((hex >> 8) & 255) / 255;
-  const b0 = (hex & 255) / 255;
-  for (let i = 0; i < trail.N; i++) {
-    const t = 1 - i / (trail.N - 1);
-    const fade = t * t;
-    const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
-    trail.colArr[i0] = r0 * fade; trail.colArr[i0+1] = g0 * fade; trail.colArr[i0+2] = b0 * fade;
-    trail.colArr[i1] = r0 * fade; trail.colArr[i1+1] = g0 * fade; trail.colArr[i1+2] = b0 * fade;
-  }
-  trail.geom.attributes.color.needsUpdate = true;
-  trail.mat.opacity = 0.16 + Math.min(Math.abs(change), 30) / 30 * 0.5;
-}
-
-function updateOrbitTrail(p) {
-  const trail = p.trail;
-  if (!trail) return;
-  const N = trail.N;
-  const dir = p.speed >= 0 ? 1 : -1;
-  const arc = 0.22 + Math.min(Math.abs(p.speed), 2.2) * 0.55;   // radians
-  const y = p.group.position.y;
-  for (let i = 0; i < N; i++) {
-    const t = i / (N - 1);
-    const a = p.angle - dir * t * arc;
-    const ca = Math.cos(a), sa = Math.sin(a);
-    const w = p.trailWidth * (1 - t);
-    const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
-    trail.posArr[i0]     = ca * (p.distance + w);
-    trail.posArr[i0 + 1] = y;
-    trail.posArr[i0 + 2] = sa * (p.distance + w);
-    trail.posArr[i1]     = ca * (p.distance - w);
-    trail.posArr[i1 + 1] = y;
-    trail.posArr[i1 + 2] = sa * (p.distance - w);
-  }
-  trail.geom.attributes.position.needsUpdate = true;
 }
 
 // ─────────────── Comets (cinematic ribbon-trail) ───────────────
@@ -1824,70 +1128,6 @@ function buildSun(coin) {
   far.scale.set(SUN_RADIUS * 13, SUN_RADIUS * 13, 1);
   group.add(far);
 
-  // Fresnel atmosphere shell — a view-dependent rim of fire that hugs the
-  // limb of the sun and shifts as the camera moves. With bloom on, this is
-  // what makes the star feel volumetric instead of painted.
-  const fresnelMat = new THREE.ShaderMaterial({
-    uniforms: {
-      glowColor: { value: new THREE.Color(0xffa53c) },
-      uTime: { value: 0 },
-    },
-    vertexShader: `
-      varying float vIntensity;
-      void main() {
-        vec3 n = normalize(normalMatrix * normal);
-        vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        vec3 viewDir = normalize(-mv.xyz);
-        float facing = abs(dot(n, viewDir));
-        vIntensity = pow(1.0 - facing, 2.6);
-        gl_Position = projectionMatrix * mv;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 glowColor;
-      uniform float uTime;
-      varying float vIntensity;
-      void main() {
-        float flicker = 0.92 + 0.08 * sin(uTime * 3.1) * sin(uTime * 1.7);
-        gl_FragColor = vec4(glowColor * vIntensity * 1.6 * flicker, vIntensity);
-      }
-    `,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  const fresnel = new THREE.Mesh(
-    new THREE.SphereGeometry(SUN_RADIUS * 1.22, 64, 64),
-    fresnelMat
-  );
-  group.add(fresnel);
-
-  // Anamorphic lens flare — thin horizontal light streak across the star
-  const flareC = document.createElement('canvas');
-  flareC.width = 512; flareC.height = 64;
-  const fctx = flareC.getContext('2d');
-  const fg = fctx.createLinearGradient(0, 0, 512, 0);
-  fg.addColorStop(0,    'rgba(255,200,120,0)');
-  fg.addColorStop(0.5,  'rgba(255,236,200,0.9)');
-  fg.addColorStop(1,    'rgba(255,200,120,0)');
-  fctx.fillStyle = fg;
-  fctx.fillRect(0, 26, 512, 12);
-  const fg2 = fctx.createLinearGradient(0, 0, 512, 0);
-  fg2.addColorStop(0,   'rgba(255,160,60,0)');
-  fg2.addColorStop(0.5, 'rgba(255,190,110,0.35)');
-  fg2.addColorStop(1,   'rgba(255,160,60,0)');
-  fctx.fillStyle = fg2;
-  fctx.fillRect(0, 14, 512, 36);
-  const flare = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: new THREE.CanvasTexture(flareC),
-    transparent: true,
-    opacity: 0.5,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  }));
-  flare.scale.set(SUN_RADIUS * 10, SUN_RADIUS * 1.1, 1);
-  group.add(flare);
-
   // Floating BTC icon (Sims-plumbob style — hovers above the sun)
   const iconSprite = makeFloatingIconSprite(coin.image, true);
   const iconSize = 5.2;
@@ -1904,8 +1144,7 @@ function buildSun(coin) {
   scene.add(group);
 
   sun = {
-    group, surface, inner, outer, far, fresnel, fresnelMat, flare,
-    iconSprite, priceLabel,
+    group, surface, inner, outer, far, iconSprite, priceLabel,
     iconBaseY,
     coin, isSun: true,
     mesh: surface, // for raycasting
@@ -2023,28 +1262,6 @@ function buildPlanet(coin, idx, btcMc) {
   atmo.scale.set(atmoSize, atmoSize, 1);
   group.add(atmo);
 
-  // ~1 in 4 worlds (deterministic per coin, stable across refreshes) gets a
-  // Saturn-style ring system, tinted with the coin's brand color once the
-  // icon loads. Gives the field silhouette variety at a glance.
-  let saturnMat = null;
-  if (hashStr(coin.id) % 4 === 0) {
-    saturnMat = new THREE.MeshBasicMaterial({
-      map: makeSaturnRingTexture(),
-      color: 0x9aa4c0,
-      transparent: true,
-      opacity: 0.9,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
-    const saturnRing = new THREE.Mesh(
-      new THREE.RingGeometry(radius * 1.45, radius * 2.35, 96, 1),
-      saturnMat
-    );
-    saturnRing.rotation.x = Math.PI / 2 + (Math.random() < 0.5 ? 1 : -1) * (0.25 + Math.random() * 0.25);
-    saturnRing.rotation.y = (Math.random() - 0.5) * 0.4;
-    group.add(saturnRing);
-  }
-
   // Floating coin icon (Sims-plumbob style — bobs gently above the planet).
   // The third arg is a callback that fires once the icon image has been
   // analyzed; we use it to recolor this planet to match the coin's brand.
@@ -2057,7 +1274,6 @@ function buildPlanet(coin, idx, btcMc) {
     planetMat.needsUpdate = true;
     if (old) old.dispose();
     atmoMat.color.setHex(dominantColor);
-    if (saturnMat) saturnMat.color.setHex(lightenHex(dominantColor, 0.45));
   });
   const iconSize = Math.max(1.8, radius * 1.3);
   iconSprite.scale.set(iconSize, iconSize, 1);
@@ -2100,18 +1316,14 @@ function buildPlanet(coin, idx, btcMc) {
   const direction = change >= 0 ? 1 : -1;
   const speed = (baseSpeed / Math.sqrt(distance / 20)) * speedMult * direction;
 
-  const p = {
-    group, mesh, atmo, iconSprite, priceLabel, ring, ringMat,
+  return {
+    group, mesh, atmo, iconSprite, priceLabel, ring,
     coin, distance, angle, speed, radius,
     iconBaseY,
-    trail: null,
-    trailWidth: radius * 0.4 + 0.12,
     bobPhase: Math.random() * Math.PI * 2,   // staggers planet bobs
     rotationSpeed: 0.06 + Math.random() * 0.10,
     isSun: false,
   };
-  p.trail = makeOrbitTrail(p);
-  return p;
 }
 
 function makePlanetTexture(baseColor, hue) {
@@ -2350,7 +1562,7 @@ function periodLabel() {
 async function fetchCoins(limit) {
   // Request all three period changes at once so the user can switch
   // between 1D/7D/30D instantly without hitting the API again.
-  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&price_change_percentage=24h,7d,30d&sparkline=true`;
+  const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=${limit}&page=1&price_change_percentage=24h,7d,30d`;
   const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return await res.json();
@@ -2395,7 +1607,6 @@ function rebuild(data) {
     scene.remove(sun.group);
     sun = null;
   }
-  if (focused) exitFocus();
   planets.forEach(p => {
     disposeGroup(p.group);
     scene.remove(p.group);
@@ -2404,14 +1615,8 @@ function rebuild(data) {
       p.ring.material.dispose();
       scene.remove(p.ring);
     }
-    if (p.trail) {
-      p.trail.geom.dispose();
-      p.trail.mat.dispose();
-      scene.remove(p.trail.mesh);
-    }
   });
   planets = [];
-  lastHoverRing = null;
 
   if (!data || !data.length) return;
 
@@ -2422,8 +1627,6 @@ function rebuild(data) {
   others.forEach((coin, i) => {
     planets.push(buildPlanet(coin, i, btc.market_cap));
   });
-
-  rebuildAsteroidBelt();
 }
 
 function disposeGroup(group) {
@@ -2453,9 +1656,6 @@ function animate() {
   // Sun rotation + glow pulsation
   if (sun) {
     sun.surface.rotation.y += dt * 0.12;
-    sun.surface.material.map.offset.x += dt * 0.004;   // slow surface churn
-    if (sun.fresnelMat) sun.fresnelMat.uniforms.uTime.value = t;
-    if (sun.flare) sun.flare.material.opacity = 0.40 + Math.sin(t * 0.9) * 0.12;
     sun.inner.material.opacity = 0.78 + Math.sin(t * 1.2) * 0.08;
     sun.outer.material.opacity = 0.50 + Math.sin(t * 0.7) * 0.10;
     sun.far.material.opacity   = 0.18 + Math.sin(t * 0.4) * 0.05;
@@ -2473,7 +1673,6 @@ function animate() {
     p.group.position.x = Math.cos(p.angle) * p.distance;
     p.group.position.z = Math.sin(p.angle) * p.distance;
     p.mesh.rotation.y += dt * p.rotationSpeed;
-    updateOrbitTrail(p);
     // Plumbob bob — Sims-style hover, with each planet on its own phase
     if (p.iconSprite) {
       const bob = Math.sin(t * 1.6 + p.bobPhase) * 0.20;
@@ -2496,39 +1695,6 @@ function animate() {
     if (starField.material.uniforms) starField.material.uniforms.time.value = t;
   }
 
-  // Asteroid belt — slow Keplerian drift
-  if (asteroidBelt) asteroidBelt.rotation.y = t * 0.008;
-
-  // Milky way — imperceptible parallax rotation
-  if (milkyWay) milkyWay.rotation.y = t * 0.0022;
-
-  // Distant galaxies spin in place
-  galaxySprites.forEach(g => { g.material.rotation += dt * g.userData.spin; });
-
-  // Hero star shimmer
-  for (let i = 0; i < heroStarSprites.length; i++) {
-    const h = heroStarSprites[i];
-    h.material.opacity = h.userData.base + Math.sin(t * h.userData.speed + h.userData.phase) * 0.18;
-  }
-
-  // Focus camera: glide toward & track the selected world
-  if (focused) {
-    controls.target.lerp(focused.group.position, 0.10);
-    const desired = Math.max(
-      controls.minDistance,
-      (focused.isSun ? SUN_RADIUS : focused.radius) * 7 + 9
-    );
-    if (performance.now() - focusStartedAt < 1600) {
-      controls.radius += (desired - controls.radius) * 0.06;
-    }
-  } else if (focusReturning) {
-    controls.target.multiplyScalar(0.93);   // ease back to the origin
-    if (controls.target.lengthSq() < 0.2) {
-      controls.target.set(0, 0, 0);
-      focusReturning = false;
-    }
-  }
-
   // Comets
   if (cometSystem) cometSystem.update(dt, t);
 
@@ -2536,8 +1702,7 @@ function animate() {
   updateHover();
 
   controls.update();
-  if (composer && bloomOn) composer.render();
-  else renderer.render(scene, camera);
+  renderer.render(scene, camera);
 }
 
 // ─────────────── Hover/Tooltip ───────────────
@@ -2555,131 +1720,13 @@ function updateHover() {
     if (target) {
       hovered = target;
       document.body.classList.add('hovering');
-      if (!focused || focused !== target) showTooltip(target);
-      // Brighten the hovered world's orbit ring
-      if (lastHoverRing && lastHoverRing !== (focused && focused.ringMat)) {
-        lastHoverRing.opacity = 0.10;
-      }
-      if (target.ringMat) {
-        target.ringMat.opacity = 0.30;
-        lastHoverRing = target.ringMat;
-      }
+      showTooltip(target);
       return;
     }
   }
   hovered = null;
   document.body.classList.remove('hovering');
-  if (lastHoverRing && lastHoverRing !== (focused && focused.ringMat)) {
-    lastHoverRing.opacity = 0.10;
-    lastHoverRing = null;
-  }
   hideTooltip();
-}
-
-// ─────────────── Focus mode ───────────────
-// Click/tap a world → camera glides to it and follows its orbit while a
-// detail card (with the 7-day sparkline) opens. Click empty space, the ✕,
-// or press Esc to release.
-function handlePick(x, y) {
-  pointer.x = (x / window.innerWidth) * 2 - 1;
-  pointer.y = -(y / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(pointer, camera);
-  const meshes = planets.map(p => p.mesh);
-  if (sun) meshes.push(sun.mesh);
-  const hits = raycaster.intersectObjects(meshes, false);
-  if (hits.length > 0) {
-    const obj = hits[0].object;
-    const target = sun && sun.mesh === obj ? sun : planets.find(p => p.mesh === obj);
-    if (target && target !== focused) focusOn(target);
-  } else if (focused) {
-    exitFocus();
-  }
-}
-
-function focusOn(target) {
-  if (focused && focused.ringMat) focused.ringMat.opacity = 0.10;
-  focused = target;
-  focusReturning = false;
-  focusStartedAt = performance.now();
-  introZoomActive = false;
-  if (target.ringMat) target.ringMat.opacity = 0.38;
-  hideTooltip();
-  renderFocusPanel(target);
-  document.getElementById('focusPanel').classList.add('visible');
-}
-
-function exitFocus() {
-  if (focused && focused.ringMat) focused.ringMat.opacity = 0.10;
-  focused = null;
-  focusReturning = true;
-  document.getElementById('focusPanel').classList.remove('visible');
-}
-
-function renderFocusPanel(target) {
-  const c = target.coin;
-  const change = getCoinChange(c);
-  const sign = change >= 0 ? '+' : '';
-  document.getElementById('fpIcon').src = c.image || '';
-  document.getElementById('fpName').textContent = c.name || '—';
-  document.getElementById('fpSymbol').textContent = (c.symbol || '').toUpperCase();
-  document.getElementById('fpRank').textContent = '#' + (c.market_cap_rank || '?');
-  document.getElementById('fpPrice').textContent = '$' + formatPrice(c.current_price);
-  const chEl = document.getElementById('fpChange');
-  chEl.textContent = sign + change.toFixed(2) + '% · ' + periodLabel();
-  chEl.className = change >= 0 ? 'green' : 'red';
-  document.getElementById('fpMcap').textContent = '$' + formatLarge(c.market_cap);
-  document.getElementById('fpVol').textContent  = '$' + formatLarge(c.total_volume);
-  document.getElementById('fpHigh').textContent = '$' + formatPrice(c.high_24h);
-  document.getElementById('fpLow').textContent  = '$' + formatPrice(c.low_24h);
-  document.getElementById('fpAth').textContent  = '$' + formatPrice(c.ath);
-  const athPct = c.ath_change_percentage;
-  const athEl = document.getElementById('fpAthPct');
-  athEl.textContent = athPct == null ? '—' : athPct.toFixed(1) + '%';
-  athEl.className = athPct != null && athPct >= 0 ? 'green' : 'red';
-  drawSparkline(c);
-}
-
-function drawSparkline(c) {
-  const cv = document.getElementById('fpSpark');
-  const prices = c.sparkline_in_7d && c.sparkline_in_7d.price;
-  if (!prices || prices.length < 2) { cv.style.display = 'none'; return; }
-  cv.style.display = 'block';
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const W = cv.clientWidth || 250, H = 52;
-  cv.width = W * dpr; cv.height = H * dpr;
-  const ctx = cv.getContext('2d');
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, W, H);
-  let min = Infinity, max = -Infinity;
-  for (const v of prices) { if (v < min) min = v; if (v > max) max = v; }
-  const span = (max - min) || 1;
-  const up = prices[prices.length - 1] >= prices[0];
-  const col = up ? '#4ade80' : '#f87171';
-  const px = i => 2 + (i / (prices.length - 1)) * (W - 4);
-  const py = v => 4 + (1 - (v - min) / span) * (H - 8);
-  // Soft area fill
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, up ? 'rgba(74,222,128,0.22)' : 'rgba(248,113,113,0.22)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.beginPath();
-  ctx.moveTo(px(0), py(prices[0]));
-  for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
-  ctx.lineTo(px(prices.length - 1), H); ctx.lineTo(px(0), H); ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
-  // Line
-  ctx.beginPath();
-  ctx.moveTo(px(0), py(prices[0]));
-  for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
-  ctx.strokeStyle = col;
-  ctx.lineWidth = 1.6;
-  ctx.lineJoin = 'round';
-  ctx.stroke();
-  // End dot
-  ctx.fillStyle = col;
-  ctx.beginPath();
-  ctx.arc(px(prices.length - 1), py(prices[prices.length - 1]), 2.2, 0, Math.PI * 2);
-  ctx.fill();
 }
 
 function onPointerMove(e) {
@@ -2810,11 +1857,7 @@ function switchPeriod(period) {
     const direction = change >= 0 ? 1 : -1;
     p.speed = (baseSpeed / Math.sqrt(p.distance / 20)) * speedMult * direction;
     refreshPriceLabel(p.priceLabel, p.coin, false);
-    if (p.trail) recolorOrbitTrail(p.trail, p);
   });
-
-  // Keep the focus card's % and sparkline context in sync
-  if (focused) renderFocusPanel(focused);
 
   // Refresh sun's price label too (BTC's change for the active period)
   if (sun) refreshPriceLabel(sun.priceLabel, sun.coin, true);
@@ -2842,10 +1885,6 @@ function toggleAmbience() {
   ambienceOn = !ambienceOn;
   if (starField) starField.visible = ambienceOn;
   nebulae.forEach(n => n.visible = ambienceOn);
-  if (milkyWay) milkyWay.visible = ambienceOn;
-  if (asteroidBelt) asteroidBelt.visible = ambienceOn;
-  galaxySprites.forEach(g => g.visible = ambienceOn);
-  heroStarSprites.forEach(h => h.visible = ambienceOn);
   if (cometSystem) cometSystem.setEnabled(ambienceOn);
   const btn = document.getElementById('btnStars');
   btn.classList.toggle('off', !ambienceOn);
@@ -2855,7 +1894,6 @@ function toggleAmbience() {
 function onResize() {
   applyResponsiveCamera();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  if (composer) composer.setSize(window.innerWidth, window.innerHeight);
 }
 
 // Treat narrow / portrait screens (phones) specially.

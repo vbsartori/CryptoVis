@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Visualization Lab — Six Worlds, One Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ========================================================
+     CRYPTO VISUALIZATION LAB — hub
+     ======================================================== */
+  :root {
+    --void:        #07070a;
+    --void-2:      #0c0c12;
+    --ink:         #ebeaef;
+    --ink-soft:    rgba(235, 234, 239, 0.68);
+    --ink-mute:    rgba(235, 234, 239, 0.40);
+    --ink-faint:   rgba(235, 234, 239, 0.16);
+    --line:        rgba(255, 255, 255, 0.08);
+    --line-soft:   rgba(255, 255, 255, 0.04);
+    --line-strong: rgba(255, 255, 255, 0.18);
+    --glass:       rgba(14, 14, 20, 0.55);
+
+    /* per-theme signatures */
+    --c-galaxy:     #f7931a;
+    --c-galaxy-2:   #ffd86b;
+    --c-prix:       #ef4444;
+    --c-prix-2:     #facc15;
+    --c-bubbles:    #34e0a1;
+    --c-bubbles-2:  #ff5470;
+    --c-sentiment:  #00ff88;
+    --c-sentiment-2:#ff3866;
+    --c-matrix:     #00ff66;
+    --c-city:       #ff007a;
+    --c-city-2:     #00f0ff;
+
+    --btc:          #f7931a;
+    --eth:          #627eea;
+
+    --f-display:    'Unbounded', 'Helvetica Neue', sans-serif;
+    --f-body:       'Manrope', -apple-system, system-ui, sans-serif;
+    --f-mono:       'JetBrains Mono', 'SFMono-Regular', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--void); color: var(--ink); }
+  body {
+    font-family: var(--f-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body.no-webgl { background:
+      radial-gradient(ellipse at 30% 20%, rgba(40,50,70,0.5), transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(70,30,60,0.4), transparent 60%),
+      var(--void);
+  }
+
+  /* shader canvas — fixed background */
+  #bg-shader {
+    position: fixed; inset: 0;
+    z-index: 0;
+    display: block;
+  }
+  /* film grain + scanlines on top of shader */
+  .grain {
+    position: fixed; inset: 0; z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.55;
+    mix-blend-mode: overlay;
+  }
+
+  main {
+    position: relative;
+    z-index: 2;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 32px 80px;
+  }
+
+  /* ─────────── TOP BAR ─────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .brand-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--ink);
+    box-shadow:
+      0 0 0 3px rgba(235,234,239,0.06),
+      0 0 14px rgba(235,234,239,0.4);
+    animation: brandPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes brandPulse {
+    0%,100% { transform: scale(1); opacity: .9; }
+    50%     { transform: scale(0.78); opacity: .6; }
+  }
+  .brand strong { color: var(--ink); font-weight: 600; letter-spacing: 0.20em; }
+
+  /* shader switcher */
+  .switch {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+  .switch-label {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 0 6px 0 8px;
+  }
+  .swatch {
+    appearance: none;
+    border: 0;
+    width: 36px; height: 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s cubic-bezier(.2,0,.2,1), box-shadow .25s;
+  }
+  .swatch::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: border-color .25s;
+  }
+  .swatch:hover { transform: translateY(-1px); }
+  .swatch.is-active::after { border-color: rgba(255,255,255,0.7); }
+  .swatch.is-active { box-shadow: 0 0 0 2px rgba(255,255,255,0.18), 0 6px 24px rgba(0,0,0,0.5); }
+  .swatch[data-shader="plasma"]  { background: linear-gradient(135deg, #383846, #1c1c2a 45%, #2a2440 70%, #4a3a5e); }
+  .swatch[data-shader="voronoi"] { background: radial-gradient(circle at 30% 30%, #5b6478 0%, #1d2030 60%, #0b0c14 100%); }
+  .swatch[data-shader="nebula"]  { background: radial-gradient(circle at 60% 40%, #6a4a96 0%, #2a1448 50%, #07041a 100%); }
+
+  /* ─────────── HERO ─────────── */
+  .hero {
+    padding: 90px 0 70px;
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 48px;
+    align-items: end;
+  }
+  .hero-eyebrow {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 28px; height: 1px;
+    background: var(--ink-faint);
+  }
+  .hero h1 {
+    font-family: var(--f-display);
+    font-weight: 300;
+    font-size: clamp(44px, 6.5vw, 96px);
+    line-height: 0.96;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 400;
+    background: linear-gradient(90deg, #ffd86b, #ff5470 35%, #b347ff 65%, #00f0ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-side {
+    padding-bottom: 8px;
+  }
+  .hero-side p {
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 440px;
+  }
+  .hero-side .meta {
+    margin-top: 22px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex; gap: 20px; flex-wrap: wrap;
+  }
+  .hero-side .meta span::before {
+    content: '◆'; color: var(--ink-faint);
+    margin-right: 8px; font-size: 8px; vertical-align: 2px;
+  }
+
+  /* ─────────── CARD GRID ─────────── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-top: 12px;
+  }
+  @media (max-width: 1080px){ .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 680px){  .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    --accent: #fff;
+    --accent-2: #fff;
+    position: relative;
+    background: rgba(10, 10, 14, 0.55);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column;
+    min-height: 360px;
+    isolation: isolate;
+    transition: transform .35s cubic-bezier(.2,0,.2,1), border-color .35s;
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+                color-mix(in oklab, var(--accent) 14%, transparent) 0%,
+                transparent 50%);
+    opacity: 0; transition: opacity .4s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .card::after {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent 5%,
+                color-mix(in oklab, var(--accent) 90%, white) 50%, transparent 95%);
+    opacity: 0.25;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklab, var(--accent) 35%, var(--line));
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card-preview {
+    position: relative;
+    height: 180px;
+    background:
+      radial-gradient(circle at 50% 100%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.35));
+    border-bottom: 1px solid var(--line-soft);
+    overflow: hidden;
+    z-index: 1;
+  }
+  .card-body {
+    position: relative;
+    padding: 20px 22px 22px;
+    flex: 1;
+    display: flex; flex-direction: column;
+    z-index: 1;
+  }
+  .card-tag {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-tag::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .card h3 {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  .card p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .card-foot {
+    margin-top: auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+  }
+  .card-enter {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .card-enter .arrow {
+    display: inline-block;
+    transition: transform .35s cubic-bezier(.2,0,.2,1);
+  }
+  .card:hover .card-enter .arrow { transform: translateX(6px); }
+  .card-meta {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--ink-mute);
+  }
+
+  /* ─────────── CARD MOTIFS — each unique ─────────── */
+
+  /* GALAXY — orbit & sun */
+  .m-galaxy .sun {
+    position: absolute; left: 50%; top: 60%;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff5d6, var(--c-galaxy) 50%, #b04e00);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 40px 6px rgba(247,147,26,0.45), 0 0 80px rgba(247,147,26,0.25);
+  }
+  .m-galaxy .orbit {
+    position: absolute; left: 50%; top: 60%;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 1px solid rgba(247,147,26,0.18);
+    transform: translate(-50%, -50%);
+  }
+  .m-galaxy .orbit.o2 { width: 260px; height: 260px; border-color: rgba(247,147,26,0.10); }
+  .m-galaxy .planet {
+    position: absolute; left: 50%; top: 60%;
+    width: 12px; height: 12px;
+    margin-left: -6px; margin-top: -6px;
+    border-radius: 50%;
+    background: var(--c-galaxy-2);
+    transform-origin: 0 0;
+    animation: orbit1 9s linear infinite;
+    box-shadow: 0 0 10px var(--c-galaxy-2);
+  }
+  .m-galaxy .planet.p2 {
+    width: 7px; height: 7px;
+    margin-left: -3.5px; margin-top: -3.5px;
+    background: #ff6b6b;
+    box-shadow: 0 0 8px #ff6b6b;
+    animation: orbit2 14s linear infinite reverse;
+  }
+  @keyframes orbit1 { to { transform: rotate(360deg) translateX(90px) rotate(-360deg); } }
+  @keyframes orbit2 { to { transform: rotate(360deg) translateX(130px) rotate(-360deg); } }
+  .m-galaxy .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: twinkle 2.4s ease-in-out infinite;
+  }
+  @keyframes twinkle { 50% { opacity: 0.1; } }
+
+  /* GRAND PRIX — chequered, speed lines */
+  .m-prix {
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.4)),
+      repeating-linear-gradient(135deg, #f6c843 0 14px, #1a1a22 14px 28px);
+    background-size: auto, 40px 40px;
+  }
+  .m-prix::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 6px, rgba(255,255,255,0.06) 6px 7px),
+      linear-gradient(180deg, transparent 0%, rgba(7,8,11,0.85) 70%);
+  }
+  .m-prix .chequer {
+    position: absolute; left: 16px; bottom: 14px;
+    width: 64px; height: 64px;
+    background:
+      conic-gradient(at 50% 50%,
+        #f4f4f6 0deg 90deg, #0e0f14 90deg 180deg,
+        #f4f4f6 180deg 270deg, #0e0f14 270deg 360deg);
+    background-size: 16px 16px;
+    background-image:
+      linear-gradient(45deg, #f4f4f6 25%, transparent 25%, transparent 75%, #f4f4f6 75%),
+      linear-gradient(45deg, #f4f4f6 25%, #0e0f14 25%, #0e0f14 75%, #f4f4f6 75%);
+    background-position: 0 0, 8px 8px;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+    animation: wave 3.2s ease-in-out infinite;
+    transform-origin: left center;
+  }
+  @keyframes wave {
+    0%,100% { transform: skewY(0deg); }
+    50%     { transform: skewY(-4deg) translateY(-2px); }
+  }
+  .m-prix .lights {
+    position: absolute; right: 18px; top: 18px;
+    display: flex; gap: 6px;
+  }
+  .m-prix .lights span {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,80,80,0.25); border: 1px solid rgba(255,80,80,0.4);
+  }
+  .m-prix .lights span.on {
+    background: var(--c-prix); box-shadow: 0 0 12px var(--c-prix);
+  }
+  .m-prix .speed {
+    position: absolute; right: 16px; bottom: 18px;
+    font-family: var(--f-mono);
+    font-size: 11px; font-weight: 700;
+    color: var(--c-prix-2);
+    letter-spacing: 0.10em;
+    text-shadow: 0 0 12px var(--c-prix-2);
+  }
+
+  /* BUBBLES — iridescent floating spheres */
+  .m-bubbles {
+    background:
+      radial-gradient(circle at 30% 60%, rgba(52,224,161,0.10), transparent 50%),
+      radial-gradient(circle at 70% 40%, rgba(255,84,112,0.10), transparent 50%);
+  }
+  .m-bubbles .b {
+    position: absolute;
+    border-radius: 50%;
+    animation: floaty 7s ease-in-out infinite;
+  }
+  .m-bubbles .b::after {
+    content: '';
+    position: absolute;
+    left: 22%; top: 18%;
+    width: 28%; height: 22%;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.6), transparent 70%);
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+  .m-bubbles .b.up   { background: radial-gradient(circle at 35% 30%, #92ffd0, #34e0a1 60%, #0d8a5d); box-shadow: 0 0 32px rgba(52,224,161,0.35); }
+  .m-bubbles .b.down { background: radial-gradient(circle at 35% 30%, #ffb1be, #ff5470 60%, #8c1f35); box-shadow: 0 0 32px rgba(255,84,112,0.35); }
+  .m-bubbles .b.neu  { background: radial-gradient(circle at 35% 30%, #ffffff, #d4d4dc 70%, #66666e); box-shadow: 0 0 20px rgba(255,255,255,0.18); }
+  .m-bubbles .b1 { width: 70px; height: 70px; left: 18%; top: 24%; animation-delay: 0s; }
+  .m-bubbles .b2 { width: 90px; height: 90px; left: 48%; top: 50%; animation-delay: -2s; }
+  .m-bubbles .b3 { width: 46px; height: 46px; left: 76%; top: 28%; animation-delay: -4s; }
+  .m-bubbles .b4 { width: 30px; height: 30px; left: 30%; top: 70%; animation-delay: -1s; }
+  @keyframes floaty {
+    0%,100% { transform: translateY(0); }
+    50%     { transform: translateY(-10px); }
+  }
+
+  /* SENTIMENT — bull vs bear bar */
+  .m-sentiment {
+    background: linear-gradient(180deg, rgba(0,255,136,0.04), rgba(255,56,102,0.04));
+  }
+  .m-sentiment .stack {
+    position: absolute;
+    left: 22px; right: 22px; top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .m-sentiment .row {
+    font-family: var(--f-mono);
+    font-size: 9px;
+    letter-spacing: 0.10em;
+    color: var(--ink-mute);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .m-sentiment .row .label { width: 42px; }
+  .m-sentiment .row .bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .m-sentiment .row .bar::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, var(--c-sentiment));
+    width: var(--w, 50%);
+    box-shadow: 0 0 12px var(--c-sentiment);
+    animation: barWobble 4s ease-in-out infinite;
+  }
+  .m-sentiment .row.bear .bar::before {
+    background: linear-gradient(90deg, transparent, var(--c-sentiment-2));
+    box-shadow: 0 0 12px var(--c-sentiment-2);
+  }
+  .m-sentiment .row .pct { width: 36px; text-align: right; color: var(--ink-soft); font-weight: 700; }
+  .m-sentiment .row.bull .pct { color: var(--c-sentiment); }
+  .m-sentiment .row.bear .pct { color: var(--c-sentiment-2); }
+  @keyframes barWobble {
+    0%,100% { transform: scaleX(1); }
+    50%     { transform: scaleX(0.92); }
+  }
+
+  /* MATRIX — falling green chars */
+  .m-matrix {
+    background: linear-gradient(180deg, rgba(0,30,10,0.4), #000);
+    overflow: hidden;
+  }
+  .m-matrix .col {
+    position: absolute;
+    top: -120%;
+    font-family: 'Share Tech Mono', var(--f-mono);
+    font-size: 11px;
+    line-height: 1.1;
+    color: var(--c-matrix);
+    text-shadow: 0 0 8px var(--c-matrix);
+    white-space: pre;
+    animation: rain linear infinite;
+    opacity: 0.8;
+  }
+  @keyframes rain {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(280%); }
+  }
+  .m-matrix::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.7) 100%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.30) 3px, rgba(0,0,0,0.30) 4px);
+    pointer-events: none;
+  }
+
+  /* NEO CITY — perspective neon grid */
+  .m-city {
+    background: radial-gradient(ellipse at 50% 70%, #2a0833 0%, #0a0218 70%, #000 100%);
+    perspective: 360px;
+    overflow: hidden;
+  }
+  .m-city .grid-floor {
+    position: absolute;
+    left: -10%; right: -10%;
+    bottom: -10%;
+    height: 70%;
+    background-image:
+      linear-gradient(90deg, transparent 49%, var(--c-city) 49%, var(--c-city) 51%, transparent 51%),
+      linear-gradient(180deg, transparent 49%, var(--c-city-2) 49%, var(--c-city-2) 51%, transparent 51%);
+    background-size: 40px 40px, 40px 40px;
+    transform: rotateX(70deg);
+    transform-origin: 50% 0%;
+    animation: cityGrid 4s linear infinite;
+    opacity: 0.55;
+    filter: drop-shadow(0 0 6px var(--c-city));
+  }
+  @keyframes cityGrid {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 0, 0 40px; }
+  }
+  .m-city .sun {
+    position: absolute;
+    left: 50%; top: 28%;
+    width: 110px; height: 110px;
+    margin-left: -55px;
+    border-radius: 50%;
+    background:
+      linear-gradient(180deg, var(--c-city) 0%, #ffb700 100%);
+    box-shadow: 0 0 60px rgba(255,0,122,0.5);
+    clip-path: polygon(0 0, 100% 0, 100% 30%, 0 30%, 0 38%, 100% 38%, 100% 46%, 0 46%, 0 54%, 100% 54%, 100% 62%, 0 62%, 0 100%, 100% 100%);
+  }
+  .m-city .skyline {
+    position: absolute;
+    left: 0; right: 0; top: 36%;
+    height: 24px;
+    background:
+      linear-gradient(90deg,
+        transparent 0%, transparent 8%, #0a0218 8% 12%, transparent 12% 16%,
+        #0a0218 16% 22%, transparent 22% 26%, #0a0218 26% 30%, transparent 30% 36%,
+        #0a0218 36% 44%, transparent 44% 50%, #0a0218 50% 56%, transparent 56% 62%,
+        #0a0218 62% 70%, transparent 70% 76%, #0a0218 76% 84%, transparent 84% 92%,
+        #0a0218 92% 100%);
+  }
+
+  /* ─────────── BITCOFFEE SUPPORT ─────────── */
+  .coffee {
+    margin-top: 80px;
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    overflow: hidden;
+    background: rgba(10, 10, 14, 0.62);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+  .coffee::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(247,147,26,0.10), transparent 40%),
+      radial-gradient(circle at 92% 100%, rgba(98,126,234,0.10), transparent 45%);
+    pointer-events: none;
+  }
+  .coffee-inner {
+    position: relative;
+    padding: 44px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 880px){
+    .coffee-inner { grid-template-columns: 1fr; padding: 32px 24px; gap: 28px; }
+  }
+  .coffee-tag {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .coffee-tag::before {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 18px;
+    /* coffee cup mark */
+    background: no-repeat center/contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f7931a' stroke-width='1.5'><path d='M3 8h13v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8Z'/><path d='M16 10h2a2.5 2.5 0 0 1 0 5h-2'/><path d='M6 3c.5 1 .5 2 0 3'/><path d='M9 3c.5 1 .5 2 0 3'/><path d='M12 3c.5 1 .5 2 0 3'/></svg>");
+  }
+  .coffee h2 {
+    font-family: var(--f-display);
+    font-weight: 300;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 1.0;
+    letter-spacing: -0.025em;
+  }
+  .coffee h2 em {
+    font-style: italic;
+    font-weight: 500;
+    background: linear-gradient(90deg, #ffd86b 0%, var(--c-galaxy) 60%, #ff6b00);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .coffee p {
+    margin-top: 18px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 440px;
+  }
+  .coffee p .signature {
+    color: var(--ink-mute);
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 14px;
+  }
+
+  .addr-list {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .addr {
+    --chip: #fff;
+    position: relative;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    transition: border-color .3s, background .3s;
+  }
+  .addr:hover { border-color: color-mix(in oklab, var(--chip) 30%, var(--line)); background: rgba(255,255,255,0.04); }
+  .addr-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--f-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: #07070a;
+    background: var(--chip);
+    box-shadow: 0 0 18px color-mix(in oklab, var(--chip) 40%, transparent);
+  }
+  .addr-info { min-width: 0; }
+  .addr-label {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+  .addr-label b { color: var(--chip); font-weight: 700; }
+  .addr-value {
+    font-family: var(--f-mono);
+    font-size: 13px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: all;
+  }
+  .copy-btn {
+    appearance: none; border: 0;
+    background: rgba(255,255,255,0.04);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: background .2s, border-color .2s, color .2s, transform .2s;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.07); border-color: var(--line-strong); }
+  .copy-btn:active { transform: scale(0.96); }
+  .copy-btn .icon { width: 14px; height: 14px; }
+  .copy-btn.copied { color: var(--c-bubbles); border-color: rgba(52,224,161,0.35); background: rgba(52,224,161,0.08); }
+
+  /* ─────────── FOOTER ─────────── */
+  footer {
+    margin-top: 60px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    gap: 16px; flex-wrap: wrap;
+  }
+  footer a { color: var(--ink-soft); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+
+  /* ─────────── tooltip / mouse ─────────── */
+  .hint {
+    position: fixed;
+    bottom: 22px; right: 28px;
+    z-index: 5;
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding: 10px 14px;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    backdrop-filter: blur(14px);
+    display: flex; align-items: center; gap: 10px;
+    pointer-events: none;
+  }
+  .hint .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ink); opacity: 0.7;
+    animation: blink 1.6s ease-in-out infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.2; } }
+  @media (max-width: 680px){ .hint { display: none; } }
+
+  @media (max-width: 880px){
+    .hero { grid-template-columns: 1fr; gap: 28px; padding: 60px 0 50px; }
+    main { padding: 20px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- shader background -->
+<canvas id="bg-shader"></canvas>
+<div class="grain"></div>
+
+<main>
+  <!-- top bar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Crypto Lab <strong>// vol. 01</strong></span>
+    </div>
+    <div class="switch" role="tablist" aria-label="Background shader">
+      <span class="switch-label">Wallpaper</span>
+      <button class="swatch" data-shader="plasma"  aria-label="Plasma" title="Plasma — liquid chrome"></button>
+      <button class="swatch" data-shader="voronoi" aria-label="Voronoi" title="Voronoi — cells"></button>
+      <button class="swatch" data-shader="nebula"  aria-label="Nebula" title="Nebula — warped starfield"></button>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <section class="hero">
+    <div>
+      <div class="hero-eyebrow">Six worlds · one market</div>
+      <h1>Crypto, but you can <em>walk through it.</em></h1>
+    </div>
+    <aside class="hero-side">
+      <p>A collection of experimental dashboards I built for myself — different ways to <em>feel</em> the market, beyond the green-and-red candle chart. Pick a world. Move your mouse. Stay a while.</p>
+      <div class="meta">
+        <span>6 visualizations</span>
+        <span>Live data</span>
+        <span>Open them all</span>
+      </div>
+    </aside>
+  </section>
+
+  <!-- card grid -->
+  <section class="grid">
+
+    <!-- 1. GALAXY -->
+    <a class="card" href="themes/crypto-galaxy.html" style="--accent: var(--c-galaxy); --accent-2: var(--c-galaxy-2);">
+      <div class="card-preview m-galaxy">
+        <span class="star" style="left: 12%; top: 22%;"></span>
+        <span class="star" style="left: 28%; top: 14%; animation-delay: 0.6s;"></span>
+        <span class="star" style="left: 42%; top: 28%; animation-delay: 1.2s;"></span>
+        <span class="star" style="left: 78%; top: 18%; animation-delay: 0.3s;"></span>
+        <span class="star" style="left: 88%; top: 36%; animation-delay: 1.8s;"></span>
+        <span class="star" style="left: 18%; top: 76%; animation-delay: 0.9s;"></span>
+        <span class="star" style="left: 64%; top: 84%; animation-delay: 1.5s;"></span>
+        <div class="orbit o2"></div>
+        <div class="orbit"></div>
+        <div class="sun"></div>
+        <div class="planet"></div>
+        <div class="planet p2"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Cosmic / orbital</div>
+        <h3>Crypto Galaxy</h3>
+        <p>A solar system where each coin is a celestial body. Market cap is mass. Volume is radius. Bitcoin is the sun, and the rest orbit at their own gravity.</p>
+        <div class="card-foot">
+          <span class="card-enter">Enter the system <span class="arrow">→</span></span>
+          <span class="card-meta">01 / 06</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 2. GRAND PRIX -->
+    <a class="card" href="themes/crypto-grand-prix.html" style="--accent: var(--c-prix); --accent-2: var(--c-prix-2);">
+      <div class="card-preview m-prix">
+        <div class="lights">
+          <span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span>
+        </div>
+        <div class="chequer"></div>
+        <div class="speed">+3.42% · LAP 24</div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Race / leaderboard</div>
+        <h3>Crypto Grand Prix</h3>
+        <p>Top coins line up on a track and race their 24h performance. Lap times, sector splits, podium photos. Bitcoin in pole, doge in the wall.</p>
+        <div class="card-foot">
+          <span class="card-enter">Lights out, away we go <span class="arrow">→</span></span>
+          <span class="card-meta">02 / 06</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 3. BUBBLES -->
+    <a class="card" href="themes/crypto-bubbles.html" style="--accent: var(--c-bubbles); --accent-2: var(--c-bubbles-2);">
+      <div class="card-preview m-bubbles">
+        <div class="b b3 down"></div>
+        <div class="b b1 up"></div>
+        <div class="b b2 up"></div>
+        <div class="b b4 neu"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Floating / soap</div>
+        <h3>Crypto Bubbles</h3>
+        <p>Iridescent spheres drift across a black void. Green ones rise, red ones sink, size scales with market cap. Pop one to break it open.</p>
+        <div class="card-foot">
+          <span class="card-enter">Pop the market <span class="arrow">→</span></span>
+          <span class="card-meta">03 / 06</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 4. SENTIMENT TERMINAL -->
+    <a class="card" href="themes/crypto-sentiment-terminal.html" style="--accent: var(--c-sentiment); --accent-2: var(--c-sentiment-2);">
+      <div class="card-preview m-sentiment">
+        <div class="stack">
+          <div class="row bull"><span class="label">BTC</span><span class="bar" style="--w: 72%"></span><span class="pct">+72</span></div>
+          <div class="row bear"><span class="label">ETH</span><span class="bar" style="--w: 54%"></span><span class="pct">-54</span></div>
+          <div class="row bull"><span class="label">SOL</span><span class="bar" style="--w: 88%"></span><span class="pct">+88</span></div>
+          <div class="row bear"><span class="label">DOGE</span><span class="bar" style="--w: 42%"></span><span class="pct">-42</span></div>
+          <div class="row bull"><span class="label">XRP</span><span class="bar" style="--w: 61%"></span><span class="pct">+61</span></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Bulls vs Bears</div>
+        <h3>Sentiment Terminal</h3>
+        <p>A trading floor at 3am. Long bars, short bars, fear & greed needle, news ticker, RSI gauges. Built to be read like a Bloomberg from a parallel universe.</p>
+        <div class="card-foot">
+          <span class="card-enter">Open terminal <span class="arrow">→</span></span>
+          <span class="card-meta">04 / 06</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 5. MATRIX -->
+    <a class="card" href="themes/matrix-crypto-terminal.html" style="--accent: var(--c-matrix);">
+      <div class="card-preview m-matrix" id="matrix-preview">
+        <!-- columns injected by JS -->
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Digital rain</div>
+        <h3>Matrix Terminal</h3>
+        <p>Wake up, trader. Prices rain down the screen in falling green katakana. Bitcoin is bright white. Red drops are coins bleeding out. The market has you.</p>
+        <div class="card-foot">
+          <span class="card-enter">Follow the white rabbit <span class="arrow">→</span></span>
+          <span class="card-meta">05 / 06</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- 6. NEO CITY -->
+    <a class="card" href="themes/neo-crypto-city.html" style="--accent: var(--c-city); --accent-2: var(--c-city-2);">
+      <div class="card-preview m-city">
+        <div class="sun"></div>
+        <div class="skyline"></div>
+        <div class="grid-floor"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-tag">Cyberpunk / grid</div>
+        <h3>Neo-Crypto City</h3>
+        <p>A neon-soaked smart grid where each token is a building, each block is a city block. Power flows from miners to wallets. Pink sun never sets.</p>
+        <div class="card-foot">
+          <span class="card-enter">Jack in <span class="arrow">→</span></span>
+          <span class="card-meta">06 / 06</span>
+        </div>
+      </div>
+    </a>
+
+  </section>
+
+  <!-- BITCOFFEE -->
+  <section class="coffee">
+    <div class="coffee-inner">
+      <div>
+        <div class="coffee-tag">Bitcoffee · keep the lab open</div>
+        <h2>Buy me a <em>Bitcoffee.</em></h2>
+        <p>If any of these worlds made you smile, tip me a sip. Every satoshi goes back into building stranger, more beautiful ways to look at the market.
+          <span class="signature">— Made with caffeine and curiosity</span>
+        </p>
+      </div>
+
+      <div class="addr-list">
+        <!-- BTC -->
+        <div class="addr" style="--chip: var(--btc);">
+          <div class="addr-icon" aria-hidden="true">₿</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Bitcoin</b> · BTC · native segwit</div>
+            <!-- REPLACE WITH YOUR REAL BTC ADDRESS -->
+            <div class="addr-value" id="btc-addr">bc1q9w7d6tnk2vmrzpypy3sthawnujph6vsx4hxgkm</div>
+          </div>
+          <button class="copy-btn" data-copy="#btc-addr" aria-label="Copy Bitcoin address">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="11" height="11" rx="2"/>
+              <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+            </svg>
+            <span class="lbl">Copy</span>
+          </button>
+        </div>
+        <!-- ETH -->
+        <div class="addr" style="--chip: var(--eth);">
+          <div class="addr-icon" aria-hidden="true">Ξ</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Ethereum</b> · ETH · ERC-20</div>
+            <!-- REPLACE WITH YOUR REAL ETH ADDRESS -->
+            <div class="addr-value" id="eth-addr">0x7Bf3a8B2C9E5F4D1A6f3E2b8C9D5E4F1A6f3E2b8</div>
+          </div>
+          <button class="copy-btn" data-copy="#eth-addr" aria-label="Copy Ethereum address">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="11" height="11" rx="2"/>
+              <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+            </svg>
+            <span class="lbl">Copy</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© Crypto Lab · vol. 01</span>
+    <span>Move the mouse. Click and hold. Try all three wallpapers.</span>
+    <span>Built with caffeine ✦</span>
+  </footer>
+</main>
+
+<div class="hint">
+  <span class="dot"></span>
+  <span>Move &amp; hold to fidget with the wallpaper</span>
+</div>
+
+<!-- shader background -->
+<script src="shaders.js"></script>
+
+<!-- card interactions + copy + matrix preview -->
+<script>
+(function(){
+  // ---------- card spotlight cursor tracking ----------
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+    });
+  });
+
+  // ---------- shader switcher click handlers ----------
+  document.querySelectorAll('.swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.__setShader) window.__setShader(btn.dataset.shader);
+    });
+  });
+  // 1 / 2 / 3 keyboard shortcuts
+  window.addEventListener('keydown', e => {
+    const map = { '1': 'plasma', '2': 'voronoi', '3': 'nebula' };
+    if (map[e.key] && window.__setShader) window.__setShader(map[e.key]);
+  });
+
+  // ---------- copy buttons ----------
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = document.querySelector(btn.dataset.copy);
+      if (!target) return;
+      const text = target.textContent.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch(e){}
+        ta.remove();
+      }
+      btn.classList.add('copied');
+      const lbl = btn.querySelector('.lbl');
+      const old = lbl.textContent;
+      lbl.textContent = 'Copied';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        lbl.textContent = old;
+      }, 1600);
+    });
+  });
+
+  // ---------- matrix rain preview ----------
+  const mp = document.getElementById('matrix-preview');
+  if (mp) {
+    const cols = 12;
+    const chars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿ01₿Ξ$';
+    for (let i = 0; i < cols; i++) {
+      const col = document.createElement('div');
+      col.className = 'col';
+      col.style.left = (i / cols * 100) + '%';
+      col.style.animationDuration = (3 + Math.random() * 4) + 's';
+      col.style.animationDelay = (-Math.random() * 6) + 's';
+      col.style.opacity = (0.4 + Math.random() * 0.6).toFixed(2);
+      let text = '';
+      for (let j = 0; j < 20; j++) {
+        text += chars[Math.floor(Math.random()*chars.length)] + '\n';
+      }
+      col.textContent = text;
+      mp.appendChild(col);
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
