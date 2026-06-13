@@ -1,0 +1,3424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>S&P Galaxy — Wall Street Solar System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #04040a;
+    --bg-surface: rgba(14, 14, 24, 0.72);
+    --border-faint: rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.14);
+    --text-primary: #f4f1e8;
+    --text-secondary: rgba(244, 241, 232, 0.62);
+    --text-muted: rgba(244, 241, 232, 0.38);
+    --gold: #f7931a;
+    --gold-warm: #ffb84d;
+    --gold-soft: #ffd86b;
+    --green: #4ade80;
+    --red: #f87171;
+    --font-display: 'Cinzel', Georgia, serif;
+    --font-body: 'Outfit', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    cursor: grab;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body:active { cursor: grabbing; }
+  body.hovering { cursor: pointer; }
+
+  canvas { display: block; outline: none; }
+
+  /* ─── Loading Screen ─── */
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #0a0814 0%, #000 70%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  #loading.hidden { opacity: 0; pointer-events: none; }
+
+  .loading-logo {
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 500;
+    letter-spacing: 0.4em;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold), #ff6b00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    animation: pulseLogo 2.4s ease-in-out infinite;
+  }
+  
+  .loading-sub {
+    font-size: 11px;
+    letter-spacing: 0.5em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 50px;
+  }
+
+  @keyframes pulseLogo {
+    0%, 100% { filter: drop-shadow(0 0 12px rgba(247,147,26,.3)); }
+    50%      { filter: drop-shadow(0 0 30px rgba(247,147,26,.6)); }
+  }
+
+  .orbit-loader {
+    position: relative;
+    width: 70px;
+    height: 70px;
+  }
+  .orbit-loader::before, .orbit-loader::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    border-top-color: var(--gold);
+    animation: spin 1.6s linear infinite;
+  }
+  .orbit-loader::before {
+    inset: 0;
+    border-top-color: var(--gold);
+  }
+  .orbit-loader::after {
+    inset: 14px;
+    border-top-color: var(--gold-soft);
+    animation-duration: 1.1s;
+    animation-direction: reverse;
+  }
+  .orbit-loader-core {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 8px; height: 8px;
+    transform: translate(-50%, -50%);
+    background: var(--gold);
+    border-radius: 50%;
+    box-shadow: 0 0 18px var(--gold);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Header (top-left) ─── */
+  #header {
+    position: fixed;
+    top: 28px; left: 32px;
+    z-index: 100;
+    user-select: none;
+    pointer-events: none;
+  }
+  .title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fff8e0 10%, var(--gold-soft) 50%, var(--gold) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    font-size: 10px;
+    letter-spacing: 0.45em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 6px;
+    font-weight: 400;
+  }
+  .ornament {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    margin-top: 10px;
+  }
+
+  /* ─── Controls (top-right) ─── */
+  #controls {
+    position: fixed;
+    top: 28px; right: 32px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  
+  .toggle-group {
+    display: flex;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-faint);
+    border-radius: 100px;
+    padding: 4px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 9px 22px;
+    border-radius: 100px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+  }
+  .btn:hover { color: var(--text-primary); }
+  .btn.active {
+    background: linear-gradient(135deg, var(--gold) 0%, #ff6b00 100%);
+    color: #0a0810;
+    box-shadow: 0 0 20px rgba(247,147,26,.35), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+
+  .icon-btn {
+    width: 40px; height: 40px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-faint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all .25s ease;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .icon-btn:hover {
+    color: var(--gold);
+    border-color: rgba(247,147,26,.4);
+    transform: rotate(8deg);
+  }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  /* ─── Stars/Comets Toggle (discrete pill) ─── */
+  .stars-toggle {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-faint);
+    border-radius: 100px;
+    padding: 8px 14px 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    transition: all .25s ease;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    user-select: none;
+  }
+  .stars-toggle:hover {
+    color: var(--text-primary);
+    border-color: var(--border-soft);
+  }
+  .stars-toggle .star-icon {
+    width: 10px; height: 10px;
+    color: var(--gold-soft);
+    transition: opacity .25s ease, transform .4s cubic-bezier(.4,0,.2,1);
+  }
+  .stars-toggle.off .star-icon {
+    opacity: 0.25;
+    transform: rotate(-30deg) scale(0.85);
+  }
+  .stars-toggle.off { opacity: 0.7; }
+
+  /* ─── Status Bar (bottom-left) ─── */
+  #status {
+    position: fixed;
+    bottom: 26px; left: 32px;
+    z-index: 100;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    user-select: none;
+    pointer-events: none;
+  }
+  .status-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .status-dot.error { background: var(--red); box-shadow: 0 0 10px var(--red); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+
+  /* ─── Legend (bottom-right) ─── */
+  #legend {
+    position: fixed;
+    bottom: 26px; right: 32px;
+    z-index: 100;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-faint);
+    border-radius: 14px;
+    padding: 14px 18px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    user-select: none;
+    pointer-events: none;
+    max-width: 250px;
+  }
+  .legend-title {
+    font-family: var(--font-display);
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .legend-line {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .legend-line .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .legend-line .dot.gold   { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+  .legend-line .dot.green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .legend-line .dot.red    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  /* ─── Tooltip ─── */
+  #tooltip {
+    position: fixed;
+    background: rgba(8, 6, 16, 0.94);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 16px 18px;
+    min-width: 260px;
+    max-width: 300px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .18s ease, transform .18s ease;
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow:
+      0 24px 50px rgba(0,0,0,.55),
+      0 0 0 1px rgba(247,147,26,.04),
+      inset 0 1px 0 rgba(255,255,255,.06);
+    z-index: 200;
+  }
+  #tooltip.visible { opacity: 1; transform: translateY(0); }
+
+  #tooltip::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 18px; right: 18px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.6;
+  }
+
+  .tt-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .tt-icon-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .tt-icon {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.06);
+    object-fit: contain;
+    padding: 2px;
+  }
+  .tt-rank {
+    position: absolute;
+    bottom: -3px; right: -3px;
+    background: var(--gold);
+    color: #0a0810;
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 18px; height: 18px;
+    padding: 0 3px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0a0810;
+  }
+  .tt-name {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+  }
+  .tt-symbol {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .tt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+  }
+  .tt-label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .tt-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-align: right;
+  }
+  .tt-value.green { color: var(--green); }
+  .tt-value.red   { color: var(--red); }
+  .tt-direction {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-faint);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .tt-direction strong {
+    color: var(--gold-soft);
+    font-weight: 600;
+  }
+
+  /* ─── Reload Notification ─── */
+  #notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(8, 6, 16, 0.95);
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px 24px;
+    z-index: 300;
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    box-shadow: 0 0 30px rgba(247,147,26,.3);
+  }
+  #notification.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* ─── Vignette overlay ─── */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%);
+  }
+
+  /* ─── Focus Panel ─── */
+  #focusPanel {
+    position: fixed;
+    bottom: 26px;
+    left: 50%;
+    transform: translate(-50%, 14px);
+    width: 300px;
+    background: rgba(8, 6, 16, 0.92);
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 16px 18px 14px;
+    z-index: 220;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s ease, transform .28s cubic-bezier(.4,0,.2,1);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    box-shadow:
+      0 24px 50px rgba(0,0,0,.6),
+      0 0 0 1px rgba(247,147,26,.05),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  #focusPanel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 18px; right: 18px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: .6;
+  }
+  #focusPanel.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+  #focusClose {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 26px; height: 26px;
+    border: 1px solid var(--border-faint);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: .2s;
+  }
+  #focusClose:hover { color: var(--gold); border-color: rgba(247,147,26,.4); }
+  .fp-header {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 10px;
+  }
+  #fpIcon {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border-soft);
+    background: #0a0814;
+  }
+  .fp-id { min-width: 0; }
+  .fp-name {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
+  .fp-symbol {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .22em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .fp-rank {
+    margin-left: auto;
+    margin-right: 24px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--gold-warm);
+    border: 1px solid rgba(247,147,26,.3);
+    border-radius: 100px;
+    padding: 3px 9px;
+  }
+  .fp-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  #fpPrice {
+    font-family: var(--font-mono);
+    font-size: 21px;
+    font-weight: 500;
+  }
+  #fpChange { font-size: 12px; font-weight: 600; }
+  #fpChange.green, .fp-grid .green { color: var(--green); }
+  #fpChange.red,   .fp-grid .red   { color: var(--red); }
+  #fpSpark {
+    display: block;
+    width: 100%;
+    height: 52px;
+    margin: 2px 0 2px;
+  }
+  .fp-spark-cap {
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .fp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 14px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-faint);
+  }
+  .fp-grid > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .fp-grid span {
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .fp-grid b {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #focusPanel, #tooltip, .btn, .icon-btn, .stars-toggle { transition: none; }
+  }
+
+  /* ─── Mobile ─── */
+  @media (max-width: 768px) {
+    #header { top: 14px; left: 16px; }
+    .title { font-size: 16px; letter-spacing: 0.24em; }
+    .subtitle { font-size: 8px; letter-spacing: 0.34em; }
+    .ornament { width: 42px; margin-top: 8px; }
+
+    #controls {
+      top: auto;
+      bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      width: max-content;
+      max-width: calc(100vw - 24px);
+    }
+    .toggle-group { padding: 3px; }
+    .btn {
+      padding: 9px 15px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+    }
+    .icon-btn { width: 42px; height: 42px; }
+    .icon-btn:hover { transform: none; }
+    .icon-btn svg { width: 18px; height: 18px; }
+    .stars-toggle {
+      order: 3;
+      padding: 10px 14px;
+      font-size: 9px;
+    }
+    .stars-toggle .star-icon { width: 12px; height: 12px; }
+
+    #status {
+      top: 16px; right: 16px;
+      bottom: auto; left: auto;
+      text-align: right;
+      font-size: 9px;
+    }
+    .status-row { justify-content: flex-end; }
+    #legend { display: none; }
+
+    #tooltip {
+      min-width: 0;
+      width: calc(100vw - 28px);
+      max-width: 340px;
+      padding: 14px 16px;
+    }
+
+    #focusPanel {
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+      width: calc(100vw - 28px);
+      max-width: 340px;
+    }
+  }
+
+  @media (max-width: 768px) and (max-height: 480px) {
+    #status { display: none; }
+    .subtitle, .ornament { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="loading-logo">S&P·GALAXY</div>
+  <div class="loading-sub">Opening the cosmic trading floor</div>
+  <div class="orbit-loader">
+    <div class="orbit-loader-core"></div>
+  </div>
+</div>
+
+<!-- Header -->
+<div id="header">
+  <div class="title">S&P Galaxy</div>
+  <div class="subtitle">Wall Street Solar System</div>
+  <div class="ornament"></div>
+</div>
+
+<!-- Controls -->
+<div id="controls">
+  <button class="stars-toggle" id="btnStars" title="Toggle stars and comets">
+    <svg class="star-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/>
+    </svg>
+    <span id="starsLabel">Stars On</span>
+  </button>
+  <button class="stars-toggle" id="btnGlow" title="Toggle cinematic bloom">
+    <svg class="star-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"></circle>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"></path>
+    </svg>
+    <span id="glowLabel">Glow On</span>
+  </button>
+  <div class="toggle-group">
+    <button class="btn active" id="btn1D">1D</button>
+    <button class="btn" id="btn7D">7D</button>
+    <button class="btn" id="btn30D">30D</button>
+  </div>
+  <div class="toggle-group">
+    <button class="btn" id="btn25">Top 25</button>
+    <button class="btn active" id="btn50">Top 50</button>
+  </div>
+  <a class="icon-btn" id="btnHome" href="../index.html" title="Back to home" aria-label="Back to home page" style="text-decoration:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+  </a>
+  <button class="icon-btn" id="btnRefresh" title="Refresh now">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+      <path d="M3 22v-6h6"/>
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+      <path d="M21 2v6h-6"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Status -->
+<div id="status">
+  <div>Last update: <span id="lastUpdate">—</span></div>
+  <div class="status-row">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Connecting…</span>
+  </div>
+</div>
+
+<!-- Legend -->
+<div id="legend">
+  <div class="legend-title">System Legend</div>
+  <div class="legend-line"><span class="dot gold"></span>Size ∝ Market Cap</div>
+  <div class="legend-line"><span class="dot green"></span>Direct orbit · <span id="legendUp">1D ↑</span></div>
+  <div class="legend-line"><span class="dot red"></span>Retrograde orbit · <span id="legendDown">1D ↓</span></div>
+  <div class="legend-line" style="margin-top:6px; color: var(--text-muted); font-size:10px;">Speed ∝ |% <span id="legendAbs">1D</span>|</div>
+  <div class="legend-line" style="margin-top:2px; color: var(--text-muted); font-size:10px;">Click a planet to focus · Esc releases</div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- Notification -->
+<div id="notification">Data updated</div>
+
+<!-- Focus panel — opens when a world is selected -->
+<div id="focusPanel" role="dialog" aria-label="Stock details">
+  <button id="focusClose" title="Exit focus" aria-label="Exit focus">✕</button>
+  <div class="fp-header">
+    <img id="fpIcon" alt="" onerror="this.style.opacity=0.3">
+    <div class="fp-id">
+      <div id="fpName" class="fp-name"></div>
+      <div id="fpSymbol" class="fp-symbol"></div>
+    </div>
+    <div id="fpRank" class="fp-rank"></div>
+  </div>
+  <div class="fp-price-row">
+    <span id="fpPrice"></span>
+    <span id="fpChange"></span>
+  </div>
+  <canvas id="fpSpark" height="52"></canvas>
+  <div class="fp-spark-cap">Last 30 days</div>
+  <div class="fp-grid">
+    <div><span>Market Cap</span><b id="fpMcap"></b></div>
+    <div><span>Sector</span><b id="fpSector"></b></div>
+    <div><span>Index weight</span><b id="fpWeight"></b></div>
+    <div><span>30d change</span><b id="fpD30"></b></div>
+    <div><span>30d high</span><b id="fpHigh"></b></div>
+    <div><span>30d low</span><b id="fpLow"></b></div>
+  </div>
+</div>
+
+<!-- Vignette -->
+<div class="vignette"></div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Post-processing (cinematic bloom). If any fail to load, the app
+     gracefully falls back to direct rendering — nothing breaks. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   S&P GALAXY — Wall Street Solar System
+   The S&P 500 index is the sun; the index's largest companies orbit
+   as planets. Live data via Yahoo Finance (through CORS proxies),
+   with an embedded snapshot fallback when offline.
+   ════════════════════════════════════════════════════════════════ */
+
+// ─────────────── Config ───────────────
+const REFRESH_MS = 5 * 60 * 1000;
+const SUN_RADIUS = 9;
+const ORBIT_BASE = 22;
+const ORBIT_STEP = 4.6;
+const PLANET_MIN = 0.5;
+const PLANET_MAX = 3.4;
+const TRAIL_SEGS = 26;        // segments per orbital motion trail
+
+// Approximate total S&P 500 market value (for "index weight")
+const TOTAL_SPX_CAP = 62e12;
+const SNAPSHOT_DATE = 'Jun 12, 2026';
+
+// ─────────────── Embedded dataset (S&P 500 Top 50) ───────────────
+// s: ticker · n: name · sec: sector · c: brand color · sh: shares
+// outstanding (billions, ~stable — used for live market cap) ·
+// p/d1/d7/d30: price & change snapshot used as the offline fallback.
+const STOCKS = [
+  { s:'NVDA',  n:'Nvidia',            sec:'Technology',             c:'76b900', sh:24.40, p:217.50, d1: 1.4, d7: 3.2, d30:  6.8 },
+  { s:'GOOGL', n:'Alphabet',          sec:'Communication',            c:'4285f4', sh:12.10, p:381.20, d1: 0.8, d7: 2.1, d30:  9.4 },
+  { s:'AAPL',  n:'Apple',             sec:'Technology',             c:'a8b1b8', sh:14.80, p:299.40, d1: 0.3, d7:-0.6, d30:  2.2 },
+  { s:'MSFT',  n:'Microsoft',         sec:'Technology',             c:'00a4ef', sh: 7.43, p:462.10, d1: 0.5, d7: 1.4, d30: -1.8 },
+  { s:'AMZN',  n:'Amazon',            sec:'Consumer Discretionary', c:'ff9900', sh:10.60, p:268.30, d1: 1.1, d7: 2.8, d30:  5.1 },
+  { s:'META',  n:'Meta Platforms',    sec:'Communication',            c:'0866ff', sh: 2.52, p:758.60, d1:-0.4, d7: 1.9, d30:  4.6 },
+  { s:'AVGO',  n:'Broadcom',          sec:'Technology',             c:'cc0000', sh: 4.70, p:366.40, d1: 2.1, d7: 4.5, d30: 11.2 },
+  { s:'TSLA',  n:'Tesla',             sec:'Consumer Discretionary', c:'e82127', sh: 3.22, p:471.90, d1:-1.8, d7:-4.2, d30:  7.9 },
+  { s:'BRK-B', n:'Berkshire Hathaway',sec:'Financials',             c:'7c2128', sh: 2.16, p:512.30, d1: 0.2, d7: 0.9, d30:  1.6 },
+  { s:'JPM',   n:'JPMorgan Chase',    sec:'Financials',             c:'117aca', sh: 2.78, p:315.80, d1: 0.6, d7: 1.2, d30:  3.4 },
+  { s:'WMT',   n:'Walmart',           sec:'Consumer Staples',         c:'0071ce', sh: 7.98, p:107.40, d1: 0.4, d7: 1.0, d30:  2.8 },
+  { s:'LLY',   n:'Eli Lilly',         sec:'Health Care',                  c:'d52b1e', sh: 0.90, p:926.50, d1:-0.7, d7: 2.4, d30:  5.5 },
+  { s:'ORCL',  n:'Oracle',            sec:'Technology',             c:'f80000', sh: 2.81, p:251.30, d1: 1.6, d7:-2.8, d30: -6.4 },
+  { s:'V',     n:'Visa',              sec:'Financials',             c:'3b4ccc', sh: 1.95, p:352.10, d1: 0.3, d7: 0.8, d30:  1.9 },
+  { s:'MA',    n:'Mastercard',        sec:'Financials',             c:'eb001b', sh: 0.91, p:596.40, d1: 0.4, d7: 1.1, d30:  2.3 },
+  { s:'NFLX',  n:'Netflix',           sec:'Communication',            c:'e50914', sh: 0.425,p:1228.0, d1:-0.9, d7:-2.1, d30:  3.8 },
+  { s:'XOM',   n:'Exxon Mobil',       sec:'Energy',                c:'fe000c', sh: 4.28, p:119.80, d1: 1.3, d7: 2.6, d30: -1.2 },
+  { s:'COST',  n:'Costco',            sec:'Consumer Staples',         c:'e31837', sh: 0.443,p:972.50, d1: 0.2, d7: 0.7, d30:  1.4 },
+  { s:'JNJ',   n:'Johnson & Johnson', sec:'Health Care',                  c:'d71920', sh: 2.41, p:176.20, d1: 0.1, d7: 0.5, d30:  2.1 },
+  { s:'PLTR',  n:'Palantir',          sec:'Technology',             c:'9aa0a6', sh: 2.45, p:166.80, d1: 2.9, d7: 6.4, d30: 14.7 },
+  { s:'HD',    n:'Home Depot',        sec:'Consumer Discretionary', c:'f96302', sh: 0.99, p:396.40, d1:-0.3, d7: 0.9, d30: -2.6 },
+  { s:'PG',    n:'Procter & Gamble',  sec:'Consumer Staples',         c:'003da5', sh: 2.34, p:163.50, d1: 0.2, d7: 0.4, d30:  1.1 },
+  { s:'ABBV',  n:'AbbVie',            sec:'Health Care',                  c:'2e4f9e', sh: 1.77, p:211.40, d1: 0.5, d7: 1.6, d30:  4.2 },
+  { s:'BAC',   n:'Bank of America',   sec:'Financials',             c:'0066b2', sh: 7.45, p: 48.90, d1: 0.7, d7: 1.4, d30:  3.1 },
+  { s:'GE',    n:'GE Aerospace',      sec:'Industrials',              c:'3874ba', sh: 1.06, p:314.20, d1: 1.0, d7: 2.2, d30:  6.3 },
+  { s:'AMD',   n:'AMD',               sec:'Technology',             c:'ed1c24', sh: 1.62, p:203.70, d1: 2.4, d7: 5.1, d30:  9.8 },
+  { s:'CVX',   n:'Chevron',           sec:'Energy',                c:'0054a4', sh: 1.78, p:171.30, d1: 1.1, d7: 2.0, d30: -0.8 },
+  { s:'KO',    n:'Coca-Cola',         sec:'Consumer Staples',         c:'f40009', sh: 4.31, p: 70.60, d1: 0.1, d7: 0.6, d30:  1.7 },
+  { s:'CSCO',  n:'Cisco',             sec:'Technology',             c:'1ba0d7', sh: 3.95, p: 74.20, d1: 0.5, d7: 1.3, d30:  2.9 },
+  { s:'UNH',   n:'UnitedHealth',      sec:'Health Care',                  c:'0066f5', sh: 0.91, p:321.40, d1:-1.2, d7:-3.4, d30: -7.6 },
+  { s:'WFC',   n:'Wells Fargo',       sec:'Financials',             c:'d71e28', sh: 3.24, p: 87.10, d1: 0.6, d7: 1.5, d30:  3.6 },
+  { s:'PM',    n:'Philip Morris',     sec:'Consumer Staples',         c:'1c4f9c', sh: 1.56, p:176.80, d1: 0.3, d7: 0.9, d30:  2.4 },
+  { s:'IBM',   n:'IBM',               sec:'Technology',             c:'0f62fe', sh: 0.93, p:293.50, d1: 0.8, d7: 1.7, d30: -3.2 },
+  { s:'CRM',   n:'Salesforce',        sec:'Technology',             c:'00a1e0', sh: 0.96, p:263.20, d1: 1.4, d7: 2.6, d30: -4.8 },
+  { s:'MS',    n:'Morgan Stanley',    sec:'Financials',             c:'1c75bc', sh: 1.60, p:157.30, d1: 0.5, d7: 1.1, d30:  2.7 },
+  { s:'GS',    n:'Goldman Sachs',     sec:'Financials',             c:'7399c6', sh: 0.305,p:792.40, d1: 0.9, d7: 1.8, d30:  4.1 },
+  { s:'AXP',   n:'American Express',  sec:'Financials',             c:'016fd0', sh: 0.70, p:345.60, d1: 0.4, d7: 1.2, d30:  2.6 },
+  { s:'ABT',   n:'Abbott',            sec:'Health Care',                  c:'009cde', sh: 1.74, p:138.90, d1: 0.2, d7: 0.8, d30:  1.9 },
+  { s:'LIN',   n:'Linde',             sec:'Materials',              c:'00a0e1', sh: 0.47, p:471.20, d1: 0.3, d7: 0.7, d30:  1.5 },
+  { s:'MCD',   n:"McDonald's",        sec:'Consumer Discretionary', c:'ffc72c', sh: 0.715,p:309.80, d1: 0.1, d7: 0.5, d30: -1.4 },
+  { s:'DIS',   n:'Disney',            sec:'Communication',            c:'113ccf', sh: 1.80, p:118.40, d1: 0.7, d7: 1.9, d30:  4.4 },
+  { s:'MRK',   n:'Merck',             sec:'Health Care',                  c:'00857c', sh: 2.50, p: 85.30, d1:-0.4, d7: 0.6, d30:  2.8 },
+  { s:'RTX',   n:'RTX',               sec:'Industrials',              c:'ce1126', sh: 1.33, p:159.70, d1: 0.6, d7: 1.4, d30:  3.9 },
+  { s:'PEP',   n:'PepsiCo',           sec:'Consumer Staples',         c:'004b93', sh: 1.37, p:147.20, d1: 0.2, d7: 0.5, d30:  1.2 },
+  { s:'CAT',   n:'Caterpillar',       sec:'Industrials',              c:'ffcd11', sh: 0.48, p:419.60, d1: 0.9, d7: 2.1, d30:  5.6 },
+  { s:'UBER',  n:'Uber',              sec:'Technology',             c:'06c167', sh: 2.09, p: 96.40, d1: 1.5, d7: 3.2, d30:  7.3 },
+  { s:'T',     n:'AT&T',              sec:'Communication',            c:'00a8e0', sh: 7.18, p: 28.30, d1: 0.3, d7: 0.8, d30:  2.2 },
+  { s:'TMO',   n:'Thermo Fisher',     sec:'Health Care',                  c:'ee3124', sh: 0.378,p:506.20, d1: 0.4, d7: 1.0, d30:  2.5 },
+  { s:'INTU',  n:'Intuit',            sec:'Technology',             c:'365ebf', sh: 0.28, p:683.40, d1: 1.1, d7: 2.4, d30: -2.9 },
+  { s:'QCOM',  n:'Qualcomm',          sec:'Technology',             c:'3253dc', sh: 1.10, p:167.20, d1: 0.8, d7: 1.9, d30:  4.7 },
+];
+
+// Index snapshot (fallback)
+const INDEX_SNAPSHOT = { value: 7425.87, d1: 0.29, d7: 0.9, d30: 2.6 };
+
+// ─────────────── State ───────────────
+let scene, camera, renderer, controls;
+let sun = null;
+let planets = [];
+let starField = null;
+let nebulae = [];
+let cometSystem = null;
+let ufoSystem = null;          // 🛸 easter egg
+let ambienceOn = true;
+let raycaster, pointer;
+let hovered = null;
+let currentLimit = 50;
+let currentPeriod = '24h';     // '24h' | '7d' | '30d'
+let stocksList = [];           // normalized stocks (coin-style objects)
+let indexData = null;          // pseudo-"coin" for the index (the sun)
+let liveMode = false;          // true = Yahoo Finance, false = snapshot
+let lastFetchOK = true;
+let refreshTimer = null;
+let isFetching = false;
+let clock;
+let composer = null, bloomPass = null;
+let bloomOn = true;
+let milkyWay = null;
+let galaxySprites = [];
+let heroStarSprites = [];
+let asteroidBelt = null;
+let focused = null;
+let focusReturning = false;
+let focusStartedAt = 0;
+let lastHoverRing = null;
+let _downPos = null;
+
+// ─────────────── Init ───────────────
+function init() {
+  clock = new THREE.Clock();
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  scene.fog = new THREE.FogExp2(0x000000, 0.0008);
+
+  camera = new THREE.PerspectiveCamera(
+    55, window.innerWidth / window.innerHeight, 0.1, 5000
+  );
+  camera.position.set(0, 65, 165);
+  applyResponsiveCamera();
+
+  renderer = new THREE.WebGLRenderer({ 
+    antialias: true, 
+    alpha: false,
+    powerPreference: 'high-performance'
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  document.body.appendChild(renderer.domElement);
+
+  setupComposer();
+
+  controls = new SimpleOrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 0, 0);
+  controls.minDistance = 25;
+  controls.maxDistance = 400;
+  if (isNarrowViewport()) {
+    controls.maxDistance = 620;
+    controls.radius = 250;
+  }
+  controls.update();
+
+  raycaster = new THREE.Raycaster();
+  pointer = new THREE.Vector2(-10, -10);
+
+  scene.add(new THREE.AmbientLight(0x202238, 0.45));
+
+  const sunLight = new THREE.PointLight(0xffd2a0, 3.5, 600, 1.4);
+  sunLight.position.set(0, 0, 0);
+  scene.add(sunLight);
+
+  const rim = new THREE.DirectionalLight(0x6b7fc5, 0.3);
+  rim.position.set(-200, 100, -150);
+  scene.add(rim);
+
+  buildStarfield();
+  buildNebulae();
+  buildMilkyWay();
+  buildGalaxies();
+  buildHeroStars();
+  cometSystem = new CometSystem(scene);
+  ufoSystem = new UfoSystem(scene);   // 🛸 always on — easter egg
+
+  // Events
+  window.addEventListener('resize', onResize);
+  renderer.domElement.addEventListener('mousemove', onPointerMove);
+  renderer.domElement.addEventListener('mouseleave', () => {
+    hovered = null;
+    hideTooltip();
+  });
+  renderer.domElement.addEventListener('touchstart', onTouchTap);
+
+  renderer.domElement.addEventListener('mousedown', e => {
+    _downPos = { x: e.clientX, y: e.clientY };
+  });
+  window.addEventListener('mouseup', e => {
+    if (!_downPos) return;
+    const dx = e.clientX - _downPos.x, dy = e.clientY - _downPos.y;
+    if (dx * dx + dy * dy < 36) handlePick(e.clientX, e.clientY);
+    _downPos = null;
+  });
+  renderer.domElement.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+      _downPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    } else _downPos = null;
+  }, { passive: true });
+  renderer.domElement.addEventListener('touchend', e => {
+    if (!_downPos || !e.changedTouches.length) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - _downPos.x, dy = t.clientY - _downPos.y;
+    if (dx * dx + dy * dy < 144) handlePick(t.clientX, t.clientY);
+    _downPos = null;
+  });
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && (focused || focusReturning)) exitFocus();
+  });
+  document.getElementById('focusClose').addEventListener('click', exitFocus);
+
+  document.getElementById('btn25').addEventListener('click', () => switchLimit(25));
+  document.getElementById('btn50').addEventListener('click', () => switchLimit(50));
+  document.getElementById('btn1D').addEventListener('click',  () => switchPeriod('24h'));
+  document.getElementById('btn7D').addEventListener('click',  () => switchPeriod('7d'));
+  document.getElementById('btn30D').addEventListener('click', () => switchPeriod('30d'));
+  document.getElementById('btnRefresh').addEventListener('click', () => {
+    if (!isFetching) loadData(true);
+  });
+  document.getElementById('btnStars').addEventListener('click', toggleAmbience);
+  document.getElementById('btnGlow').addEventListener('click', toggleGlow);
+
+  if (isNarrowViewport()) {
+    bloomOn = false;
+    syncGlowButton();
+  }
+
+  loadData(false);
+  animate();
+}
+
+// ─────────────── Starfield ───────────────
+function buildStarfield() {
+  const geom = new THREE.BufferGeometry();
+  const pos = [], col = [], siz = [], phase = [];
+  const count = 9000;
+  for (let i = 0; i < count; i++) {
+    const r = 600 + Math.random() * 1800;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pos.push(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    const tint = Math.random();
+    if (tint < 0.7) {
+      const c = 0.75 + Math.random() * 0.25;
+      col.push(c, c, c);
+    } else if (tint < 0.88) {
+      col.push(0.8, 0.88, 1.0);
+    } else {
+      col.push(1.0, 0.9, 0.7);
+    }
+    siz.push(Math.random() < 0.05 ? (4.5 + Math.random() * 3) : (1.5 + Math.random() * 1.5));
+    phase.push(Math.random());
+  }
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geom.setAttribute('color',    new THREE.Float32BufferAttribute(col, 3));
+  geom.setAttribute('size',     new THREE.Float32BufferAttribute(siz, 1));
+  geom.setAttribute('phase',    new THREE.Float32BufferAttribute(phase, 1));
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      time:         { value: 0 },
+      pointTexture: { value: makeStarTexture() },
+    },
+    vertexShader: `
+      attribute vec3  color;
+      attribute float size;
+      attribute float phase;
+      varying vec3  vColor;
+      varying float vTwinkle;
+      uniform float time;
+      void main() {
+        vColor = color;
+        float t1 = sin(time * 2.4 + phase * 6.2831);
+        float t2 = sin(time * 1.1 + phase * 12.566);
+        vTwinkle = 0.72 + 0.22 * t1 + 0.12 * t2;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * 4.0 * (350.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `,
+    fragmentShader: `
+      uniform sampler2D pointTexture;
+      varying vec3  vColor;
+      varying float vTwinkle;
+      void main() {
+        vec4 tex = texture2D(pointTexture, gl_PointCoord);
+        if (tex.a < 0.08) discard;
+        gl_FragColor = vec4(vColor * vTwinkle, 1.0) * tex;
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  starField = new THREE.Points(geom, mat);
+  scene.add(starField);
+}
+
+function makeStarTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0,    'rgba(255,255,255,1)');
+  g.addColorStop(0.25, 'rgba(255,255,255,0.6)');
+  g.addColorStop(0.5,  'rgba(255,255,255,0.15)');
+  g.addColorStop(1,    'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  const t = new THREE.CanvasTexture(c);
+  return t;
+}
+
+// ─────────────── Post-processing (cinematic bloom) ───────────────
+function setupComposer() {
+  if (!THREE.EffectComposer || !THREE.RenderPass || !THREE.UnrealBloomPass ||
+      !THREE.ShaderPass || !THREE.CopyShader || !THREE.LuminosityHighPassShader ||
+      !THREE.GammaCorrectionShader) {
+    bloomOn = false;
+    const b = document.getElementById('btnGlow');
+    if (b) b.style.display = 'none';
+    return;
+  }
+  composer = new THREE.EffectComposer(renderer);
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  composer.setSize(window.innerWidth, window.innerHeight);
+  composer.addPass(new THREE.RenderPass(scene, camera));
+  bloomPass = new THREE.UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    0.55, 0.85, 0.55
+  );
+  composer.addPass(bloomPass);
+  composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+}
+
+function syncGlowButton() {
+  const btn = document.getElementById('btnGlow');
+  if (!btn) return;
+  btn.classList.toggle('off', !bloomOn);
+  document.getElementById('glowLabel').textContent = bloomOn ? 'Glow On' : 'Glow Off';
+}
+
+function toggleGlow() {
+  if (!composer) return;
+  bloomOn = !bloomOn;
+  syncGlowButton();
+}
+
+// ─────────────── Nebulae (atmospheric depth) ───────────────
+function makeNebulaTexture(baseColor) {
+  const S = 512;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  const r0 = (baseColor >> 16) & 255, g0 = (baseColor >> 8) & 255, b0 = baseColor & 255;
+
+  for (let i = 0; i < 46; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const dist = Math.pow(Math.random(), 1.7) * S * 0.34;
+    const x = S / 2 + Math.cos(ang) * dist;
+    const y = S / 2 + Math.sin(ang) * dist * 0.8;
+    const rad = 30 + Math.random() * 110;
+    const hueJit = (Math.random() - 0.5) * 70;
+    const r = Math.max(0, Math.min(255, r0 + hueJit));
+    const g = Math.max(0, Math.min(255, g0 + hueJit * 0.5));
+    const b = Math.max(0, Math.min(255, b0 - hueJit * 0.4));
+    const a = 0.04 + Math.random() * 0.10;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+    grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${a})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 9; i++) {
+    const x = S * (0.3 + Math.random() * 0.4);
+    const y = S * (0.3 + Math.random() * 0.4);
+    const rad = 14 + Math.random() * 40;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+    grad.addColorStop(0, `rgba(255,255,255,${0.05 + Math.random() * 0.07})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 50; i++) {
+    const x = S * (0.2 + Math.random() * 0.6);
+    const y = S * (0.2 + Math.random() * 0.6);
+    ctx.fillStyle = `rgba(255,255,255,${0.2 + Math.random() * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 0.5 + Math.random() * 1.1, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const mask = ctx.createRadialGradient(S/2, S/2, S * 0.18, S/2, S/2, S * 0.5);
+  mask.addColorStop(0, 'rgba(0,0,0,0)');
+  mask.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = mask;
+  ctx.fillRect(0, 0, S, S);
+  ctx.globalCompositeOperation = 'source-over';
+  return new THREE.CanvasTexture(c);
+}
+
+function buildNebulae() {
+  const defs = [
+    { color: 0x4a36b8, scale: 720, opacity: 0.55, pos: [-400, 80, -350] },
+    { color: 0xb84a64, scale: 660, opacity: 0.42, pos: [350, -60, -400] },
+    { color: 0x3464c0, scale: 820, opacity: 0.40, pos: [100, 200, -600] },
+    { color: 0x8a48c8, scale: 560, opacity: 0.36, pos: [-300, -150, 200] },
+    { color: 0x2e8a8a, scale: 500, opacity: 0.30, pos: [420, 160, 280] },
+  ];
+  defs.forEach(n => {
+    const m = new THREE.SpriteMaterial({
+      map: makeNebulaTexture(n.color),
+      transparent: true,
+      opacity: n.opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const s = new THREE.Sprite(m);
+    s.position.set(...n.pos);
+    s.scale.set(n.scale, n.scale, 1);
+    scene.add(s);
+    nebulae.push(s);
+  });
+}
+
+// ─────────────── Milky Way band ───────────────
+function makeMilkyWayCanvas() {
+  const W = 2048, H = 1024;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  const bandY = (x) => H * 0.5 + Math.sin(x / W * Math.PI * 2) * H * 0.06;
+
+  for (let i = 0; i < 420; i++) {
+    const x = Math.random() * W;
+    const spread = H * (0.04 + Math.pow(Math.random(), 2.2) * 0.13);
+    const y = bandY(x) + (Math.random() - 0.5) * 2 * spread;
+    const rad = 18 + Math.random() * 90;
+    const warm = Math.random() < 0.3;
+    const rr = warm ? 90 + Math.random() * 60 : 50 + Math.random() * 40;
+    const gg = warm ? 70 + Math.random() * 40 : 60 + Math.random() * 40;
+    const bb = warm ? 50 + Math.random() * 30 : 110 + Math.random() * 70;
+    const a = 0.012 + Math.random() * 0.03;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+    grad.addColorStop(0, `rgba(${rr|0},${gg|0},${bb|0},${a})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 70; i++) {
+    const x = W * 0.5 + (Math.random() - 0.5) * W * 0.22;
+    const y = bandY(x) + (Math.random() - 0.5) * H * 0.07;
+    const rad = 25 + Math.random() * 70;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, rad);
+    grad.addColorStop(0, `rgba(255,${215 + Math.random()*30|0},${160 + Math.random()*50|0},${0.02 + Math.random() * 0.035})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let i = 0; i < 5200; i++) {
+    const inBand = Math.random() < 0.78;
+    const x = Math.random() * W;
+    const y = inBand
+      ? bandY(x) + (Math.random() - 0.5) * H * 0.30 * Math.pow(Math.random(), 1.4)
+      : Math.random() * H;
+    const a = 0.12 + Math.random() * 0.55;
+    const s = Math.random() < 0.04 ? 1.5 : 0.7;
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fillRect(x, y, s, s);
+  }
+  return c;
+}
+
+function buildMilkyWay() {
+  const tex = new THREE.CanvasTexture(makeMilkyWayCanvas());
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    side: THREE.BackSide,
+    transparent: true,
+    opacity: 0.7,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    fog: false,
+  });
+  milkyWay = new THREE.Mesh(new THREE.SphereGeometry(2400, 48, 32), mat);
+  milkyWay.rotation.z = 0.42;
+  milkyWay.rotation.x = 0.18;
+  milkyWay.renderOrder = -10;
+  scene.add(milkyWay);
+}
+
+// ─────────────── Distant galaxies ───────────────
+function makeGalaxyCanvas() {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  ctx.translate(S / 2, S / 2);
+  const tilt = Math.random() * Math.PI;
+  ctx.rotate(tilt);
+  const squash = 0.28 + Math.random() * 0.3;
+  for (let i = 5; i >= 0; i--) {
+    const r = (S * 0.46) * (i + 1) / 6;
+    const a = 0.05 + (5 - i) * 0.035;
+    ctx.fillStyle = `rgba(${190 + Math.random()*40|0},${185 + Math.random()*30|0},${230},${a})`;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r, r * squash, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const core = ctx.createRadialGradient(0, 0, 0, 0, 0, S * 0.12);
+  core.addColorStop(0, 'rgba(255,245,220,0.95)');
+  core.addColorStop(1, 'rgba(255,235,200,0)');
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, S * 0.12, S * 0.12 * (squash + 0.4), 0, 0, Math.PI * 2);
+  ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
+
+function buildGalaxies() {
+  for (let i = 0; i < 6; i++) {
+    const m = new THREE.SpriteMaterial({
+      map: makeGalaxyCanvas(),
+      transparent: true,
+      opacity: 0.22 + Math.random() * 0.22,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+    });
+    m.rotation = Math.random() * Math.PI * 2;
+    const s = new THREE.Sprite(m);
+    const r = 1700 + Math.random() * 500;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    s.position.set(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    const sc = 60 + Math.random() * 90;
+    s.scale.set(sc, sc, 1);
+    s.userData.spin = (Math.random() < 0.5 ? -1 : 1) * (0.004 + Math.random() * 0.008);
+    scene.add(s);
+    galaxySprites.push(s);
+  }
+}
+
+// ─────────────── Hero stars (diffraction spikes) ───────────────
+function makeSpikeTexture() {
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  const cx = S / 2;
+  const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, S * 0.18);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  const spike = (vert) => {
+    const lg = vert
+      ? ctx.createLinearGradient(cx, 0, cx, S)
+      : ctx.createLinearGradient(0, cx, S, cx);
+    lg.addColorStop(0,   'rgba(255,255,255,0)');
+    lg.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+    lg.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = lg;
+    if (vert) ctx.fillRect(cx - 1, 0, 2, S);
+    else      ctx.fillRect(0, cx - 1, S, 2);
+  };
+  spike(true); spike(false);
+  return new THREE.CanvasTexture(c);
+}
+
+function buildHeroStars() {
+  const tex = makeSpikeTexture();
+  const tints = [0xffffff, 0xcfe2ff, 0xffe8c0, 0xd8ccff, 0xc8fff4];
+  for (let i = 0; i < 26; i++) {
+    const m = new THREE.SpriteMaterial({
+      map: tex,
+      color: tints[Math.floor(Math.random() * tints.length)],
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+    });
+    const s = new THREE.Sprite(m);
+    const r = 900 + Math.random() * 1300;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    s.position.set(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    const sc = 9 + Math.random() * 16;
+    s.scale.set(sc, sc, 1);
+    s.userData.phase = Math.random() * Math.PI * 2;
+    s.userData.speed = 0.5 + Math.random() * 1.1;
+    s.userData.base  = 0.32 + Math.random() * 0.3;
+    scene.add(s);
+    heroStarSprites.push(s);
+  }
+}
+
+// ─────────────── Asteroid belt ───────────────
+function rebuildAsteroidBelt() {
+  if (asteroidBelt) {
+    scene.remove(asteroidBelt);
+    asteroidBelt.geometry.dispose();
+    asteroidBelt.material.dispose();
+    asteroidBelt = null;
+  }
+  const outer = ORBIT_BASE + (currentLimit - 1) * ORBIT_STEP;
+  const inner = outer + 9;
+  const width = 18;
+  const count = isNarrowViewport() ? 340 : 680;
+
+  const geom = new THREE.DodecahedronGeometry(1, 0);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff, roughness: 0.95, metalness: 0.05,
+  });
+  const mesh = new THREE.InstancedMesh(geom, mat, count);
+  const dummy = new THREE.Object3D();
+  const col = new THREE.Color();
+  for (let i = 0; i < count; i++) {
+    const r = inner + Math.pow(Math.random(), 0.85) * width;
+    const a = Math.random() * Math.PI * 2;
+    dummy.position.set(Math.cos(a) * r, (Math.random() - 0.5) * 2.4, Math.sin(a) * r);
+    const s = 0.07 + Math.random() * 0.30;
+    dummy.scale.set(
+      s * (0.7 + Math.random() * 0.6),
+      s * (0.7 + Math.random() * 0.6),
+      s * (0.7 + Math.random() * 0.6)
+    );
+    dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    const shade = 0.35 + Math.random() * 0.42;
+    col.setRGB(shade * 1.05, shade * 0.95, shade * 0.85);
+    mesh.setColorAt(i, col);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  mesh.visible = ambienceOn;
+  asteroidBelt = mesh;
+  scene.add(mesh);
+}
+
+// ─────────────── Saturn rings & orbit trails ───────────────
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function makeSaturnRingTexture() {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  const cx = S / 2;
+  for (let r = S * 0.30; r < S * 0.5; r += 1) {
+    const t = (r - S * 0.30) / (S * 0.2);
+    let a = 0.55 * (0.35 + 0.65 * Math.sin(t * Math.PI));
+    a *= 0.6 + 0.4 * Math.sin(t * 40 + Math.sin(t * 13) * 3);
+    if (t > 0.62 && t < 0.70) a *= 0.15;
+    ctx.strokeStyle = `rgba(255,255,255,${Math.max(0, a)})`;
+    ctx.beginPath();
+    ctx.arc(cx, cx, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function lightenHex(hex, k) {
+  const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
+  const lr = Math.min(255, r + (255 - r) * k) | 0;
+  const lg = Math.min(255, g + (255 - g) * k) | 0;
+  const lb = Math.min(255, b + (255 - b) * k) | 0;
+  return (lr << 16) | (lg << 8) | lb;
+}
+
+// ═══ STOCK-MARKET SCALE ═══
+// Crypto moves ±30% in a day; stocks rarely exceed ±3%. Here the visual
+// intensity (trail, orbital speed) saturates at a cap that depends on
+// the active period: ±4% is already "max" on 1D, ±8% on 7D and ±15% on
+// 30D. That way a +2% day on a stock looks as alive as +15% used to
+// look on a crypto.
+function periodCap() {
+  return currentPeriod === '7d' ? 8 : currentPeriod === '30d' ? 15 : 4;
+}
+// 0 → 1: how "strong" the move is within the period's scale.
+// sqrt gives fast response to small moves (0.5% already lights the trail).
+function changeIntensity(change) {
+  const cap = periodCap();
+  return Math.sqrt(Math.min(Math.abs(change), cap) / cap);
+}
+
+function makeOrbitTrail(p) {
+  const N = TRAIL_SEGS;
+  const posArr = new Float32Array(N * 2 * 3);
+  const colArr = new Float32Array(N * 2 * 3);
+  const indices = [];
+  for (let i = 0; i < N - 1; i++) {
+    const a = i * 2, b = i * 2 + 1, c2 = (i + 1) * 2, d = (i + 1) * 2 + 1;
+    indices.push(a, c2, b, b, c2, d);
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  geom.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+  geom.setIndex(indices);
+  const mat = new THREE.MeshBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 3;
+  scene.add(mesh);
+  const trail = { mesh, geom, mat, posArr, colArr, N };
+  recolorOrbitTrail(trail, p);
+  return trail;
+}
+
+function recolorOrbitTrail(trail, p) {
+  const change = getCoinChange(p.coin);
+  const hex = change >= 0 ? 0x4ade80 : 0xf87171;
+  const r0 = ((hex >> 16) & 255) / 255;
+  const g0 = ((hex >> 8) & 255) / 255;
+  const b0 = (hex & 255) / 255;
+  for (let i = 0; i < trail.N; i++) {
+    const t = 1 - i / (trail.N - 1);
+    const fade = t * t;
+    const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
+    trail.colArr[i0] = r0 * fade; trail.colArr[i0+1] = g0 * fade; trail.colArr[i0+2] = b0 * fade;
+    trail.colArr[i1] = r0 * fade; trail.colArr[i1+1] = g0 * fade; trail.colArr[i1+2] = b0 * fade;
+  }
+  trail.geom.attributes.color.needsUpdate = true;
+  // Stock scale: full opacity already at ±periodCap()% (not ±30%)
+  trail.mat.opacity = 0.16 + changeIntensity(change) * 0.55;
+}
+
+function updateOrbitTrail(p) {
+  const trail = p.trail;
+  if (!trail) return;
+  const N = trail.N;
+  const dir = p.speed >= 0 ? 1 : -1;
+  const arc = 0.22 + Math.min(Math.abs(p.speed), 2.2) * 0.55;
+  const y = p.group.position.y;
+  for (let i = 0; i < N; i++) {
+    const t = i / (N - 1);
+    const a = p.angle - dir * t * arc;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const w = p.trailWidth * (1 - t);
+    const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
+    trail.posArr[i0]     = ca * (p.distance + w);
+    trail.posArr[i0 + 1] = y;
+    trail.posArr[i0 + 2] = sa * (p.distance + w);
+    trail.posArr[i1]     = ca * (p.distance - w);
+    trail.posArr[i1 + 1] = y;
+    trail.posArr[i1 + 2] = sa * (p.distance - w);
+  }
+  trail.geom.attributes.position.needsUpdate = true;
+}
+
+// Orbital speed on the stock scale: up to ~5× at the period cap.
+function orbitalSpeed(coin, distance) {
+  const change = getCoinChange(coin);
+  const baseSpeed = 0.36;
+  const speedMult = 1 + changeIntensity(change) * 4.2;
+  const direction = change >= 0 ? 1 : -1;
+  return (baseSpeed / Math.sqrt(distance / 20)) * speedMult * direction;
+}
+
+// ─────────────── Comets (cinematic ribbon-trail) ───────────────
+class RibbonTrail {
+  constructor(segments, headColor, baseWidth) {
+    this.N = segments;
+    this.baseWidth = baseWidth;
+    this.history = [];
+
+    this.posArr = new Float32Array(this.N * 2 * 3);
+    this.colArr = new Float32Array(this.N * 2 * 3);
+
+    const indices = [];
+    for (let i = 0; i < this.N - 1; i++) {
+      const a = i * 2, b = i * 2 + 1;
+      const c = (i + 1) * 2, d = (i + 1) * 2 + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+
+    const r0 = ((headColor >> 16) & 255) / 255;
+    const g0 = ((headColor >>  8) & 255) / 255;
+    const b0 = ( headColor        & 255) / 255;
+    for (let i = 0; i < this.N; i++) {
+      const t = 1 - i / (this.N - 1);
+      const fade = t * t;
+      const r = r0 * fade, g = g0 * fade, b = b0 * fade;
+      const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
+      this.colArr[i0] = r; this.colArr[i0 + 1] = g; this.colArr[i0 + 2] = b;
+      this.colArr[i1] = r; this.colArr[i1 + 1] = g; this.colArr[i1 + 2] = b;
+    }
+
+    this.geom = new THREE.BufferGeometry();
+    this.geom.setAttribute('position', new THREE.BufferAttribute(this.posArr, 3));
+    this.geom.setAttribute('color',    new THREE.BufferAttribute(this.colArr, 3));
+    this.geom.setIndex(indices);
+
+    this.mat = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 1.0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    this.mesh = new THREE.Mesh(this.geom, this.mat);
+    this.mesh.frustumCulled = false;
+    this.mesh.renderOrder = 4;
+  }
+
+  update(headPos, camera) {
+    this.history.unshift(headPos.clone());
+    if (this.history.length > this.N) this.history.length = this.N;
+    while (this.history.length < this.N) {
+      this.history.push(this.history[this.history.length - 1].clone());
+    }
+
+    const _dir  = new THREE.Vector3();
+    const _cam  = new THREE.Vector3();
+    const _side = new THREE.Vector3();
+
+    for (let i = 0; i < this.N; i++) {
+      const p = this.history[i];
+      const ref = i < this.N - 1 ? this.history[i + 1] : this.history[i - 1] || p;
+      _dir.subVectors(p, ref).normalize();
+      _cam.subVectors(camera.position, p).normalize();
+      _side.crossVectors(_dir, _cam).normalize();
+
+      const t = i / (this.N - 1);
+      const width = this.baseWidth * (1 - t) * (1 - t * 0.6);
+
+      const sx = _side.x * width, sy = _side.y * width, sz = _side.z * width;
+      const i0 = (i * 2) * 3, i1 = (i * 2 + 1) * 3;
+      this.posArr[i0]     = p.x + sx;
+      this.posArr[i0 + 1] = p.y + sy;
+      this.posArr[i0 + 2] = p.z + sz;
+      this.posArr[i1]     = p.x - sx;
+      this.posArr[i1 + 1] = p.y - sy;
+      this.posArr[i1 + 2] = p.z - sz;
+    }
+    this.geom.attributes.position.needsUpdate = true;
+  }
+
+  setOpacity(o) { this.mat.opacity = o; }
+
+  dispose() { this.geom.dispose(); this.mat.dispose(); }
+}
+
+class Comet {
+  constructor(headTexture) {
+    const startAngle = Math.random() * Math.PI * 2;
+    const startDist  = 380;
+    const startY     = -90 + Math.random() * 180;
+    this.position = new THREE.Vector3(
+      Math.cos(startAngle) * startDist,
+      startY,
+      Math.sin(startAngle) * startDist
+    );
+    const targetAngle = startAngle + Math.PI + (Math.random() - 0.5) * 0.7;
+    const target = new THREE.Vector3(
+      Math.cos(targetAngle) * startDist,
+      -90 + Math.random() * 180,
+      Math.sin(targetAngle) * startDist
+    );
+    this.velocity = new THREE.Vector3()
+      .subVectors(target, this.position)
+      .normalize()
+      .multiplyScalar(70 + Math.random() * 50);
+
+    const palette = [0xc8e0ff, 0xfff0c8, 0xffffff, 0xb8d8ff, 0xffe8a0];
+    const headColor = palette[Math.floor(Math.random() * palette.length)];
+
+    this.head = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: headTexture,
+      color: headColor,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }));
+    const headSize = 5 + Math.random() * 4;
+    this.head.scale.set(headSize, headSize, 1);
+    this.head.position.copy(this.position);
+    this.head.renderOrder = 5;
+
+    this.trail = new RibbonTrail(50, headColor, 1.6 + Math.random() * 1.2);
+    for (let i = 0; i < 50; i++) {
+      this.trail.history.push(
+        this.position.clone().sub(
+          this.velocity.clone().multiplyScalar(0.04 * i)
+        )
+      );
+    }
+
+    this.life     = 0;
+    this.maxLife  = (startDist * 2) / this.velocity.length() + 0.5;
+    this.fadeIn   = 0.4;
+    this.fadeOut  = 0.8;
+    this.headBaseSize = headSize;
+  }
+
+  addTo(scene) { scene.add(this.head); scene.add(this.trail.mesh); }
+
+  update(dt, camera) {
+    this.life += dt;
+    this.position.addScaledVector(this.velocity, dt);
+    this.head.position.copy(this.position);
+    this.trail.update(this.position, camera);
+
+    let opacity = 1;
+    if (this.life < this.fadeIn) {
+      opacity = this.life / this.fadeIn;
+    } else if (this.life > this.maxLife - this.fadeOut) {
+      opacity = Math.max(0, (this.maxLife - this.life) / this.fadeOut);
+    }
+    this.head.material.opacity = opacity;
+    this.trail.setOpacity(opacity * 0.95);
+
+    const pulse = 1 + Math.sin(this.life * 8) * 0.06;
+    this.head.scale.set(this.headBaseSize * pulse, this.headBaseSize * pulse, 1);
+
+    return this.life < this.maxLife;
+  }
+
+  dispose(scene) {
+    scene.remove(this.head);
+    scene.remove(this.trail.mesh);
+    this.head.material.dispose();
+    this.trail.dispose();
+  }
+}
+
+class CometSystem {
+  constructor(scene) {
+    this.scene = scene;
+    this.comets = [];
+    this.headTex = makeRadialGlow();
+    this.enabled = true;
+    this.nextSpawnIn = 3 + Math.random() * 4;
+  }
+
+  update(dt, _t) {
+    if (!this.enabled) return;
+    this.nextSpawnIn -= dt;
+    if (this.nextSpawnIn <= 0) {
+      this.spawn();
+      this.nextSpawnIn = 8 + Math.random() * 14;
+    }
+    for (let i = this.comets.length - 1; i >= 0; i--) {
+      const alive = this.comets[i].update(dt, camera);
+      if (!alive) {
+        this.comets[i].dispose(this.scene);
+        this.comets.splice(i, 1);
+      }
+    }
+  }
+
+  spawn() {
+    const c = new Comet(this.headTex);
+    c.addTo(this.scene);
+    this.comets.push(c);
+  }
+
+  setEnabled(on) {
+    this.enabled = on;
+    if (!on) {
+      this.comets.forEach(c => c.dispose(this.scene));
+      this.comets = [];
+    } else {
+      this.nextSpawnIn = 4 + Math.random() * 6;
+    }
+  }
+}
+
+// ─────────────── 🛸 UFO (Easter egg) ───────────────
+// A flying saucer crosses the system rarely — every 3 to 5 minutes.
+// It flies in zigzags with blinking lights, a glowing dome and a
+// tractor beam that switches on and off. Clicking it logs a sighting
+// (and it darts away). Independent of the stars toggle: easter eggs
+// don't show up in menus.
+let ufoGlowTex = null;
+function getUfoGlowTexture() {
+  if (ufoGlowTex) return ufoGlowTex;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0,    'rgba(220,255,225,1)');
+  g.addColorStop(0.25, 'rgba(150,255,170,0.7)');
+  g.addColorStop(0.55, 'rgba(80,220,120,0.25)');
+  g.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  ufoGlowTex = new THREE.CanvasTexture(c);
+  return ufoGlowTex;
+}
+
+class UFO {
+  constructor() {
+    this.group = new THREE.Group();
+
+    // Body: flattened metallic disc
+    this.body = new THREE.Mesh(
+      new THREE.SphereGeometry(1, 36, 18),
+      new THREE.MeshStandardMaterial({ color: 0xc8d2de, metalness: 0.92, roughness: 0.28 })
+    );
+    this.body.scale.set(2.6, 0.6, 2.6);
+    this.group.add(this.body);
+
+    // Outer rim
+    const rimMesh = new THREE.Mesh(
+      new THREE.TorusGeometry(2.05, 0.28, 12, 48),
+      new THREE.MeshStandardMaterial({ color: 0x8f9aa8, metalness: 0.95, roughness: 0.35 })
+    );
+    rimMesh.rotation.x = Math.PI / 2;
+    this.group.add(rimMesh);
+
+    // Glass dome
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(1.0, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.MeshStandardMaterial({
+        color: 0x7fe7ff, emissive: 0x1a6e7e,
+        transparent: true, opacity: 0.85,
+        metalness: 0.1, roughness: 0.15,
+      })
+    );
+    dome.position.y = 0.42;
+    this.group.add(dome);
+
+    // Ring of blinking lights
+    this.lights = [];
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * Math.PI * 2;
+      const l = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 8, 8),
+        new THREE.MeshBasicMaterial({ color: 0x7cff6b })
+      );
+      l.position.set(Math.cos(a) * 2.05, -0.18, Math.sin(a) * 2.05);
+      this.lights.push(l);
+      this.group.add(l);
+    }
+
+    // Greenish glow under the disc
+    this.glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: getUfoGlowTexture(),
+      color: 0x86ff9c,
+      transparent: true,
+      opacity: 0.5,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }));
+    this.glow.scale.set(7, 7, 1);
+    this.glow.position.y = -0.6;
+    this.group.add(this.glow);
+
+    // Tractor beam — switches on and off by itself
+    this.beamMat = new THREE.MeshBasicMaterial({
+      color: 0x9bffb0,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const beam = new THREE.Mesh(new THREE.ConeGeometry(2.6, 7, 24, 1, true), this.beamMat);
+    beam.position.y = -3.8;
+    this.group.add(beam);
+    this.beamTimer = 4 + Math.random() * 6;
+    this.beamOn = false;
+
+    // Path: crosses the system from one side to the other
+    const a0 = Math.random() * Math.PI * 2;
+    const R = 330;
+    this.position = new THREE.Vector3(Math.cos(a0) * R, 20 + Math.random() * 60, Math.sin(a0) * R);
+    const a1 = a0 + Math.PI + (Math.random() - 0.5) * 0.9;
+    const target = new THREE.Vector3(Math.cos(a1) * R, 10 + Math.random() * 50, Math.sin(a1) * R);
+    this.velocity = target.clone().sub(this.position).normalize().multiplyScalar(34 + Math.random() * 16);
+    this.perp = new THREE.Vector3().crossVectors(this.velocity, new THREE.Vector3(0, 1, 0)).normalize();
+
+    // Zigzag: smoothed random lateral impulses
+    this.zigTimer = 1.5 + Math.random() * 2;
+    this.zig = 0;
+    this.zigTarget = 0;
+
+    this.life = 0;
+    this.maxLife = (R * 2) / this.velocity.length() + 1;
+    this.baseScale = 1.7;
+    this.fleeing = false;
+
+    this.body.userData.ufo = this;   // for click raycasting
+    this.group.position.copy(this.position);
+    this.group.scale.set(0.01, 0.01, 0.01);
+  }
+
+  addTo(scene) { scene.add(this.group); }
+
+  // User click: darts away in flight and shortens its life
+  flee() {
+    if (this.fleeing) return;
+    this.fleeing = true;
+    this.velocity.multiplyScalar(2.6);
+    this.maxLife = Math.min(this.maxLife, this.life + 2.2);
+  }
+
+  update(dt, t) {
+    this.life += dt;
+
+    this.zigTimer -= dt;
+    if (this.zigTimer <= 0) {
+      this.zigTarget = (Math.random() - 0.5) * 24;
+      this.zigTimer = 1.6 + Math.random() * 2.6;
+    }
+    this.zig += (this.zigTarget - this.zig) * Math.min(1, dt * 2.2);
+
+    this.position.addScaledVector(this.velocity, dt);
+    const wob = Math.sin(t * 3.1) * 1.4 + Math.sin(t * 7.3) * 0.5;
+    this.group.position.copy(this.position)
+      .addScaledVector(this.perp, this.zig);
+    this.group.position.y += wob;
+
+    // Banking while maneuvering + body spin
+    const bank = (this.zigTarget - this.zig) * 0.018;
+    this.group.rotation.z += (bank - this.group.rotation.z) * Math.min(1, dt * 3);
+    this.body.rotation.y += dt * 3.5;
+
+    // Lights alternating green/amber in a wave
+    for (let i = 0; i < this.lights.length; i++) {
+      const on = Math.sin(t * 9 + i * 0.9) > 0.1;
+      this.lights[i].material.color.setHex(on ? (i % 2 ? 0x7cff6b : 0xffd166) : 0x1c2a1c);
+    }
+    this.glow.material.opacity = 0.35 + Math.sin(t * 5) * 0.18;
+
+    // Beam blinks in bursts
+    this.beamTimer -= dt;
+    if (this.beamTimer <= 0) {
+      this.beamOn = !this.beamOn;
+      this.beamTimer = this.beamOn ? 1.2 + Math.random() * 1.4 : 3 + Math.random() * 5;
+    }
+    const targetOp = (this.beamOn && !this.fleeing) ? 0.16 : 0;
+    this.beamMat.opacity += (targetOp - this.beamMat.opacity) * Math.min(1, dt * 4);
+
+    // Grows on arrival, shrinks on departure
+    let s = this.baseScale;
+    if (this.life < 1) s *= this.life;
+    else if (this.life > this.maxLife - 1) s *= Math.max(0.01, this.maxLife - this.life);
+    this.group.scale.set(s, s, s);
+
+    return this.life < this.maxLife;
+  }
+
+  dispose(scene) {
+    scene.remove(this.group);
+    this.group.traverse(ch => {
+      if (ch.geometry) ch.geometry.dispose();
+      if (ch.material) {
+        (Array.isArray(ch.material) ? ch.material : [ch.material]).forEach(m => {
+          if (m.map && m.map !== ufoGlowTex) m.map.dispose();
+          m.dispose();
+        });
+      }
+    });
+  }
+}
+
+class UfoSystem {
+  constructor(scene) {
+    this.scene = scene;
+    this.ufos = [];
+    this.sightings = 0;
+    // First appearance between ~2 and 4 min; then every 3–5 min
+    this.nextSpawnIn = 120 + Math.random() * 120;
+  }
+
+  update(dt, t) {
+    this.nextSpawnIn -= dt;
+    if (this.nextSpawnIn <= 0 && this.ufos.length === 0) {
+      const u = new UFO();
+      u.addTo(this.scene);
+      this.ufos.push(u);
+      this.nextSpawnIn = 180 + Math.random() * 120;   // 3–5 minutes
+    }
+    for (let i = this.ufos.length - 1; i >= 0; i--) {
+      if (!this.ufos[i].update(dt, t)) {
+        this.ufos[i].dispose(this.scene);
+        this.ufos.splice(i, 1);
+      }
+    }
+  }
+
+  pickMeshes() {
+    return this.ufos.map(u => u.body);
+  }
+
+  registerSighting(ufo) {
+    this.sightings++;
+    ufo.flee();
+    const msgs = [
+      '🛸 Sighting confirmed! It got away…',
+      '🛸 Unidentified flying object on the trading floor!',
+      '👽 They follow the S&P 500 too…',
+      '🛸 Report filed with the Pentagon (just kidding)',
+    ];
+    showNotification(msgs[Math.min(this.sightings - 1, msgs.length - 1)] +
+      (this.sightings > 1 ? ' · sighting #' + this.sightings : ''));
+  }
+}
+
+// ─────────────── Sun (S&P 500 Index) ───────────────
+function buildSun(coin) {
+  const group = new THREE.Group();
+
+  const tex = makeSunTexture();
+  const surface = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_RADIUS, 96, 96),
+    new THREE.MeshBasicMaterial({ map: tex })
+  );
+  group.add(surface);
+
+  const glowTex = makeRadialGlow();
+  const inner = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex,
+    color: 0xffd28a,
+    transparent: true,
+    opacity: 0.85,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+  inner.scale.set(SUN_RADIUS * 3.6, SUN_RADIUS * 3.6, 1);
+  group.add(inner);
+
+  const outer = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex,
+    color: 0xff9933,
+    transparent: true,
+    opacity: 0.55,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+  outer.scale.set(SUN_RADIUS * 7.5, SUN_RADIUS * 7.5, 1);
+  group.add(outer);
+
+  const far = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex,
+    color: 0xff5500,
+    transparent: true,
+    opacity: 0.20,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+  far.scale.set(SUN_RADIUS * 13, SUN_RADIUS * 13, 1);
+  group.add(far);
+
+  const fresnelMat = new THREE.ShaderMaterial({
+    uniforms: {
+      glowColor: { value: new THREE.Color(0xffa53c) },
+      uTime: { value: 0 },
+    },
+    vertexShader: `
+      varying float vIntensity;
+      void main() {
+        vec3 n = normalize(normalMatrix * normal);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vec3 viewDir = normalize(-mv.xyz);
+        float facing = abs(dot(n, viewDir));
+        vIntensity = pow(1.0 - facing, 2.6);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 glowColor;
+      uniform float uTime;
+      varying float vIntensity;
+      void main() {
+        float flicker = 0.92 + 0.08 * sin(uTime * 3.1) * sin(uTime * 1.7);
+        gl_FragColor = vec4(glowColor * vIntensity * 1.6 * flicker, vIntensity);
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const fresnel = new THREE.Mesh(
+    new THREE.SphereGeometry(SUN_RADIUS * 1.22, 64, 64),
+    fresnelMat
+  );
+  group.add(fresnel);
+
+  const flareC = document.createElement('canvas');
+  flareC.width = 512; flareC.height = 64;
+  const fctx = flareC.getContext('2d');
+  const fg = fctx.createLinearGradient(0, 0, 512, 0);
+  fg.addColorStop(0,    'rgba(255,200,120,0)');
+  fg.addColorStop(0.5,  'rgba(255,236,200,0.9)');
+  fg.addColorStop(1,    'rgba(255,200,120,0)');
+  fctx.fillStyle = fg;
+  fctx.fillRect(0, 26, 512, 12);
+  const fg2 = fctx.createLinearGradient(0, 0, 512, 0);
+  fg2.addColorStop(0,   'rgba(255,160,60,0)');
+  fg2.addColorStop(0.5, 'rgba(255,190,110,0.35)');
+  fg2.addColorStop(1,   'rgba(255,160,60,0)');
+  fctx.fillStyle = fg2;
+  fctx.fillRect(0, 14, 512, 36);
+  const flare = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(flareC),
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+  flare.scale.set(SUN_RADIUS * 10, SUN_RADIUS * 1.1, 1);
+  group.add(flare);
+
+  // Floating index badge (plumbob style — hovers above the sun)
+  const iconSprite = makeTickerBadge('S&P', 0xf7931a, true);
+  const iconSize = 5.2;
+  iconSprite.scale.set(iconSize, iconSize, 1);
+  const iconBaseY = SUN_RADIUS + iconSize * 0.7;
+  iconSprite.position.set(0, iconBaseY, 0);
+  group.add(iconSprite);
+
+  // Index level well above the badge, always rendered on top
+  const priceLabel = makePriceLabel(coin, true);
+  priceLabel.position.set(0, iconBaseY + iconSize * 0.7 + 2, 0);
+  group.add(priceLabel);
+
+  scene.add(group);
+
+  sun = {
+    group, surface, inner, outer, far, fresnel, fresnelMat, flare,
+    iconSprite, priceLabel,
+    iconBaseY,
+    coin, isSun: true,
+    mesh: surface,
+  };
+}
+
+function makeSunTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 1024;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(512, 512, 80, 512, 512, 512);
+  g.addColorStop(0,    '#fffaf0');
+  g.addColorStop(0.25, '#ffe7a0');
+  g.addColorStop(0.55, '#ffaa3c');
+  g.addColorStop(0.85, '#e36b14');
+  g.addColorStop(1,    '#9c3e00');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1024, 1024);
+  for (let i = 0; i < 4500; i++) {
+    const x = Math.random() * 1024;
+    const y = Math.random() * 1024;
+    const r = 1.5 + Math.random() * 5;
+    const a = Math.random() * 0.4;
+    const isBright = Math.random() < 0.55;
+    ctx.fillStyle = isBright
+      ? `rgba(255, ${200 + Math.random()*55|0}, ${120 + Math.random()*100|0}, ${a})`
+      : `rgba(120, ${30 + Math.random()*60|0}, 0, ${a*0.8})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  for (let i = 0; i < 30; i++) {
+    const x = Math.random() * 1024;
+    const y = Math.random() * 1024;
+    const len = 30 + Math.random() * 70;
+    const ang = Math.random() * Math.PI * 2;
+    const grad = ctx.createLinearGradient(x, y, x + Math.cos(ang)*len, y + Math.sin(ang)*len);
+    grad.addColorStop(0, 'rgba(255,230,150,0.4)');
+    grad.addColorStop(1, 'rgba(255,100,0,0)');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2 + Math.random() * 3;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(ang)*len, y + Math.sin(ang)*len);
+    ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+function makeRadialGlow() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0,    'rgba(255,255,255,1)');
+  g.addColorStop(0.15, 'rgba(255,235,180,0.85)');
+  g.addColorStop(0.35, 'rgba(255,170,80,0.4)');
+  g.addColorStop(0.65, 'rgba(255,90,0,0.12)');
+  g.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+// ─────────────── Planets (the stocks) ───────────────
+function buildPlanet(coin, idx, topMc) {
+  const group = new THREE.Group();
+
+  // Size ∝ market cap relative to the largest company
+  const ratio = Math.max(coin.market_cap / topMc, 0.0001);
+  const radius = Math.max(PLANET_MIN, Math.min(PLANET_MAX, Math.pow(ratio, 0.4) * 3.6));
+
+  const distance = ORBIT_BASE + idx * ORBIT_STEP + Math.random() * 0.8;
+
+  // Color: straight from the company brand (no network, no CORS)
+  const baseColor = coin.color;
+
+  const tex = makePlanetTexture(baseColor, 0);
+  const planetMat = new THREE.MeshStandardMaterial({
+    map: tex,
+    bumpMap: tex,
+    bumpScale: 0.12,
+    roughness: 0.78,
+    metalness: 0.18,
+  });
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 48, 48),
+    planetMat
+  );
+  group.add(mesh);
+
+  mesh.rotation.z = (Math.random() - 0.5) * 0.6;
+
+  const atmoTex = makeRadialGlow();
+  const atmoMat = new THREE.SpriteMaterial({
+    map: atmoTex,
+    color: baseColor,
+    transparent: true,
+    opacity: 0.35,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const atmo = new THREE.Sprite(atmoMat);
+  const atmoSize = radius * 3.0;
+  atmo.scale.set(atmoSize, atmoSize, 1);
+  group.add(atmo);
+
+  // ~1 in 4 worlds gets Saturn rings tinted with the brand color
+  let saturnMat = null;
+  if (hashStr(coin.id) % 4 === 0) {
+    saturnMat = new THREE.MeshBasicMaterial({
+      map: makeSaturnRingTexture(),
+      color: lightenHex(baseColor, 0.45),
+      transparent: true,
+      opacity: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const saturnRing = new THREE.Mesh(
+      new THREE.RingGeometry(radius * 1.45, radius * 2.35, 96, 1),
+      saturnMat
+    );
+    saturnRing.rotation.x = Math.PI / 2 + (Math.random() < 0.5 ? 1 : -1) * (0.25 + Math.random() * 0.25);
+    saturnRing.rotation.y = (Math.random() - 0.5) * 0.4;
+    group.add(saturnRing);
+  }
+
+  // Floating ticker badge (plumbob style)
+  const iconSprite = makeTickerBadge(coin.symbol, baseColor, false);
+  const iconSize = Math.max(1.8, radius * 1.3);
+  iconSprite.scale.set(iconSize, iconSize, 1);
+  const iconBaseY = radius + iconSize * 0.7;
+  iconSprite.position.set(0, iconBaseY, 0);
+  group.add(iconSprite);
+
+  const priceLabel = makePriceLabel(coin, false);
+  priceLabel.position.set(0, iconBaseY + iconSize * 0.7 + 1.4, 0);
+  group.add(priceLabel);
+
+  const angle = Math.random() * Math.PI * 2;
+  group.position.set(
+    Math.cos(angle) * distance,
+    (Math.random() - 0.5) * 1.5,
+    Math.sin(angle) * distance
+  );
+
+  const ringGeom = new THREE.RingGeometry(distance - 0.04, distance + 0.04, 256);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0x4a5a8a,
+    transparent: true,
+    opacity: 0.10,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const ring = new THREE.Mesh(ringGeom, ringMat);
+  ring.rotation.x = Math.PI / 2;
+  scene.add(ring);
+
+  scene.add(group);
+
+  // Speed on the stock scale (see orbitalSpeed)
+  const speed = orbitalSpeed(coin, distance);
+
+  const p = {
+    group, mesh, atmo, iconSprite, priceLabel, ring, ringMat,
+    coin, distance, angle, speed, radius,
+    iconBaseY,
+    trail: null,
+    trailWidth: radius * 0.4 + 0.12,
+    bobPhase: Math.random() * Math.PI * 2,
+    rotationSpeed: 0.06 + Math.random() * 0.10,
+    isSun: false,
+  };
+  p.trail = makeOrbitTrail(p);
+  return p;
+}
+
+function makePlanetTexture(baseColor, hue) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 512;
+  const ctx = c.getContext('2d');
+  const r = (baseColor >> 16) & 255;
+  const g = (baseColor >> 8) & 255;
+  const b = baseColor & 255;
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0,    `rgb(${r*0.7|0}, ${g*0.7|0}, ${b*0.7|0})`);
+  grad.addColorStop(0.5,  `rgb(${r}, ${g}, ${b})`);
+  grad.addColorStop(1,    `rgb(${r*0.55|0}, ${g*0.55|0}, ${b*0.55|0})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+
+  for (let i = 0; i < 14; i++) {
+    const y = Math.random() * 512;
+    const h = 8 + Math.random() * 28;
+    const op = 0.05 + Math.random() * 0.18;
+    const v = (Math.random() - 0.5) * 80;
+    ctx.fillStyle = `rgba(${Math.max(0,Math.min(255,r+v))|0}, ${Math.max(0,Math.min(255,g+v))|0}, ${Math.max(0,Math.min(255,b+v))|0}, ${op})`;
+    ctx.fillRect(0, y, 512, h);
+  }
+
+  for (let i = 0; i < 380; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const rad = 2 + Math.random() * 14;
+    const op = Math.random() * 0.35;
+    const v = Math.random() < 0.5 ? -45 : 35;
+    ctx.fillStyle = `rgba(${Math.max(0,Math.min(255,r+v))|0}, ${Math.max(0,Math.min(255,g+v))|0}, ${Math.max(0,Math.min(255,b+v))|0}, ${op})`;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * 512;
+    const y = Math.random() * 512;
+    const rad = 1 + Math.random() * 4;
+    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.12})`;
+    ctx.beginPath();
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return new THREE.CanvasTexture(c);
+}
+
+// ─────────────── Ticker badge (replaces coin icons) ───────────────
+// Instead of downloading logos (CORS, broken links), every company gets
+// a circular canvas-drawn badge: brand-color halo, dark disc, mono-font
+// ticker and a bright rim. Synchronous and 100% offline.
+function drawTickerBadge(ctx, symbol, colorHex, isLarge, S) {
+  const cx = S / 2;
+  const r = (colorHex >> 16) & 255, g = (colorHex >> 8) & 255, b = colorHex & 255;
+
+  // Outer halo in the brand color
+  const glow = ctx.createRadialGradient(cx, cx, S * 0.31, cx, cx, cx);
+  glow.addColorStop(0,   `rgba(${r},${g},${b},${isLarge ? 0.55 : 0.40})`);
+  glow.addColorStop(0.5, `rgba(${r},${g},${b},${isLarge ? 0.20 : 0.12})`);
+  glow.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, S, S);
+
+  // Dark disc
+  ctx.beginPath();
+  ctx.arc(cx, cx, S * 0.39, 0, Math.PI * 2);
+  ctx.fillStyle = '#0a0814';
+  ctx.fill();
+
+  // Subtle touch of the brand color inside the disc
+  const tint = ctx.createRadialGradient(cx, cx * 0.8, 0, cx, cx, S * 0.39);
+  tint.addColorStop(0, `rgba(${r},${g},${b},0.22)`);
+  tint.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(cx, cx, S * 0.39, 0, Math.PI * 2);
+  ctx.fillStyle = tint;
+  ctx.fill();
+
+  // Ticker
+  const len = symbol.length;
+  const fs = S * (len <= 2 ? 0.30 : len === 3 ? 0.26 : len === 4 ? 0.21 : 0.17);
+  ctx.font = `bold ${fs|0}px 'JetBrains Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#f4f1e8';
+  ctx.fillText(symbol, cx, cx + S * 0.01);
+
+  // Rim in the brand color (gold for the sun)
+  ctx.strokeStyle = isLarge
+    ? 'rgba(255, 200, 90, 0.95)'
+    : `rgba(${Math.min(255, r + 70)},${Math.min(255, g + 70)},${Math.min(255, b + 70)},0.9)`;
+  ctx.lineWidth = S * (isLarge ? 0.020 : 0.014);
+  ctx.beginPath();
+  ctx.arc(cx, cx, S * 0.39, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Metallic gleam arc at the top
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.lineWidth = S * 0.008;
+  ctx.beginPath();
+  ctx.arc(cx, cx, S * 0.37, Math.PI * 1.15, Math.PI * 1.85);
+  ctx.stroke();
+}
+
+function makeTickerBadge(symbol, colorHex, isLarge) {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  drawTickerBadge(c.getContext('2d'), symbol, colorHex, isLarge, S);
+  const mat = new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(c),
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.renderOrder = 998;
+  return sprite;
+}
+
+// dataURL version for the tooltip and focus panel (<img> tags)
+const _badgeCache = {};
+function badgeDataURL(symbol, colorHex, isLarge) {
+  const key = symbol + ':' + colorHex + ':' + (isLarge ? 1 : 0);
+  if (_badgeCache[key]) return _badgeCache[key];
+  const S = 96;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  drawTickerBadge(c.getContext('2d'), symbol, colorHex, isLarge, S);
+  const url = c.toDataURL();
+  _badgeCache[key] = url;
+  return url;
+}
+
+function makePriceLabel(coin, isLarge) {
+  const c = document.createElement('canvas');
+  const text = coin.isIndex
+    ? coin.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '$' + formatPrice(coin.current_price);
+  const change = getCoinChange(coin);
+  const changeStr = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+
+  const fontPrice = isLarge ? 'bold 38px JetBrains Mono, monospace' : 'bold 26px JetBrains Mono, monospace';
+  const fontChange = isLarge ? '600 22px Outfit, sans-serif' : '600 18px Outfit, sans-serif';
+
+  const tmp = document.createElement('canvas').getContext('2d');
+  tmp.font = fontPrice;
+  const wPrice = tmp.measureText(text).width;
+  tmp.font = fontChange;
+  const wChange = tmp.measureText(changeStr).width;
+  const w = Math.max(wPrice, wChange) + 36;
+  const h = isLarge ? 90 : 68;
+
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = 'rgba(8, 6, 16, 0.88)';
+  roundRect(ctx, 0, 0, w, h, 12);
+  ctx.fill();
+  ctx.strokeStyle = isLarge ? 'rgba(255, 184, 77, 0.55)' : 'rgba(255, 255, 255, 0.16)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#f4f1e8';
+  ctx.font = fontPrice;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, w / 2, isLarge ? 30 : 22);
+
+  ctx.fillStyle = change >= 0 ? '#4ade80' : '#f87171';
+  ctx.font = fontChange;
+  ctx.fillText(changeStr, w / 2, isLarge ? 65 : 48);
+
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.renderOrder = 999;
+  const scale = isLarge ? 0.07 : 0.052;
+  sprite.scale.set(w * scale, h * scale, 1);
+  return sprite;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ─────────────── Data (Yahoo Finance + snapshot fallback) ───────────────
+// Returns the % change for the active period, with a safe fallback chain.
+function getCoinChange(coin) {
+  if (currentPeriod === '7d') {
+    return coin.price_change_percentage_7d_in_currency ?? 0;
+  }
+  if (currentPeriod === '30d') {
+    return coin.price_change_percentage_30d_in_currency ?? 0;
+  }
+  return coin.price_change_percentage_24h_in_currency ?? 0;
+}
+
+function periodLabel() {
+  return currentPeriod === '7d' ? '7D' : currentPeriod === '30d' ? '30D' : '1D';
+}
+
+function pct(now, before) {
+  if (!before) return 0;
+  return (now / before - 1) * 100;
+}
+
+// Synthetic, deterministic sparkline for snapshot mode: a random walk
+// (seeded by the ticker) that starts at the price 30 days ago and ends
+// exactly at the current price.
+function syntheticSpark(seedStr, endPrice, d30) {
+  const n = 30;
+  const start = endPrice / (1 + d30 / 100);
+  let seed = hashStr(seedStr) || 1;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const drift = start + (endPrice - start) * t;
+    pts.push(drift * (1 + (rnd() - 0.5) * 0.014));
+  }
+  pts[0] = start;
+  pts[n - 1] = endPrice;
+  return pts;
+}
+
+// Builds a stock object in the internal format from price + closes
+function makeStockObject(def, price, closes, d1, d7, d30) {
+  const spark = (closes && closes.length > 2)
+    ? closes
+    : syntheticSpark(def.s, price, d30);
+  let hi = -Infinity, lo = Infinity;
+  for (const v of spark) { if (v > hi) hi = v; if (v < lo) lo = v; }
+  return {
+    id: def.s,
+    symbol: def.s,
+    name: def.n,
+    sector: def.sec,
+    color: parseInt(def.c, 16),
+    current_price: price,
+    market_cap: def.sh * 1e9 * price,
+    price_change_percentage_24h_in_currency: d1,
+    price_change_percentage_7d_in_currency:  d7,
+    price_change_percentage_30d_in_currency: d30,
+    sparkline_in_7d: { price: spark },
+    high_30d: hi,
+    low_30d: lo,
+  };
+}
+
+// Extracts {closes, last} per symbol from Yahoo's spark endpoint reply,
+// tolerating both known formats of the API.
+function parseSparkJson(j, symbols) {
+  const out = {};
+  const take = (sym, closes, metaPrice) => {
+    if (!closes) return;
+    const clean = closes.filter(v => v != null && isFinite(v));
+    if (clean.length < 3) return;
+    out[sym] = { closes: clean, last: metaPrice != null ? metaPrice : clean[clean.length - 1] };
+  };
+  if (j && j.spark && Array.isArray(j.spark.result)) {
+    for (const r of j.spark.result) {
+      const resp = r && r.response && r.response[0];
+      if (!resp) continue;
+      const closes = resp.indicators && resp.indicators.quote &&
+                     resp.indicators.quote[0] && resp.indicators.quote[0].close;
+      const metaPrice = resp.meta && resp.meta.regularMarketPrice;
+      take(r.symbol, closes, metaPrice);
+    }
+  } else if (j && typeof j === 'object') {
+    for (const sym of symbols) {
+      const e = j[sym];
+      if (e && Array.isArray(e.close)) take(sym, e.close, null);
+    }
+  }
+  return out;
+}
+
+function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal, headers: { 'Accept': 'application/json' } })
+    .finally(() => clearTimeout(timer));
+}
+
+// Fetches 1 month of closes for a batch of symbols, trying: direct access
+// (works if they ever enable CORS) and two public CORS proxies.
+async function fetchSparkBatch(symbols) {
+  const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/spark?symbols=' +
+    encodeURIComponent(symbols.join(',')) + '&range=1mo&interval=1d';
+  const candidates = [
+    yahooUrl,
+    'https://corsproxy.io/?url=' + encodeURIComponent(yahooUrl),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(yahooUrl),
+  ];
+  for (const url of candidates) {
+    try {
+      const res = await fetchWithTimeout(url, 9000);
+      if (!res.ok) continue;
+      const j = await res.json();
+      const parsed = parseSparkJson(j, symbols);
+      if (Object.keys(parsed).length > 0) return parsed;
+    } catch (e) { /* try the next one */ }
+  }
+  return {};
+}
+
+// Builds indexData + stocksList merging live data (when available)
+// with the embedded snapshot. Each stock uses whatever is available.
+function buildData(live) {
+  let liveCount = 0;
+
+  // Index (the sun)
+  const iv = live['^GSPC'];
+  if (iv) {
+    const cl = iv.closes, last = iv.last;
+    indexData = {
+      id: '^GSPC', symbol: 'SPX', name: 'S&P 500', sector: 'Index',
+      isIndex: true, color: 0xf7931a,
+      current_price: last,
+      price_change_percentage_24h_in_currency: pct(last, cl[cl.length - 2]),
+      price_change_percentage_7d_in_currency:  pct(last, cl[Math.max(0, cl.length - 6)]),
+      price_change_percentage_30d_in_currency: pct(last, cl[0]),
+      sparkline_in_7d: { price: cl },
+      high_30d: Math.max(...cl), low_30d: Math.min(...cl),
+    };
+    liveCount++;
+  } else {
+    const s = INDEX_SNAPSHOT;
+    const spark = syntheticSpark('SPX', s.value, s.d30);
+    indexData = {
+      id: '^GSPC', symbol: 'SPX', name: 'S&P 500', sector: 'Index',
+      isIndex: true, color: 0xf7931a,
+      current_price: s.value,
+      price_change_percentage_24h_in_currency: s.d1,
+      price_change_percentage_7d_in_currency:  s.d7,
+      price_change_percentage_30d_in_currency: s.d30,
+      sparkline_in_7d: { price: spark },
+      high_30d: Math.max(...spark), low_30d: Math.min(...spark),
+    };
+  }
+
+  // Stocks (the planets)
+  stocksList = STOCKS.map(def => {
+    const lv = live[def.s];
+    if (lv) {
+      liveCount++;
+      const cl = lv.closes, last = lv.last;
+      return makeStockObject(def, last, cl,
+        pct(last, cl[cl.length - 2]),
+        pct(last, cl[Math.max(0, cl.length - 6)]),
+        pct(last, cl[0]));
+    }
+    return makeStockObject(def, def.p, null, def.d1, def.d7, def.d30);
+  });
+
+  // Sort by market cap and assign rank + approximate index weight
+  stocksList.sort((a, b) => b.market_cap - a.market_cap);
+  stocksList.forEach((s, i) => {
+    s.market_cap_rank = i + 1;
+    s.weight = s.market_cap / TOTAL_SPX_CAP * 100;
+  });
+
+  return liveCount;
+}
+
+// "NYSE open/closed" — New York time, Mon–Fri, 9:30am–4pm.
+// Ignores holidays; it's an indicator, not an official clock.
+function nyseStatusLabel() {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York', hour12: false,
+      weekday: 'short', hour: '2-digit', minute: '2-digit',
+    }).formatToParts(new Date());
+    const get = t => parts.find(p => p.type === t).value;
+    const wd = get('weekday');
+    const mins = (+get('hour')) * 60 + (+get('minute'));
+    const open = wd !== 'Sat' && wd !== 'Sun' && mins >= 570 && mins < 960;
+    return open ? 'NYSE open' : 'NYSE closed';
+  } catch (e) { return ''; }
+}
+
+async function loadData(isRefresh) {
+  if (isFetching) return;
+  isFetching = true;
+  setStatus(true, isRefresh ? 'Updating…' : 'Connecting…');
+
+  let liveCount = 0;
+  try {
+    const symsAll = STOCKS.map(s => s.s);
+    const batches = [
+      ['^GSPC'].concat(symsAll.slice(0, 25)),
+      symsAll.slice(25),
+    ];
+    const results = await Promise.allSettled(batches.map(b => fetchSparkBatch(b)));
+    const live = {};
+    results.forEach(r => { if (r.status === 'fulfilled') Object.assign(live, r.value); });
+    liveCount = buildData(live);
+  } catch (err) {
+    console.error('Fetch error:', err);
+    liveCount = buildData({});
+  }
+
+  liveMode = liveCount >= 10;
+  lastFetchOK = liveMode;
+  rebuild();
+
+  const nyse = nyseStatusLabel();
+  setStatus(liveMode,
+    (liveMode ? 'Connected · Yahoo Finance' : 'Snapshot ' + SNAPSHOT_DATE + ' · offline') +
+    (nyse ? ' · ' + nyse : ''));
+  document.getElementById('lastUpdate').textContent = formatTime(new Date());
+  if (isRefresh) showNotification(liveMode ? 'Data updated' : 'No connection · using snapshot');
+  document.getElementById('loading').classList.add('hidden');
+  if (!isRefresh) setTimeout(runIntroZoom, 100);
+
+  isFetching = false;
+
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => loadData(true), REFRESH_MS);
+}
+
+function rebuild() {
+  if (sun) {
+    disposeGroup(sun.group);
+    scene.remove(sun.group);
+    sun = null;
+  }
+  if (focused) exitFocus();
+  planets.forEach(p => {
+    disposeGroup(p.group);
+    scene.remove(p.group);
+    if (p.ring) {
+      p.ring.geometry.dispose();
+      p.ring.material.dispose();
+      scene.remove(p.ring);
+    }
+    if (p.trail) {
+      p.trail.geom.dispose();
+      p.trail.mat.dispose();
+      scene.remove(p.trail.mesh);
+    }
+  });
+  planets = [];
+  lastHoverRing = null;
+
+  if (!indexData || !stocksList.length) return;
+
+  buildSun(indexData);
+
+  const list = stocksList.slice(0, currentLimit);
+  const topMc = list[0].market_cap;
+  list.forEach((stock, i) => {
+    planets.push(buildPlanet(stock, i, topMc));
+  });
+
+  rebuildAsteroidBelt();
+}
+
+function disposeGroup(group) {
+  group.traverse(child => {
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) {
+      if (Array.isArray(child.material)) {
+        child.material.forEach(m => disposeMat(m));
+      } else {
+        disposeMat(child.material);
+      }
+    }
+  });
+}
+function disposeMat(m) {
+  if (m.map) m.map.dispose();
+  if (m.bumpMap) m.bumpMap.dispose();
+  m.dispose();
+}
+
+// ─────────────── Animation loop ───────────────
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  const t = clock.getElapsedTime();
+
+  if (sun) {
+    sun.surface.rotation.y += dt * 0.12;
+    sun.surface.material.map.offset.x += dt * 0.004;
+    if (sun.fresnelMat) sun.fresnelMat.uniforms.uTime.value = t;
+    if (sun.flare) sun.flare.material.opacity = 0.40 + Math.sin(t * 0.9) * 0.12;
+    sun.inner.material.opacity = 0.78 + Math.sin(t * 1.2) * 0.08;
+    sun.outer.material.opacity = 0.50 + Math.sin(t * 0.7) * 0.10;
+    sun.far.material.opacity   = 0.18 + Math.sin(t * 0.4) * 0.05;
+    if (sun.iconSprite) {
+      const bob = Math.sin(t * 1.0) * 0.55;
+      sun.iconSprite.position.y = sun.iconBaseY + bob;
+      if (sun.priceLabel) sun.priceLabel.position.y = sun.iconBaseY + 5.2 * 0.7 + 2 + bob * 0.5;
+    }
+  }
+
+  planets.forEach(p => {
+    p.angle += p.speed * dt * 0.18;
+    p.group.position.x = Math.cos(p.angle) * p.distance;
+    p.group.position.z = Math.sin(p.angle) * p.distance;
+    p.mesh.rotation.y += dt * p.rotationSpeed;
+    updateOrbitTrail(p);
+    if (p.iconSprite) {
+      const bob = Math.sin(t * 1.6 + p.bobPhase) * 0.20;
+      p.iconSprite.position.y = p.iconBaseY + bob;
+      if (p.priceLabel) {
+        const iconSize = Math.max(1.8, p.radius * 1.3);
+        p.priceLabel.position.y = p.iconBaseY + iconSize * 0.7 + 1.4 + bob * 0.5;
+      }
+    }
+  });
+
+  nebulae.forEach((n, i) => {
+    n.material.rotation = t * 0.005 * (i % 2 === 0 ? 1 : -1);
+  });
+
+  if (starField) {
+    starField.rotation.y = t * 0.005;
+    if (starField.material.uniforms) starField.material.uniforms.time.value = t;
+  }
+
+  if (asteroidBelt) asteroidBelt.rotation.y = t * 0.008;
+  if (milkyWay) milkyWay.rotation.y = t * 0.0022;
+  galaxySprites.forEach(g => { g.material.rotation += dt * g.userData.spin; });
+
+  for (let i = 0; i < heroStarSprites.length; i++) {
+    const h = heroStarSprites[i];
+    h.material.opacity = h.userData.base + Math.sin(t * h.userData.speed + h.userData.phase) * 0.18;
+  }
+
+  if (focused) {
+    controls.target.lerp(focused.group.position, 0.10);
+    const desired = Math.max(
+      controls.minDistance,
+      (focused.isSun ? SUN_RADIUS : focused.radius) * 7 + 9
+    );
+    if (performance.now() - focusStartedAt < 1600) {
+      controls.radius += (desired - controls.radius) * 0.06;
+    }
+  } else if (focusReturning) {
+    controls.target.multiplyScalar(0.93);
+    if (controls.target.lengthSq() < 0.2) {
+      controls.target.set(0, 0, 0);
+      focusReturning = false;
+    }
+  }
+
+  if (cometSystem) cometSystem.update(dt, t);
+  if (ufoSystem)   ufoSystem.update(dt, t);   // 🛸
+
+  updateHover();
+
+  controls.update();
+  if (composer && bloomOn) composer.render();
+  else renderer.render(scene, camera);
+}
+
+// ─────────────── Hover/Tooltip ───────────────
+function updateHover() {
+  raycaster.setFromCamera(pointer, camera);
+  const meshes = planets.map(p => p.mesh);
+  if (sun) meshes.push(sun.mesh);
+  const ufoMeshes = ufoSystem ? ufoSystem.pickMeshes() : [];
+  const hits = raycaster.intersectObjects(meshes.concat(ufoMeshes), false);
+
+  if (hits.length > 0) {
+    const obj = hits[0].object;
+    // UFO: cursor change only — no tooltip spoiling the mystery
+    if (obj.userData && obj.userData.ufo) {
+      hovered = null;
+      document.body.classList.add('hovering');
+      hideTooltip();
+      return;
+    }
+    const target = sun && sun.mesh === obj
+      ? sun
+      : planets.find(p => p.mesh === obj);
+    if (target) {
+      hovered = target;
+      document.body.classList.add('hovering');
+      if (!focused || focused !== target) showTooltip(target);
+      if (lastHoverRing && lastHoverRing !== (focused && focused.ringMat)) {
+        lastHoverRing.opacity = 0.10;
+      }
+      if (target.ringMat) {
+        target.ringMat.opacity = 0.30;
+        lastHoverRing = target.ringMat;
+      }
+      return;
+    }
+  }
+  hovered = null;
+  document.body.classList.remove('hovering');
+  if (lastHoverRing && lastHoverRing !== (focused && focused.ringMat)) {
+    lastHoverRing.opacity = 0.10;
+    lastHoverRing = null;
+  }
+  hideTooltip();
+}
+
+// ─────────────── Focus mode ───────────────
+function handlePick(x, y) {
+  pointer.x = (x / window.innerWidth) * 2 - 1;
+  pointer.y = -(y / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+
+  // 🛸 The UFO takes priority — clicking it logs a sighting
+  if (ufoSystem) {
+    const ufoHits = raycaster.intersectObjects(ufoSystem.pickMeshes(), false);
+    if (ufoHits.length > 0) {
+      ufoSystem.registerSighting(ufoHits[0].object.userData.ufo);
+      return;
+    }
+  }
+
+  const meshes = planets.map(p => p.mesh);
+  if (sun) meshes.push(sun.mesh);
+  const hits = raycaster.intersectObjects(meshes, false);
+  if (hits.length > 0) {
+    const obj = hits[0].object;
+    const target = sun && sun.mesh === obj ? sun : planets.find(p => p.mesh === obj);
+    if (target && target !== focused) focusOn(target);
+  } else if (focused) {
+    exitFocus();
+  }
+}
+
+function focusOn(target) {
+  if (focused && focused.ringMat) focused.ringMat.opacity = 0.10;
+  focused = target;
+  focusReturning = false;
+  focusStartedAt = performance.now();
+  introZoomActive = false;
+  if (target.ringMat) target.ringMat.opacity = 0.38;
+  hideTooltip();
+  renderFocusPanel(target);
+  document.getElementById('focusPanel').classList.add('visible');
+}
+
+function exitFocus() {
+  if (focused && focused.ringMat) focused.ringMat.opacity = 0.10;
+  focused = null;
+  focusReturning = true;
+  document.getElementById('focusPanel').classList.remove('visible');
+}
+
+function renderFocusPanel(target) {
+  const c = target.coin;
+  const change = getCoinChange(c);
+  const sign = change >= 0 ? '+' : '';
+  document.getElementById('fpIcon').src = badgeDataURL(
+    c.isIndex ? 'S&P' : c.symbol, c.color, !!c.isIndex);
+  document.getElementById('fpName').textContent = c.name || '—';
+  document.getElementById('fpSymbol').textContent = (c.symbol || '').toUpperCase();
+  document.getElementById('fpRank').textContent = c.isIndex ? 'SUN' : '#' + (c.market_cap_rank || '?');
+  document.getElementById('fpPrice').textContent = c.isIndex
+    ? c.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '$' + formatPrice(c.current_price);
+  const chEl = document.getElementById('fpChange');
+  chEl.textContent = sign + change.toFixed(2) + '% · ' + periodLabel();
+  chEl.className = change >= 0 ? 'green' : 'red';
+
+  document.getElementById('fpMcap').textContent = c.isIndex
+    ? '$' + formatLarge(TOTAL_SPX_CAP) + ' (total)'
+    : '$' + formatLarge(c.market_cap);
+  document.getElementById('fpSector').textContent = c.sector || '—';
+  document.getElementById('fpWeight').textContent = c.isIndex
+    ? '100%'
+    : (c.weight != null ? '~' + c.weight.toFixed(2) + '%' : '—');
+
+  const d30 = c.price_change_percentage_30d_in_currency;
+  const d30El = document.getElementById('fpD30');
+  d30El.textContent = d30 == null ? '—' : (d30 >= 0 ? '+' : '') + d30.toFixed(2) + '%';
+  d30El.className = d30 != null && d30 >= 0 ? 'green' : 'red';
+
+  const fmt = c.isIndex
+    ? v => v.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : v => '$' + formatPrice(v);
+  document.getElementById('fpHigh').textContent = c.high_30d != null ? fmt(c.high_30d) : '—';
+  document.getElementById('fpLow').textContent  = c.low_30d  != null ? fmt(c.low_30d)  : '—';
+  drawSparkline(c);
+}
+
+function drawSparkline(c) {
+  const cv = document.getElementById('fpSpark');
+  const prices = c.sparkline_in_7d && c.sparkline_in_7d.price;
+  if (!prices || prices.length < 2) { cv.style.display = 'none'; return; }
+  cv.style.display = 'block';
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const W = cv.clientWidth || 250, H = 52;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  let min = Infinity, max = -Infinity;
+  for (const v of prices) { if (v < min) min = v; if (v > max) max = v; }
+  const span = (max - min) || 1;
+  const up = prices[prices.length - 1] >= prices[0];
+  const col = up ? '#4ade80' : '#f87171';
+  const px = i => 2 + (i / (prices.length - 1)) * (W - 4);
+  const py = v => 4 + (1 - (v - min) / span) * (H - 8);
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, up ? 'rgba(74,222,128,0.22)' : 'rgba(248,113,113,0.22)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(prices[0]));
+  for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
+  ctx.lineTo(px(prices.length - 1), H); ctx.lineTo(px(0), H); ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(px(0), py(prices[0]));
+  for (let i = 1; i < prices.length; i++) ctx.lineTo(px(i), py(prices[i]));
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 1.6;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.arc(px(prices.length - 1), py(prices[prices.length - 1]), 2.2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function onPointerMove(e) {
+  pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  positionTooltip(e.clientX, e.clientY);
+}
+
+function onTouchTap(e) {
+  if (e.touches.length === 1) {
+    pointer.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
+    positionTooltip(e.touches[0].clientX, e.touches[0].clientY);
+  }
+}
+
+function showTooltip(target) {
+  const tt = document.getElementById('tooltip');
+  const c = target.coin;
+  const change = getCoinChange(c);
+  const changeClass = change >= 0 ? 'green' : 'red';
+  const sign = change >= 0 ? '+' : '';
+  const dirText = target.isSun
+    ? '<strong>System center</strong> · Index'
+    : (change >= 0
+        ? '<strong>Direct</strong> orbit · gain'
+        : '<strong>Retrograde</strong> orbit · loss');
+  const rank = c.isIndex ? 'SPX' : '#' + (c.market_cap_rank || '?');
+  const pLabel = periodLabel();
+  const badge = badgeDataURL(c.isIndex ? 'S&P' : c.symbol, c.color, !!c.isIndex);
+  const priceStr = c.isIndex
+    ? c.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '$' + formatPrice(c.current_price);
+  const mcapRow = c.isIndex
+    ? `<div class="tt-row"><span class="tt-label">Total value</span><span class="tt-value">~$${formatLarge(TOTAL_SPX_CAP)}</span></div>`
+    : `<div class="tt-row"><span class="tt-label">Market Cap</span><span class="tt-value">$${formatLarge(c.market_cap)}</span></div>
+       <div class="tt-row"><span class="tt-label">Index weight</span><span class="tt-value">~${(c.weight ?? 0).toFixed(2)}%</span></div>`;
+
+  tt.innerHTML = `
+    <div class="tt-header">
+      <div class="tt-icon-wrap">
+        <img class="tt-icon" src="${badge}" alt="${escapeHtml(c.name)}">
+        <div class="tt-rank">${rank}</div>
+      </div>
+      <div>
+        <div class="tt-name">${escapeHtml(c.name)}</div>
+        <div class="tt-symbol">${escapeHtml(c.symbol)} · ${escapeHtml(c.sector || '')}</div>
+      </div>
+    </div>
+    <div class="tt-row">
+      <span class="tt-label">${c.isIndex ? 'Points' : 'Price'}</span>
+      <span class="tt-value">${priceStr}</span>
+    </div>
+    <div class="tt-row">
+      <span class="tt-label">${pLabel}</span>
+      <span class="tt-value ${changeClass}">${sign}${change.toFixed(2)}%</span>
+    </div>
+    ${mcapRow}
+    <div class="tt-direction">${dirText}</div>
+  `;
+  tt.classList.add('visible');
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('visible');
+}
+
+function positionTooltip(x, y) {
+  const tt = document.getElementById('tooltip');
+  const w = tt.offsetWidth || 260;
+  const h = tt.offsetHeight || 200;
+  let left = x + 22;
+  let top = y + 22;
+  if (left + w > window.innerWidth - 12)  left = x - w - 22;
+  if (top + h > window.innerHeight - 12)  top = y - h - 22;
+  tt.style.left = Math.max(12, left) + 'px';
+  tt.style.top  = Math.max(12, top) + 'px';
+}
+
+// ─────────────── UI Helpers ───────────────
+function setStatus(ok, text) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.classList.toggle('error', !ok);
+}
+
+function showNotification(text) {
+  const n = document.getElementById('notification');
+  n.textContent = text;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2200);
+}
+
+function switchLimit(limit) {
+  if (limit === currentLimit) return;
+  currentLimit = limit;
+  document.getElementById('btn25').classList.toggle('active', limit === 25);
+  document.getElementById('btn50').classList.toggle('active', limit === 50);
+  // All 50 stocks are already in memory: rebuild without a new request
+  if (stocksList.length) rebuild();
+  else if (!isFetching) loadData(true);
+}
+
+// Switch the active period (1D / 7D / 30D). Since all three changes are
+// already in memory, the scene updates in place: orbital direction/speed
+// recomputed on the stock scale, labels regenerated, legend & tooltip refreshed.
+function switchPeriod(period) {
+  if (period === currentPeriod) return;
+  currentPeriod = period;
+
+  document.getElementById('btn1D').classList.toggle('active',  period === '24h');
+  document.getElementById('btn7D').classList.toggle('active',  period === '7d');
+  document.getElementById('btn30D').classList.toggle('active', period === '30d');
+
+  const label = periodLabel();
+  const elUp   = document.getElementById('legendUp');
+  const elDown = document.getElementById('legendDown');
+  const elAbs  = document.getElementById('legendAbs');
+  if (elUp)   elUp.textContent   = label + ' ↑';
+  if (elDown) elDown.textContent = label + ' ↓';
+  if (elAbs)  elAbs.textContent  = label;
+
+  planets.forEach(p => {
+    p.speed = orbitalSpeed(p.coin, p.distance);
+    refreshPriceLabel(p.priceLabel, p.coin, false);
+    if (p.trail) recolorOrbitTrail(p.trail, p);
+  });
+
+  if (focused) renderFocusPanel(focused);
+  if (sun) refreshPriceLabel(sun.priceLabel, sun.coin, true);
+  if (hovered) showTooltip(hovered);
+}
+
+// Regenerates the price label texture on the same sprite — keeps its
+// position and bob animation intact.
+function refreshPriceLabel(sprite, coin, isLarge) {
+  const fresh = makePriceLabel(coin, isLarge);
+  if (sprite.material.map) sprite.material.map.dispose();
+  sprite.material.map = fresh.material.map;
+  sprite.material.needsUpdate = true;
+  sprite.scale.copy(fresh.scale);
+  fresh.material.map = null;
+  fresh.material.dispose();
+}
+
+// Toggles the ambience: starfield + nebulae + comets.
+// (The UFO keeps its own timer — easter eggs don't get buttons.)
+function toggleAmbience() {
+  ambienceOn = !ambienceOn;
+  if (starField) starField.visible = ambienceOn;
+  nebulae.forEach(n => n.visible = ambienceOn);
+  if (milkyWay) milkyWay.visible = ambienceOn;
+  if (asteroidBelt) asteroidBelt.visible = ambienceOn;
+  galaxySprites.forEach(g => g.visible = ambienceOn);
+  heroStarSprites.forEach(h => h.visible = ambienceOn);
+  if (cometSystem) cometSystem.setEnabled(ambienceOn);
+  const btn = document.getElementById('btnStars');
+  btn.classList.toggle('off', !ambienceOn);
+  document.getElementById('starsLabel').textContent = ambienceOn ? 'Stars On' : 'Stars Off';
+}
+
+function onResize() {
+  applyResponsiveCamera();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function isNarrowViewport() {
+  return window.innerWidth < 768 || (window.innerWidth / window.innerHeight) < 0.85;
+}
+
+function applyResponsiveCamera() {
+  if (!camera) return;
+  const aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = aspect;
+  const baseVFov = 55;
+  if (aspect < 1.25) {
+    const refH = 2 * Math.atan(Math.tan(baseVFov * Math.PI / 360) * 1.25);
+    const vFov = 2 * Math.atan(Math.tan(refH / 2) / aspect) * 180 / Math.PI;
+    camera.fov = Math.min(Math.max(vFov, baseVFov), 74);
+  } else {
+    camera.fov = baseVFov;
+  }
+  camera.updateProjectionMatrix();
+}
+
+// ─────────────── Utils ───────────────
+function formatPrice(n) {
+  if (n == null) return '—';
+  if (n >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (n >= 1)    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (n >= 0.01) return n.toFixed(4);
+  if (n >= 0.0001) return n.toFixed(6);
+  return n.toExponential(2);
+}
+
+function formatLarge(n) {
+  if (n == null) return '—';
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n / 1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return (n / 1e6).toFixed(2)  + 'M';
+  if (n >= 1e3)  return (n / 1e3).toFixed(2)  + 'K';
+  return n.toLocaleString();
+}
+
+function formatTime(d) {
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[ch]);
+}
+
+// ─────────────── Cinematic intro zoom ───────────────
+let introZoomActive = false;
+function runIntroZoom() {
+  if (introZoomActive || !controls) return;
+  introZoomActive = true;
+
+  const startRadius  = controls.radius;
+  const wheelFactor  = Math.pow(1.0015, 40 * -100);
+  const fullTarget   = Math.max(controls.minDistance, startRadius * wheelFactor);
+  const targetRadius = startRadius + (fullTarget - startRadius) * 0.5;
+  const duration     = 2500;
+  const startTime    = performance.now();
+
+  const dom = renderer.domElement;
+  const cancel = () => { introZoomActive = false; cleanup(); };
+  const cleanup = () => {
+    dom.removeEventListener('mousedown',  cancel);
+    dom.removeEventListener('touchstart', cancel);
+    dom.removeEventListener('wheel',      cancel);
+  };
+  dom.addEventListener('mousedown',  cancel);
+  dom.addEventListener('touchstart', cancel);
+  dom.addEventListener('wheel',      cancel);
+
+  function step(now) {
+    if (!introZoomActive) return;
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    controls.radius = startRadius + (targetRadius - startRadius) * eased;
+    if (t < 1) requestAnimationFrame(step);
+    else { introZoomActive = false; cleanup(); }
+  }
+  requestAnimationFrame(step);
+}
+
+// ─────────────── Simple Orbit Controls ───────────────
+function SimpleOrbitControls(camera, dom) {
+  this.camera = camera;
+  this.dom = dom;
+  this.target = new THREE.Vector3(0, 0, 0);
+  this.theta = -Math.PI / 2;
+  this.phi = Math.PI * 0.38;
+  this.radius = 165;
+  this.minDistance = 25;
+  this.maxDistance = 400;
+  this.autoTheta = 0;
+  this._dragging = false;
+  this._prev = { x: 0, y: 0 };
+  this._velTheta = 0;
+  this._velPhi = 0;
+  this._lastMove = 0;
+
+  const onDown = (e) => {
+    this._dragging = true;
+    const p = e.touches ? e.touches[0] : e;
+    this._prev = { x: p.clientX, y: p.clientY };
+    this._velTheta = this._velPhi = 0;
+  };
+  const onMove = (e) => {
+    if (!this._dragging) return;
+    e.preventDefault();
+    const p = e.touches ? e.touches[0] : e;
+    const dx = p.clientX - this._prev.x;
+    const dy = p.clientY - this._prev.y;
+    this.theta -= dx * 0.005;
+    this.phi   -= dy * 0.005;
+    this.phi = Math.max(0.08, Math.min(Math.PI - 0.08, this.phi));
+    this._velTheta = -dx * 0.005;
+    this._velPhi   = -dy * 0.005;
+    this._prev = { x: p.clientX, y: p.clientY };
+    this._lastMove = performance.now();
+  };
+  const onUp = () => { this._dragging = false; };
+  const onWheel = (e) => {
+    e.preventDefault();
+    this.radius *= Math.pow(1.0015, e.deltaY);
+    this.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this.radius));
+  };
+  let lastPinch = 0;
+  const onTouchMove2 = (e) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (lastPinch > 0) {
+        this.radius *= lastPinch / dist;
+        this.radius = Math.max(this.minDistance, Math.min(this.maxDistance, this.radius));
+      }
+      lastPinch = dist;
+      e.preventDefault();
+    } else {
+      lastPinch = 0;
+    }
+  };
+
+  dom.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  dom.addEventListener('touchstart', onDown, { passive: false });
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchmove', onTouchMove2, { passive: false });
+  window.addEventListener('touchend', onUp);
+  dom.addEventListener('wheel', onWheel, { passive: false });
+
+  this.update = function () {
+    if (!this._dragging) {
+      const idleMs = performance.now() - this._lastMove;
+      if (idleMs > 30) {
+        this.theta += this._velTheta;
+        this.phi   += this._velPhi;
+        this.phi = Math.max(0.08, Math.min(Math.PI - 0.08, this.phi));
+        this._velTheta *= 0.94;
+        this._velPhi   *= 0.94;
+        if (idleMs > 4000 && Math.abs(this._velTheta) < 0.0005) {
+          this.theta -= 0.0006;
+        }
+      }
+    }
+    const x = this.target.x + this.radius * Math.sin(this.phi) * Math.cos(this.theta);
+    const y = this.target.y + this.radius * Math.cos(this.phi);
+    const z = this.target.z + this.radius * Math.sin(this.phi) * Math.sin(this.theta);
+    this.camera.position.set(x, y, z);
+    this.camera.lookAt(this.target);
+  };
+}
+
+// ─────────────── Boot ───────────────
+if (document.fonts && document.fonts.ready) {
+  Promise.race([
+    document.fonts.ready,
+    new Promise(r => setTimeout(r, 1500))
+  ]).then(init);
+} else {
+  init();
+}
+
+</script>
+</body>
+</html>

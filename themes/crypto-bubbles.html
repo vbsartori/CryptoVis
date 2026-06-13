@@ -315,6 +315,51 @@
   .refresh-btn.spinning svg { animation: spinIcon 1s linear infinite; }
   @keyframes spinIcon { to { transform: rotate(360deg); } }
 
+  /* No desktop, o wrapper é transparente para o layout do header */
+  .header-controls { display: contents; }
+
+  /* ─────────── MENU TOGGLE (só mobile) ─────────── */
+  .menu-toggle {
+    display: none;
+    position: relative;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-soft);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all .3s cubic-bezier(.2,.8,.2,1);
+  }
+  .menu-toggle:active { transform: scale(0.92); }
+  .menu-toggle svg {
+    width: 15px; height: 15px;
+    transition: transform .4s cubic-bezier(.2,.8,.2,1);
+  }
+  header:not(.collapsed) .menu-toggle svg { transform: rotate(180deg); }
+  header:not(.collapsed) .menu-toggle {
+    background: rgba(255,255,255,0.92);
+    color: #0a0a0c;
+    border-color: transparent;
+  }
+  /* Pontinho de status que aparece na pílula recolhida */
+  .mt-dot {
+    position: absolute;
+    top: -1px; right: -1px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--pos);
+    box-shadow: 0 0 8px var(--pos);
+    border: 1.5px solid rgba(10,10,14,0.9);
+    opacity: 0;
+    transition: opacity .3s;
+  }
+  header.collapsed .mt-dot { opacity: 1; }
+  .mt-dot.is-loading { background: #ffd166; box-shadow: 0 0 8px #ffd166; }
+  .mt-dot.is-error   { background: var(--neg); box-shadow: 0 0 8px var(--neg); }
+
   /* ─────────── LEGEND (bottom-left) ─────────── */
   .legend {
     position: fixed;
@@ -871,31 +916,59 @@
   @media (max-width: 720px) {
     header {
       top: 10px;
-      gap: 6px 8px;
-      padding: 8px 12px;
+      gap: 8px;
+      padding: 7px 10px;
       max-width: calc(100vw - 16px);
       flex-wrap: wrap;
       justify-content: center;
-      border-radius: 22px;
+      border-radius: 24px;
     }
-    .home-link { margin-right: 0; order: 0; }
-    .brand { font-size: 10px; padding-right: 0; border-right: 0; gap: 8px; order: 1; }
+    .home-link { margin-right: 0; height: 34px; min-width: 34px; }
+    .home-link .hl-ico { flex: 0 0 34px; height: 34px; }
+    .brand { font-size: 10px; padding-right: 0; border-right: 0; gap: 8px; }
     .brand-mark { width: 18px; height: 18px; }
-    .refresh-btn { order: 2; width: 34px; height: 34px; }
-    .filters { order: 3; }
+    .refresh-btn { width: 34px; height: 34px; margin-left: 0; }
+    .menu-toggle { display: flex; }
+
+    /* A gaveta: ocupa a linha de baixo e desliza ao abrir/fechar */
+    .header-controls {
+      display: flex;
+      order: 10;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 8px;
+      overflow: hidden;
+      max-height: 220px;
+      opacity: 1;
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid var(--ink-faint);
+      transition:
+        max-height .45s cubic-bezier(.2,.8,.2,1),
+        opacity .3s ease,
+        margin-top .45s cubic-bezier(.2,.8,.2,1),
+        padding-top .45s cubic-bezier(.2,.8,.2,1);
+    }
+    header.collapsed .header-controls {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      padding-top: 0;
+      border-top-color: transparent;
+      pointer-events: none;
+    }
+
     .filter-btn { padding: 8px 11px; font-size: 10px; }
-    .search-wrap { order: 4; }
     #search { width: 60px; }
     #search:focus { width: 90px; }
     .status {
-      order: 6;
       padding-left: 0;
       border-left: 0;
       font-size: 9.5px;
       width: 100%;
       justify-content: center;
-      padding-top: 6px;
-      border-top: 1px solid var(--ink-faint);
+      padding-top: 4px;
     }
     .legend { display: none; }
     .market-bar {
@@ -962,6 +1035,7 @@
     <div class="brand-mark"></div>
     <span>Crypto&nbsp;Bubbles</span>
   </div>
+  <div class="header-controls" id="headerControls">
   <div class="filters" role="group" aria-label="Quantidade de moedas">
     <button class="filter-btn active" data-limit="50">Top 50</button>
     <button class="filter-btn" data-limit="100">Top 100</button>
@@ -984,11 +1058,16 @@
     <span class="status-text" id="statusText">Conectando</span>
     <span class="status-time" id="statusTime">—</span>
   </div>
+  </div><!-- /header-controls -->
   <button class="refresh-btn" id="refreshBtn" title="Atualizar agora" aria-label="Atualizar dados">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 12a9 9 0 0 1-15.9 5.7L3 15"/><path d="M3 12a9 9 0 0 1 15.9-5.7L21 9"/>
       <path d="M21 4v5h-5"/><path d="M3 20v-5h5"/>
     </svg>
+  </button>
+  <button class="menu-toggle" id="menuToggle" aria-label="Mostrar ou esconder controles" aria-expanded="false" aria-controls="headerControls">
+    <span class="mt-dot" id="mtDot"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
   </button>
 </header>
 
@@ -1932,6 +2011,31 @@
     }
   });
 
+  // ─────────── MENU RETRÁTIL (mobile) ───────────
+  const headerEl   = document.querySelector('header');
+  const menuToggle = document.getElementById('menuToggle');
+  const isMobile   = () => window.innerWidth <= 720;
+
+  function setMenu(collapsed) {
+    headerEl.classList.toggle('collapsed', collapsed);
+    menuToggle.setAttribute('aria-expanded', String(!collapsed));
+  }
+  if (isMobile()) setMenu(true); // começa recolhido: as bolhas em primeiro lugar
+
+  menuToggle.addEventListener('click', () => {
+    setMenu(!headerEl.classList.contains('collapsed'));
+  });
+
+  // Tocar no canvas recolhe o menu (não atrapalha a visualização)
+  canvas.addEventListener('pointerdown', () => {
+    if (isMobile() && !headerEl.classList.contains('collapsed')) setMenu(true);
+  });
+
+  // Ao voltar para desktop, garante o header sempre expandido
+  window.addEventListener('resize', () => {
+    if (!isMobile()) setMenu(false);
+  });
+
   // ─────────── DATA ───────────
   const ENDPOINTS = [
     { name: 'CoinGecko (direto)',         wrap: u => u },
@@ -1971,6 +2075,11 @@
     if (state === 'loading') s.classList.add('is-loading');
     if (state === 'error')   s.classList.add('is-error');
     document.getElementById('statusText').textContent = text;
+    // Espelha o estado no pontinho da pílula recolhida
+    const dot = document.getElementById('mtDot');
+    dot.classList.remove('is-loading', 'is-error');
+    if (state === 'loading') dot.classList.add('is-loading');
+    if (state === 'error')   dot.classList.add('is-error');
   }
 
   function showToast(text) {
