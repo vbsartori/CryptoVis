@@ -756,6 +756,7 @@
   <div class="legend-line"><span class="dot red"></span>Counter-clockwise orbit · <span id="legendDown">24h ↓</span></div>
   <div class="legend-line" style="margin-top:6px; color: var(--text-muted); font-size:10px;">Speed ∝ |% <span id="legendAbs">24h</span>|</div>
   <div class="legend-line" style="margin-top:2px; color: var(--text-muted); font-size:10px;">Click a planet to focus · Esc releases</div>
+  <div class="legend-line" style="margin-top:2px; color: var(--text-muted); font-size:10px;">Rare visitors pass through — keep watch</div>
 </div>
 
 <!-- Tooltip -->
@@ -848,6 +849,11 @@ let focused = null;            // planet/sun object currently followed
 let focusReturning = false;    // camera easing back to origin
 let focusStartedAt = 0;
 let lastHoverRing = null;
+let dustField = null;
+let gradePass = null;
+let focusReticle = null;
+let cosmicEvents = null;
+let sputnik = null;
 let _downPos = null;           // for click-vs-drag discrimination
 
 // ─────────────── Init ───────────────
@@ -910,7 +916,11 @@ function init() {
   buildMilkyWay();
   buildGalaxies();
   buildHeroStars();
+  buildDust();
+  makeFocusReticle();
+  buildSputnik();
   cometSystem = new CometSystem(scene);
+  cosmicEvents = new CosmicEvents();
 
   // Events
   window.addEventListener('resize', onResize);
@@ -945,6 +955,11 @@ function init() {
   });
   window.addEventListener('keydown', e => {
     if (e.key === 'Escape' && (focused || focusReturning)) exitFocus();
+    // Secret: 1 = UFO, 2 = pixel alien (undocumented on purpose)
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key >= '1' && e.key <= '2' && cosmicEvents) {
+      cosmicEvents.trigger(e.key.charCodeAt(0) - 49);
+    }
   });
   document.getElementById('focusClose').addEventListener('click', exitFocus);
 
@@ -1094,6 +1109,8 @@ function setupComposer() {
   );
   composer.addPass(bloomPass);
   composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+  gradePass = new THREE.ShaderPass(GradeShader);
+  composer.addPass(gradePass);
 }
 
 function syncGlowButton() {
@@ -1107,6 +1124,135 @@ function toggleGlow() {
   if (!composer) return;
   bloomOn = !bloomOn;
   syncGlowButton();
+}
+
+// ─────────────── Final grade pass (chromatic aberration + film grain) ───────────────
+// Runs after gamma correction: a radial chromatic fringe that grows toward
+// the frame edges plus animated fine grain. Both extremely subtle — they
+// register as "shot on a camera" rather than as effects.
+const GradeShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    uTime:    { value: 0 },
+    uCA:      { value: 0.0014 },
+    uGrain:   { value: 0.035 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float uTime;
+    uniform float uCA;
+    uniform float uGrain;
+    varying vec2 vUv;
+    float rand(vec2 co) {
+      return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+    }
+    void main() {
+      vec2 c = vUv - 0.5;
+      float r2 = dot(c, c);
+      vec2 off = c * r2 * uCA * 10.0;
+      float rr = texture2D(tDiffuse, vUv + off).r;
+      float gg = texture2D(tDiffuse, vUv).g;
+      float bb = texture2D(tDiffuse, vUv - off).b;
+      vec3 col = vec3(rr, gg, bb);
+      float g = (rand(vUv * 91.7 + fract(uTime) * 13.1) - 0.5) * uGrain;
+      col += g;
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `,
+};
+
+// ─────────────── Planet atmosphere shell (fresnel rim) ───────────────
+function makeAtmosphereShell(radius, colorHex) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { uColor: { value: new THREE.Color(colorHex) } },
+    vertexShader: `
+      varying float vIntensity;
+      void main() {
+        vec3 n = normalize(normalMatrix * normal);
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vec3 viewDir = normalize(-mv.xyz);
+        float facing = abs(dot(n, viewDir));
+        vIntensity = pow(1.0 - facing, 3.0);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying float vIntensity;
+      void main() {
+        gl_FragColor = vec4(uColor * vIntensity * 1.35, vIntensity * 0.9);
+      }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius * 1.16, 32, 32), mat);
+  return { mesh, mat };
+}
+
+// ─────────────── Near-field space dust ───────────────
+// A sparse cloud of faint motes drifting between the orbits. Its parallax
+// against the far starfield is what sells camera moves as truly 3D.
+function buildDust() {
+  const geom = new THREE.BufferGeometry();
+  const pos = [];
+  for (let i = 0; i < 520; i++) {
+    const r = 40 + Math.pow(Math.random(), 0.7) * 300;
+    const a = Math.random() * Math.PI * 2;
+    pos.push(Math.cos(a) * r, (Math.random() - 0.5) * 70, Math.sin(a) * r);
+  }
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    map: makeStarTexture(),
+    size: 1.1,
+    sizeAttenuation: true,
+    color: 0x8fa3d8,
+    transparent: true,
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  dustField = new THREE.Points(geom, mat);
+  scene.add(dustField);
+}
+
+// ─────────────── Focus reticle ───────────────
+// A slowly rotating dashed gold ring that locks around the selected world.
+function makeFocusReticle() {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  ctx.strokeStyle = 'rgba(255, 199, 102, 0.95)';
+  ctx.lineWidth = 4;
+  ctx.setLineDash([20, 14]);
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, 108, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(255, 199, 102, 0.30)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, 96, 0, Math.PI * 2);
+  ctx.stroke();
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(c),
+    transparent: true,
+    opacity: 0.9,
+    depthWrite: false,
+    depthTest: false,
+  }));
+  sprite.renderOrder = 997;
+  sprite.visible = false;
+  focusReticle = sprite;
 }
 
 // ─────────────── Nebulae (atmospheric depth) ───────────────
@@ -1775,17 +1921,399 @@ class CometSystem {
   }
 }
 
+// ═════════════════ COSMIC EVENTS (easter eggs with rarity) ═════════════════
+// A weighted spawner of pop-culture visitors. Roughly one event every
+// 20–40 s, at most two alive at once. Weights (out of 100):
+//   flying saucer 28 · drifting astronaut 20 · "to the moon" rocket 18 ·
+//   8-bit alien 12 · space whale 9 · Starman's Roadster 7 ·
+//   black hole 4 · supernova 2
+// Rare sightings announce themselves through the notification toast.
+
+function crispTexture(canvas) {
+  const t = new THREE.CanvasTexture(canvas);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+
+function eventFade(life, maxLife, fi, fo) {
+  if (life < fi) return life / fi;
+  if (life > maxLife - fo) return Math.max(0, (maxLife - life) / fo);
+  return 1;
+}
+
+function randomCrossPath(rMin, rMax, ySpread) {
+  const r = rMin + Math.random() * (rMax - rMin);
+  const a = Math.random() * Math.PI * 2;
+  const start = new THREE.Vector3(Math.cos(a) * r, (Math.random() - 0.5) * ySpread, Math.sin(a) * r);
+  const a2 = a + Math.PI + (Math.random() - 0.5) * 0.9;
+  const end = new THREE.Vector3(Math.cos(a2) * r, (Math.random() - 0.5) * ySpread, Math.sin(a2) * r);
+  return { start, end };
+}
+
+// Screen-space rotation so a sprite's "up" points along its velocity
+function spriteRotationForVelocity(pos, vel) {
+  const a = pos.clone().project(camera);
+  const b = pos.clone().addScaledVector(vel, 0.5).project(camera);
+  const aspect = window.innerWidth / window.innerHeight;
+  return -Math.atan2((b.x - a.x) * aspect, b.y - a.y);
+}
+
+// ── Drawings ──
+function drawUfo() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 176;
+  const ctx = c.getContext('2d');
+  // Tractor beam
+  const beam = ctx.createLinearGradient(0, 92, 0, 176);
+  beam.addColorStop(0, 'rgba(150, 255, 190, 0.28)');
+  beam.addColorStop(1, 'rgba(150, 255, 190, 0)');
+  ctx.fillStyle = beam;
+  ctx.beginPath();
+  ctx.moveTo(104, 96); ctx.lineTo(152, 96);
+  ctx.lineTo(196, 176); ctx.lineTo(60, 176);
+  ctx.closePath(); ctx.fill();
+  // Saucer body
+  const body = ctx.createLinearGradient(0, 60, 0, 104);
+  body.addColorStop(0, '#d9dfeb');
+  body.addColorStop(0.5, '#8a93a8');
+  body.addColorStop(1, '#4a5164');
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.ellipse(128, 82, 92, 24, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Glass dome
+  const dome = ctx.createRadialGradient(118, 48, 4, 128, 56, 40);
+  dome.addColorStop(0, 'rgba(220, 255, 250, 0.95)');
+  dome.addColorStop(0.6, 'rgba(110, 220, 210, 0.55)');
+  dome.addColorStop(1, 'rgba(60, 140, 150, 0.25)');
+  ctx.fillStyle = dome;
+  ctx.beginPath();
+  ctx.arc(128, 60, 34, Math.PI, 0);
+  ctx.closePath(); ctx.fill();
+  // Rim lights
+  const cols = ['#ffd25e', '#6ef2ff', '#ff7ee2'];
+  for (let i = 0; i < 7; i++) {
+    const fx = -1 + (i / 3);
+    const x = 128 + fx * 74;
+    const y = 88 + Math.sqrt(Math.max(0, 1 - fx * fx)) * 8;
+    ctx.fillStyle = cols[i % 3];
+    ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI * 2); ctx.fill();
+  }
+  return new THREE.CanvasTexture(c);
+}
+
+function drawPixelAlien(frame) {
+  // Original 11×8 design (not the arcade sprite) — crisp nearest-filtering
+  const rows = frame === 0 ? [
+    '..X.....X..',
+    '...X...X...',
+    '..XXXXXXX..',
+    '.XX.XXX.XX.',
+    'XXXXXXXXXXX',
+    'X.XXXXXXX.X',
+    'X.X.....X.X',
+    '...XX.XX...',
+  ] : [
+    '..X.....X..',
+    '...X...X...',
+    '..XXXXXXX..',
+    '.XX.XXX.XX.',
+    'XXXXXXXXXXX',
+    '..XXXXXXX..',
+    '.X.X...X.X.',
+    'X.........X',
+  ];
+  const px = 12;
+  const c = document.createElement('canvas');
+  c.width = 11 * px; c.height = 8 * px;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#6dff8a';
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      if (row[x] === 'X') ctx.fillRect(x * px, y * px, px, px);
+    }
+  });
+  return crispTexture(c);
+}
+
+// ── Event factories: each returns { update(dt,t)→bool, dispose() } ──
+function spawnDrifter(tex, opts) {
+  const { start, end } = randomCrossPath(opts.rMin, opts.rMax, opts.ySpread);
+  const dir = end.clone().sub(start);
+  const dist = dir.length();
+  dir.normalize();
+  const speed = opts.speed;
+  const maxLife = dist / speed;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, opacity: 0, depthWrite: false, fog: false,
+  }));
+  sprite.scale.set(opts.w, opts.h, 1);
+  sprite.position.copy(start);
+  scene.add(sprite);
+  let life = 0;
+  return {
+    update(dt, t) {
+      life += dt;
+      sprite.position.copy(start).addScaledVector(dir, speed * life);
+      const fade = eventFade(life, maxLife, opts.fadeIn, opts.fadeOut);
+      sprite.material.opacity = fade * (opts.maxOpacity || 1);
+      if (opts.extra) opts.extra(sprite, dt, t, life, fade);
+      return life < maxLife;
+    },
+    dispose() {
+      scene.remove(sprite);
+      sprite.material.map.dispose();
+      sprite.material.dispose();
+    },
+  };
+}
+
+function spawnUfo() {
+  const glowTex = makeRadialGlow();
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTex, color: 0x8affc0, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+  }));
+  glow.scale.set(26, 26, 1);
+  scene.add(glow);
+  const base = spawnDrifter(drawUfo(), {
+    rMin: 150, rMax: 290, ySpread: 90,
+    speed: 26 + Math.random() * 14,
+    w: 16, h: 11, fadeIn: 1.2, fadeOut: 1.2,
+    extra(sprite, dt, t, life, fade) {
+      sprite.position.y += Math.sin(t * 3.1) * 0.05;           // hover wobble
+      sprite.material.rotation = Math.sin(t * 2.2) * 0.08;      // banking
+      glow.position.copy(sprite.position);
+      glow.material.opacity = fade * (0.16 + Math.sin(t * 6) * 0.05);
+    },
+  });
+  return {
+    update: base.update,
+    dispose() {
+      base.dispose();
+      scene.remove(glow);
+      glow.material.map.dispose();
+      glow.material.dispose();
+    },
+  };
+}
+
+function spawnPixelAlien() {
+  const frames = [drawPixelAlien(0), drawPixelAlien(1)];
+  const { start, end } = randomCrossPath(170, 300, 110);
+  const dir = end.clone().sub(start);
+  const dist = dir.length();
+  dir.normalize();
+  const stepLen = 5.5;
+  const steps = Math.floor(dist / stepLen);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: frames[0], transparent: true, opacity: 0, depthWrite: false, fog: false,
+  }));
+  sprite.scale.set(11, 8, 1);
+  sprite.position.copy(start);
+  scene.add(sprite);
+  let stepTimer = 0, stepIdx = 0, frame = 0, life = 0;
+  const maxLife = steps * 0.42 + 2;
+  return {
+    update(dt) {
+      life += dt;
+      stepTimer += dt;
+      if (stepTimer >= 0.42 && stepIdx < steps) {   // classic stepped march
+        stepTimer = 0;
+        stepIdx++;
+        frame = 1 - frame;
+        sprite.material.map = frames[frame];
+        sprite.position.copy(start).addScaledVector(dir, stepIdx * stepLen);
+        sprite.position.y += (stepIdx % 2 ? 1 : -1) * 0.8;
+      }
+      sprite.material.opacity = eventFade(life, maxLife, 0.8, 0.8) * 0.95;
+      return life < maxLife;
+    },
+    dispose() {
+      scene.remove(sprite);
+      frames.forEach(f => f.dispose());
+      sprite.material.dispose();
+    },
+  };
+}
+
+
+// ── Permanent Sputnik-style satellite ──
+function buildSputnik() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.9, 20, 20),
+    new THREE.MeshStandardMaterial({ color: 0xd8dde8, roughness: 0.25, metalness: 0.9 })
+  );
+  g.add(body);
+  const antMat = new THREE.MeshBasicMaterial({ color: 0xb8c0d0 });
+  for (let i = 0; i < 4; i++) {
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 5.4, 4), antMat);
+    ant.position.set(-1.6, 0, 0);
+    ant.rotation.z = Math.PI / 2 + (i < 2 ? 0.35 : -0.35);
+    ant.rotation.y = (i % 2) * 0.7 - 0.35;
+    g.add(ant);
+  }
+  g.userData.angle = Math.random() * Math.PI * 2;
+  g.userData.radius = 130;
+  g.userData.incl = 0.9;    // steep inclination — crosses "above" the system
+  scene.add(g);
+  sputnik = g;
+}
+
+// ── Manager ──
+class CosmicEvents {
+  constructor() {
+    this.active = [];
+    this.enabled = true;
+    this.nextIn = 7 + Math.random() * 6;    // first visitor within ~7-13s
+    this.table = [
+      [58, spawnUfo],
+      [42, spawnPixelAlien],
+    ];
+    this.totalWeight = this.table.reduce((s, e) => s + e[0], 0);
+  }
+  update(dt, t) {
+    if (this.enabled && this.active.length < 2) {
+      this.nextIn -= dt;
+      if (this.nextIn <= 0) {
+        this.spawn();
+        this.nextIn = 12 + Math.random() * 12;
+      }
+    }
+    for (let i = this.active.length - 1; i >= 0; i--) {
+      if (!this.active[i].update(dt, t)) {
+        this.active[i].dispose();
+        this.active.splice(i, 1);
+      }
+    }
+    if (sputnik) {
+      sputnik.userData.angle += dt * 0.035;
+      const a = sputnik.userData.angle, R = sputnik.userData.radius, incl = sputnik.userData.incl;
+      sputnik.position.set(
+        Math.cos(a) * R,
+        Math.sin(a) * R * Math.sin(incl),
+        Math.sin(a) * R * Math.cos(incl)
+      );
+      sputnik.rotation.y += dt * 0.4;
+      sputnik.rotation.x += dt * 0.17;
+    }
+  }
+  // Manual summon (keys 1–8): index into the rarity table, ignoring
+  // the concurrency cap and the spawn timer
+  trigger(idx) {
+    const entry = this.table[idx];
+    if (!entry) return;
+    try { this.active.push(entry[1]()); } catch (e) { console.error('event spawn failed', e); }
+  }
+  spawn() {
+    let roll = Math.random() * this.totalWeight;
+    for (const [w, fn] of this.table) {
+      roll -= w;
+      if (roll <= 0) {
+        try { this.active.push(fn()); } catch (e) { console.error('event spawn failed', e); }
+        return;
+      }
+    }
+  }
+  setEnabled(on) {
+    this.enabled = on;
+    if (!on) {
+      this.active.forEach(ev => ev.dispose());
+      this.active = [];
+    } else {
+      this.nextIn = 6 + Math.random() * 8;
+    }
+    if (sputnik) sputnik.visible = on;
+  }
+}
+
 // ─────────────── Sun (Bitcoin) ───────────────
 function buildSun(coin) {
   const group = new THREE.Group();
 
-  // Procedural sun surface
-  const tex = makeSunTexture();
+  // Living plasma surface — 4-octave 3D value-noise FBM evolving in time.
+  // Two domain-warped noise fields drive a deep-ember → hot-white ramp, so
+  // the star visibly boils instead of showing a painted texture.
+  const sunMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      varying vec3 vPos;
+      void main() {
+        vPos = normalize(position);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      varying vec3 vPos;
+      float hash(vec3 p) {
+        return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123);
+      }
+      float noise(vec3 p) {
+        vec3 i = floor(p);
+        vec3 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float n000 = hash(i);
+        float n100 = hash(i + vec3(1.0, 0.0, 0.0));
+        float n010 = hash(i + vec3(0.0, 1.0, 0.0));
+        float n110 = hash(i + vec3(1.0, 1.0, 0.0));
+        float n001 = hash(i + vec3(0.0, 0.0, 1.0));
+        float n101 = hash(i + vec3(1.0, 0.0, 1.0));
+        float n011 = hash(i + vec3(0.0, 1.0, 1.0));
+        float n111 = hash(i + vec3(1.0, 1.0, 1.0));
+        return mix(
+          mix(mix(n000, n100, f.x), mix(n010, n110, f.x), f.y),
+          mix(mix(n001, n101, f.x), mix(n011, n111, f.x), f.y),
+          f.z
+        );
+      }
+      float fbm(vec3 p) {
+        float v = 0.0;
+        float a = 0.55;
+        for (int i = 0; i < 4; i++) {
+          v += a * noise(p);
+          p = p * 2.07 + 11.3;
+          a *= 0.5;
+        }
+        return v;
+      }
+      void main() {
+        float t = uTime * 0.055;
+        vec3 p = vPos;
+        float n1 = fbm(p * 3.2 + vec3(t, t * 0.7, -t * 0.4));
+        float n2 = fbm(p * 7.5 - vec3(t * 1.4, -t, t * 0.6) + n1 * 1.6);
+        float v = n1 * 0.55 + n2 * 0.6;
+        vec3 deep = vec3(0.45, 0.12, 0.0);
+        vec3 mid  = vec3(0.96, 0.46, 0.08);
+        vec3 hot  = vec3(1.0, 0.86, 0.56);
+        vec3 col = mix(deep, mid, smoothstep(0.15, 0.62, v));
+        col = mix(col, hot, smoothstep(0.60, 0.92, v));
+        col += vec3(1.0, 0.95, 0.8) * pow(max(v - 0.78, 0.0) * 4.5, 2.0);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
   const surface = new THREE.Mesh(
     new THREE.SphereGeometry(SUN_RADIUS, 96, 96),
-    new THREE.MeshBasicMaterial({ map: tex })
+    sunMat
   );
   group.add(surface);
+
+  // God rays — a disc of ~110 fine radial streaks behind the star,
+  // counter-rotating slowly. With bloom, reads as volumetric light shafts.
+  const rays = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: makeSunRaysTexture(),
+    color: 0xffc06a,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  }));
+  rays.scale.set(SUN_RADIUS * 12, SUN_RADIUS * 12, 1);
+  group.add(rays);
 
   // Inner glow halo
   const glowTex = makeRadialGlow();
@@ -1904,7 +2432,7 @@ function buildSun(coin) {
   scene.add(group);
 
   sun = {
-    group, surface, inner, outer, far, fresnel, fresnelMat, flare,
+    group, surface, inner, outer, far, fresnel, fresnelMat, flare, rays,
     iconSprite, priceLabel,
     iconBaseY,
     coin, isSun: true,
@@ -1912,52 +2440,31 @@ function buildSun(coin) {
   };
 }
 
-function makeSunTexture() {
+// Radial streak disc for the sun's god rays
+function makeSunRaysTexture() {
+  const S = 512;
   const c = document.createElement('canvas');
-  c.width = c.height = 1024;
+  c.width = c.height = S;
   const ctx = c.getContext('2d');
-  // Base radial
-  const g = ctx.createRadialGradient(512, 512, 80, 512, 512, 512);
-  g.addColorStop(0,    '#fffaf0');
-  g.addColorStop(0.25, '#ffe7a0');
-  g.addColorStop(0.55, '#ffaa3c');
-  g.addColorStop(0.85, '#e36b14');
-  g.addColorStop(1,    '#9c3e00');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 1024, 1024);
-  // Granulation
-  for (let i = 0; i < 4500; i++) {
-    const x = Math.random() * 1024;
-    const y = Math.random() * 1024;
-    const r = 1.5 + Math.random() * 5;
-    const a = Math.random() * 0.4;
-    const isBright = Math.random() < 0.55;
-    ctx.fillStyle = isBright
-      ? `rgba(255, ${200 + Math.random()*55|0}, ${120 + Math.random()*100|0}, ${a})`
-      : `rgba(120, ${30 + Math.random()*60|0}, 0, ${a*0.8})`;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // Solar flares streaks
-  for (let i = 0; i < 30; i++) {
-    const x = Math.random() * 1024;
-    const y = Math.random() * 1024;
-    const len = 30 + Math.random() * 70;
+  ctx.translate(S / 2, S / 2);
+  for (let i = 0; i < 110; i++) {
     const ang = Math.random() * Math.PI * 2;
-    const grad = ctx.createLinearGradient(x, y, x + Math.cos(ang)*len, y + Math.sin(ang)*len);
-    grad.addColorStop(0, 'rgba(255,230,150,0.4)');
-    grad.addColorStop(1, 'rgba(255,100,0,0)');
+    const r0 = 34 + Math.random() * 20;
+    const len = 70 + Math.pow(Math.random(), 1.6) * 160;
+    const x0 = Math.cos(ang) * r0,        y0 = Math.sin(ang) * r0;
+    const x1 = Math.cos(ang) * (r0 + len), y1 = Math.sin(ang) * (r0 + len);
+    const grad = ctx.createLinearGradient(x0, y0, x1, y1);
+    const a = 0.05 + Math.random() * 0.12;
+    grad.addColorStop(0, `rgba(255, 225, 170, ${a})`);
+    grad.addColorStop(1, 'rgba(255, 160, 60, 0)');
     ctx.strokeStyle = grad;
-    ctx.lineWidth = 2 + Math.random() * 3;
+    ctx.lineWidth = 0.8 + Math.random() * 2.4;
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + Math.cos(ang)*len, y + Math.sin(ang)*len);
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
     ctx.stroke();
   }
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  return t;
+  return new THREE.CanvasTexture(c);
 }
 
 function makeRadialGlow() {
@@ -2014,7 +2521,7 @@ function buildPlanet(coin, idx, btcMc) {
     map: atmoTex,
     color: baseColor,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.20,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
@@ -2022,6 +2529,12 @@ function buildPlanet(coin, idx, btcMc) {
   const atmoSize = radius * 3.0;
   atmo.scale.set(atmoSize, atmoSize, 1);
   group.add(atmo);
+
+  // Brand-colored fresnel rim — a thin view-dependent atmosphere that
+  // glows along the limb and shifts with the camera, replacing most of
+  // the flat sprite halo. All shells share one shader program.
+  const atmoShell = makeAtmosphereShell(radius, baseColor);
+  group.add(atmoShell.mesh);
 
   // ~1 in 4 worlds (deterministic per coin, stable across refreshes) gets a
   // Saturn-style ring system, tinted with the coin's brand color once the
@@ -2057,6 +2570,7 @@ function buildPlanet(coin, idx, btcMc) {
     planetMat.needsUpdate = true;
     if (old) old.dispose();
     atmoMat.color.setHex(dominantColor);
+    atmoShell.mat.uniforms.uColor.value.setHex(dominantColor);
     if (saturnMat) saturnMat.color.setHex(lightenHex(dominantColor, 0.45));
   });
   const iconSize = Math.max(1.8, radius * 1.3);
@@ -2081,11 +2595,12 @@ function buildPlanet(coin, idx, btcMc) {
   // Orbit ring (faint)
   const ringGeom = new THREE.RingGeometry(distance - 0.04, distance + 0.04, 256);
   const ringMat = new THREE.MeshBasicMaterial({
-    color: 0x4a5a8a,
+    color: 0x5a6cb0,
     transparent: true,
     opacity: 0.10,
     side: THREE.DoubleSide,
     depthWrite: false,
+    blending: THREE.AdditiveBlending,
   });
   const ring = new THREE.Mesh(ringGeom, ringMat);
   ring.rotation.x = Math.PI / 2;
@@ -2101,11 +2616,12 @@ function buildPlanet(coin, idx, btcMc) {
   const speed = (baseSpeed / Math.sqrt(distance / 20)) * speedMult * direction;
 
   const p = {
-    group, mesh, atmo, iconSprite, priceLabel, ring, ringMat,
+    group, mesh, atmo, atmoShell, iconSprite, priceLabel, ring, ringMat,
     coin, distance, angle, speed, radius,
     iconBaseY,
     trail: null,
     trailWidth: radius * 0.4 + 0.12,
+    hoverT: 1,
     bobPhase: Math.random() * Math.PI * 2,   // staggers planet bobs
     rotationSpeed: 0.06 + Math.random() * 0.10,
     isSun: false,
@@ -2453,7 +2969,11 @@ function animate() {
   // Sun rotation + glow pulsation
   if (sun) {
     sun.surface.rotation.y += dt * 0.12;
-    sun.surface.material.map.offset.x += dt * 0.004;   // slow surface churn
+    if (sun.surface.material.uniforms) sun.surface.material.uniforms.uTime.value = t;
+    if (sun.rays) {
+      sun.rays.material.rotation = -t * 0.02;
+      sun.rays.material.opacity = 0.42 + Math.sin(t * 0.55) * 0.10;
+    }
     if (sun.fresnelMat) sun.fresnelMat.uniforms.uTime.value = t;
     if (sun.flare) sun.flare.material.opacity = 0.40 + Math.sin(t * 0.9) * 0.12;
     sun.inner.material.opacity = 0.78 + Math.sin(t * 1.2) * 0.08;
@@ -2474,6 +2994,20 @@ function animate() {
     p.group.position.z = Math.sin(p.angle) * p.distance;
     p.mesh.rotation.y += dt * p.rotationSpeed;
     updateOrbitTrail(p);
+
+    // Hover / focus pop — the world swells slightly toward the cursor
+    const isActive = hovered === p || focused === p;
+    const targetScale = isActive ? 1.12 : 1.0;
+    p.hoverT += (targetScale - p.hoverT) * Math.min(1, dt * 9);
+    p.mesh.scale.setScalar(p.hoverT);
+    if (p.atmoShell) p.atmoShell.mesh.scale.setScalar(p.hoverT);
+
+    // Declutter: price labels fade out at long range so the wide shot
+    // reads as a galaxy, not a wall of tags. Hover/focus always shows.
+    const camDist = camera.position.distanceTo(p.group.position);
+    const fade = isActive ? 1 : Math.max(0, Math.min(1, (330 - camDist) / 80));
+    p.priceLabel.material.opacity = fade;
+    p.iconSprite.material.opacity = 0.35 + fade * 0.65;
     // Plumbob bob — Sims-style hover, with each planet on its own phase
     if (p.iconSprite) {
       const bob = Math.sin(t * 1.6 + p.bobPhase) * 0.20;
@@ -2498,6 +3032,17 @@ function animate() {
 
   // Asteroid belt — slow Keplerian drift
   if (asteroidBelt) asteroidBelt.rotation.y = t * 0.008;
+
+  // Space dust counter-drifts for parallax
+  if (dustField) dustField.rotation.y = -t * 0.004;
+
+  // Focus reticle spin + breathing
+  if (focusReticle && focusReticle.visible) {
+    focusReticle.material.rotation = t * 0.4;
+    const base = focusReticle.userData.baseScale || 6;
+    const s = base * (1 + Math.sin(t * 2.1) * 0.03);
+    focusReticle.scale.set(s, s, 1);
+  }
 
   // Milky way — imperceptible parallax rotation
   if (milkyWay) milkyWay.rotation.y = t * 0.0022;
@@ -2532,12 +3077,19 @@ function animate() {
   // Comets
   if (cometSystem) cometSystem.update(dt, t);
 
+  // Cosmic visitors (UFOs, whales, supernovae…) + Sputnik orbit
+  if (cosmicEvents) cosmicEvents.update(dt, t);
+
   // Raycast hover
   updateHover();
 
   controls.update();
-  if (composer && bloomOn) composer.render();
-  else renderer.render(scene, camera);
+  if (composer && bloomOn) {
+    if (gradePass) gradePass.uniforms.uTime.value = t % 97;
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 
 // ─────────────── Hover/Tooltip ───────────────
@@ -2603,6 +3155,16 @@ function focusOn(target) {
   focusStartedAt = performance.now();
   introZoomActive = false;
   if (target.ringMat) target.ringMat.opacity = 0.38;
+  // Lock the reticle around the new target
+  if (focusReticle) {
+    if (focusReticle.parent) focusReticle.parent.remove(focusReticle);
+    const r = target.isSun ? SUN_RADIUS : target.radius;
+    focusReticle.userData.baseScale = r * 3.1;
+    focusReticle.scale.set(r * 3.1, r * 3.1, 1);
+    focusReticle.position.set(0, 0, 0);
+    focusReticle.visible = true;
+    target.group.add(focusReticle);
+  }
   hideTooltip();
   renderFocusPanel(target);
   document.getElementById('focusPanel').classList.add('visible');
@@ -2610,6 +3172,10 @@ function focusOn(target) {
 
 function exitFocus() {
   if (focused && focused.ringMat) focused.ringMat.opacity = 0.10;
+  if (focusReticle) {
+    if (focusReticle.parent) focusReticle.parent.remove(focusReticle);
+    focusReticle.visible = false;
+  }
   focused = null;
   focusReturning = true;
   document.getElementById('focusPanel').classList.remove('visible');
@@ -2846,7 +3412,9 @@ function toggleAmbience() {
   if (asteroidBelt) asteroidBelt.visible = ambienceOn;
   galaxySprites.forEach(g => g.visible = ambienceOn);
   heroStarSprites.forEach(h => h.visible = ambienceOn);
+  if (dustField) dustField.visible = ambienceOn;
   if (cometSystem) cometSystem.setEnabled(ambienceOn);
+  if (cosmicEvents) cosmicEvents.setEnabled(ambienceOn);
   const btn = document.getElementById('btnStars');
   btn.classList.toggle('off', !ambienceOn);
   document.getElementById('starsLabel').textContent = ambienceOn ? 'Stars On' : 'Stars Off';

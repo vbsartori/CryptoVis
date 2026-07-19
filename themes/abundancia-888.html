@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ 888 · Portal da Abundância ✦</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --rgbLuz:255,243,196;
+    --rgbMeio:255,215,94;
+    --rgbForte:255,179,0;
+    --rgbAuroraA:123,47,247;
+    --rgbAuroraB:255,179,0;
+    --g1:#ffb300; --g2:#ffe9a3; --g3:#fffef0; --g4:#ff8f00;
+    --noite:#0a0518; --nucleo:#1c0f38;
+    --display:'Cinzel',Georgia,serif;
+    --serifa:'Cormorant Garamond',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--noite);font-family:var(--serifa);transition:background 2s ease}
+
+  .camada{position:fixed;inset:-4%;will-change:transform}
+
+  .ceu{
+    position:fixed;inset:0;transition:background 2s ease;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 42%, rgba(var(--rgbAuroraA),.30), transparent 60%),
+      radial-gradient(ellipse 120% 90% at 50% 110%, rgba(var(--rgbAuroraB),.26), transparent 55%),
+      radial-gradient(circle at 50% 45%, var(--nucleo) 0%, var(--noite) 70%);
+  }
+
+  /* raios de luz — raster único, girado por transform (barato) */
+  .raios,.raios2{
+    position:absolute;left:50%;top:44%;
+    width:150vmax;height:150vmax;
+    transform:translate(-50%,-50%);
+    pointer-events:none;mix-blend-mode:screen;
+    will-change:transform;
+  }
+  .raios{
+    background:repeating-conic-gradient(from 0deg,
+      rgba(var(--rgbMeio),.14) 0deg 6deg, transparent 6deg 18deg);
+    animation:gira 90s linear infinite;
+    -webkit-mask-image:radial-gradient(circle,black 0%,transparent 58%);
+            mask-image:radial-gradient(circle,black 0%,transparent 58%);
+  }
+  .raios2{
+    background:repeating-conic-gradient(from 9deg,
+      rgba(var(--rgbLuz),.08) 0deg 3deg, transparent 3deg 24deg);
+    animation:gira 140s linear infinite reverse;
+    -webkit-mask-image:radial-gradient(circle,black 0%,transparent 52%);
+            mask-image:radial-gradient(circle,black 0%,transparent 52%);
+  }
+  @keyframes gira{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  .halo{
+    position:absolute;left:50%;top:44%;
+    width:120vmin;height:120vmin;
+    transform:translate(-50%,-50%);
+    background:radial-gradient(circle,
+      rgba(var(--rgbLuz),.6) 0%, rgba(var(--rgbMeio),.32) 22%,
+      rgba(var(--rgbForte),.15) 40%, transparent 68%);
+    animation:pulsa 8s ease-in-out infinite;
+    pointer-events:none;mix-blend-mode:screen;
+    will-change:transform,opacity;
+  }
+  @keyframes pulsa{
+    0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.85}
+    50%{transform:translate(-50%,-50%) scale(1.18);opacity:1}
+  }
+
+  .vinheta{
+    position:fixed;inset:0;pointer-events:none;z-index:8;
+    background:radial-gradient(ellipse 130% 110% at 50% 46%, transparent 55%, rgba(4,2,12,.65) 100%);
+  }
+
+  .flash{
+    position:fixed;inset:0;pointer-events:none;z-index:9;
+    background:radial-gradient(circle at 50% 30%, rgba(var(--rgbLuz),.9), rgba(var(--rgbForte),.35) 45%, transparent 75%);
+    opacity:0;
+  }
+  .flash.brilha{animation:flasha 2.4s ease-out forwards}
+  @keyframes flasha{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+
+  .bencao{
+    position:fixed;top:18vh;left:50%;transform:translateX(-50%) scale(.8);
+    font-family:var(--display);
+    font-size:clamp(18px,3.4vmin,34px);letter-spacing:.35em;text-indent:.35em;
+    color:#fffdf5;text-transform:uppercase;
+    text-shadow:0 0 20px rgb(var(--rgbMeio)),0 0 60px rgb(var(--rgbForte));
+    opacity:0;z-index:9;pointer-events:none;white-space:nowrap;
+  }
+  .bencao.viva{animation:bencaoAnima 5s ease-out forwards}
+  @keyframes bencaoAnima{
+    0%{opacity:0;transform:translateX(-50%) scale(.8)}
+    15%{opacity:1;transform:translateX(-50%) scale(1.05)}
+    30%{transform:translateX(-50%) scale(1)}
+    80%{opacity:1}
+    100%{opacity:0;transform:translateX(-50%) scale(1.02)}
+  }
+
+  canvas{position:fixed;inset:0;display:block}
+
+  /* ---------- MANDALA ---------- */
+  .palco-mandala{position:fixed;inset:0;pointer-events:none;z-index:5;will-change:transform}
+  .mandala{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center}
+  .anel{
+    position:absolute;left:50%;top:50%;border-radius:50%;
+    transform:translate(-50%,-50%);
+    border:1px solid rgba(var(--rgbMeio),.55);
+    box-shadow:0 0 30px rgba(var(--rgbMeio),.35), inset 0 0 30px rgba(var(--rgbMeio),.18);
+    will-change:transform;
+  }
+  .anel.a1{width:44vmin;height:44vmin;animation:anelGira 40s linear infinite}
+  .anel.a2{width:57vmin;height:57vmin;border-style:dashed;opacity:.7;animation:anelGira 60s linear infinite reverse}
+  .anel.a3{width:72vmin;height:72vmin;opacity:.45;animation:anelGira 90s linear infinite}
+  @keyframes anelGira{to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+  .orbita{
+    position:absolute;left:50%;top:50%;
+    width:72vmin;height:72vmin;
+    transform:translate(-50%,-50%);
+    animation:anelGira 50s linear infinite reverse;
+    will-change:transform;
+  }
+  .orbita span{
+    position:absolute;left:50%;top:50%;
+    font-size:clamp(14px,2.6vmin,26px);
+    color:rgb(var(--rgbLuz));
+    text-shadow:0 0 14px rgb(var(--rgbMeio)),0 0 34px rgb(var(--rgbForte));
+    transform:translate(-50%,-50%) rotate(var(--a)) translateY(-36vmin);
+  }
+
+  /* gradiente estático + apenas 2 sombras: filtro rasteriza uma vez */
+  .oito{
+    font-family:var(--display);
+    font-size:clamp(90px,24vmin,280px);
+    font-weight:700;letter-spacing:.06em;line-height:1;
+    background:linear-gradient(175deg,
+      var(--g3) 0%, var(--g2) 28%, var(--g1) 62%, var(--g4) 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 0 24px rgba(var(--rgbMeio),.95))
+           drop-shadow(0 0 80px rgba(var(--rgbForte),.65));
+    animation:respira 8s ease-in-out infinite;
+    will-change:transform;
+  }
+  @keyframes respira{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+  .infinito{
+    font-size:clamp(22px,5vmin,52px);
+    color:rgb(var(--rgbLuz));opacity:.9;line-height:.7;
+    text-shadow:0 0 18px rgb(var(--rgbMeio)),0 0 40px rgb(var(--rgbForte));
+    animation:respira 8s ease-in-out infinite;
+  }
+  .hz{
+    margin-top:.6em;
+    font-family:var(--display);
+    font-size:clamp(11px,1.9vmin,17px);
+    letter-spacing:.9em;text-indent:.9em;
+    color:rgb(var(--rgbLuz));opacity:.9;
+    text-shadow:0 0 14px rgb(var(--rgbMeio));
+    text-transform:uppercase;
+  }
+  .respiracao{
+    margin-top:1.1em;height:1.4em;
+    font-family:var(--display);
+    font-size:clamp(10px,1.6vmin,14px);
+    letter-spacing:.55em;text-indent:.55em;
+    color:rgba(var(--rgbLuz),.85);text-transform:uppercase;
+    text-shadow:0 0 12px rgba(var(--rgbMeio),.7);
+  }
+
+  /* ---------- AFIRMAÇÕES ---------- */
+  .afirma{
+    position:fixed;left:50%;bottom:12vh;
+    transform:translateX(-50%);
+    width:min(92vw,960px);text-align:center;z-index:6;
+    pointer-events:none;
+  }
+  .afirma p{
+    font-family:var(--serifa);
+    font-size:clamp(22px,4vmin,42px);
+    font-style:italic;font-weight:600;
+    color:#fffdf5;
+    text-shadow:0 0 16px rgba(var(--rgbMeio),.9),0 0 50px rgba(var(--rgbForte),.6);
+    opacity:0;transition:opacity 2s ease;
+  }
+  .afirma p.viva{opacity:1}
+  .afirma small{
+    display:block;margin-top:.9em;
+    font-family:var(--display);
+    font-size:clamp(9px,1.4vmin,12px);
+    letter-spacing:.5em;text-indent:.5em;
+    color:rgba(var(--rgbLuz),.65);text-transform:uppercase;
+  }
+
+  /* ---------- ENERGIA ---------- */
+  .energia{position:fixed;top:24px;right:28px;z-index:10;text-align:right;transition:opacity 1s ease}
+  .energia.some{opacity:0}
+  .energia .num{
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(18px,2.8vmin,30px);
+    color:rgb(var(--rgbLuz));
+    text-shadow:0 0 14px rgb(var(--rgbMeio)),0 0 40px rgb(var(--rgbForte));
+  }
+  .energia .rot{
+    font-family:var(--display);
+    font-size:clamp(8px,1.2vmin,11px);
+    letter-spacing:.4em;color:rgba(var(--rgbLuz),.6);
+    text-transform:uppercase;
+  }
+  .energia.salta .num{animation:salta .5s ease}
+  @keyframes salta{50%{transform:scale(1.25)}}
+
+  .mais888{
+    position:fixed;z-index:9;pointer-events:none;
+    font-family:var(--display);font-weight:700;
+    color:rgb(var(--rgbLuz));
+    text-shadow:0 0 14px rgb(var(--rgbMeio)),0 0 40px rgb(var(--rgbForte));
+    animation:sobe888 2.2s ease-out forwards;
+    white-space:nowrap;
+  }
+  @keyframes sobe888{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}
+    15%{opacity:1;transform:translate(-50%,-70%) scale(1.15)}
+    100%{opacity:0;transform:translate(-50%,-320%) scale(1)}
+  }
+
+  /* ---------- SELETOR DE TEMAS ---------- */
+  .temas{
+    position:fixed;left:20px;top:50%;transform:translateY(-50%);
+    display:flex;flex-direction:column;gap:16px;z-index:10;
+    transition:opacity 1s ease;
+  }
+  .temas.some{opacity:0;pointer-events:none}
+  .tbtn{
+    position:relative;
+    width:46px;height:46px;border-radius:50%;cursor:pointer;
+    border:2px solid rgba(255,255,255,.35);
+    font-family:var(--display);font-size:10px;font-weight:700;
+    color:rgba(255,255,255,.92);
+    text-shadow:0 1px 3px rgba(0,0,0,.55);
+    transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .tbtn:hover,.tbtn:focus-visible{transform:scale(1.15);outline:none}
+  .tbtn.ativo{
+    border-color:#fffdf5;
+    transform:scale(1.18);
+    box-shadow:0 0 0 3px rgba(255,255,255,.25), 0 0 26px currentColor;
+  }
+  .t-ouro     {background:radial-gradient(circle at 32% 30%, #fff0b8, #ffb300 55%, #b8720a);box-shadow:0 0 18px rgba(255,179,0,.8)}
+  .t-esmeralda{background:radial-gradient(circle at 32% 30%, #c9ffe2, #14b566 55%, #086b3b);box-shadow:0 0 18px rgba(20,181,102,.8)}
+  .t-violeta  {background:radial-gradient(circle at 32% 30%, #e6ccff, #7b2ff7 55%, #43108f);box-shadow:0 0 18px rgba(123,47,247,.8)}
+  .t-rosa     {background:radial-gradient(circle at 32% 30%, #ffd6e7, #ff3d8e 55%, #a3134f);box-shadow:0 0 18px rgba(255,61,142,.8)}
+  .tbtn small{
+    position:absolute;left:120%;top:50%;transform:translateY(-50%);
+    font-size:9px;letter-spacing:.28em;text-transform:uppercase;
+    color:rgba(255,255,255,.75);white-space:nowrap;
+    opacity:0;transition:opacity .3s ease;pointer-events:none;
+    text-shadow:0 0 8px rgba(0,0,0,.8);
+  }
+  .tbtn:hover small,.tbtn.ativo small{opacity:1}
+
+  /* ---------- CONTROLES (sem backdrop-filter: caro) ---------- */
+  .controles{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    z-index:10;transition:opacity 1s ease;
+  }
+  .controles.some{opacity:0;pointer-events:none}
+  .controles button{
+    font-family:var(--display);
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    padding:12px 24px;border-radius:999px;cursor:pointer;
+    color:rgb(var(--rgbLuz));
+    background:rgba(16,10,32,.82);
+    border:1px solid rgba(var(--rgbMeio),.6);
+    box-shadow:0 0 18px rgba(var(--rgbMeio),.35);
+    transition:background .3s ease, box-shadow .3s ease, transform .3s ease;
+  }
+  .controles button:hover,.controles button:focus-visible{
+    background:rgba(var(--rgbForte),.3);
+    box-shadow:0 0 34px rgba(var(--rgbMeio),.8);
+    outline:none;transform:translateY(-2px);
+  }
+  .controles button.ativo{
+    background:linear-gradient(180deg,rgba(var(--rgbMeio),.4),rgba(var(--rgbForte),.35));
+    color:#fffef0;
+  }
+  .dica{
+    position:fixed;top:26px;left:50%;transform:translateX(-50%);
+    font-family:var(--display);
+    font-size:clamp(9px,1.4vmin,12px);
+    letter-spacing:.45em;text-indent:.45em;text-transform:uppercase;
+    color:rgba(var(--rgbLuz),.55);z-index:10;
+    text-shadow:0 0 10px rgba(var(--rgbMeio),.5);
+    transition:opacity 1s ease;pointer-events:none;
+  }
+  .dica.some{opacity:0}
+
+  @media (prefers-reduced-motion:reduce){
+    .raios,.raios2,.anel,.oito,.halo,.orbita,.infinito{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="ceu"></div>
+
+<div class="camada" id="camadaFundo">
+  <div class="raios"></div>
+  <div class="raios2"></div>
+  <div class="halo"></div>
+</div>
+
+<canvas id="tras"></canvas>
+
+<div class="palco-mandala" id="palcoMandala">
+  <div class="mandala">
+    <div class="anel a3"></div>
+    <div class="anel a2"></div>
+    <div class="anel a1"></div>
+    <div class="orbita" id="orbita"></div>
+    <div class="oito" id="oito">888</div>
+    <div class="infinito">∞ ∞ ∞</div>
+    <div class="hz" id="hz">hertz · abundância infinita</div>
+    <div class="respiracao" id="respiracao">inspire</div>
+  </div>
+</div>
+
+<canvas id="frente"></canvas>
+<div class="vinheta"></div>
+<div class="flash" id="flash"></div>
+<div class="bencao" id="bencao">✦ chuva de bênçãos ✦</div>
+
+<div class="afirma">
+  <p id="frase" class="viva"></p>
+  <small>respire · receba · agradeça</small>
+</div>
+
+<div class="energia" id="energia">
+  <div class="num" id="energiaNum">888</div>
+  <div class="rot">energia acumulada</div>
+</div>
+
+<div class="dica" id="dica">toque na tela para atrair · escolha sua frequência à esquerda</div>
+
+<div class="temas" id="temas">
+  <button class="tbtn t-ouro ativo" data-tema="ouro">888<small>abundância</small></button>
+  <button class="tbtn t-esmeralda" data-tema="esmeralda">528<small>saúde</small></button>
+  <button class="tbtn t-violeta" data-tema="violeta">963<small>espírito</small></button>
+  <button class="tbtn t-rosa" data-tema="rosa">639<small>amor</small></button>
+</div>
+
+<div class="controles" id="controles">
+  <button id="btnSom">🔊 Som</button>
+  <button id="btnVoz">🗣 Voz</button>
+  <button id="btnTela">⛶ Tela cheia</button>
+</div>
+
+<script>
+/* =============================================================
+   TEMAS
+   ============================================================= */
+const TEMAS = {
+  ouro: {
+    num:'888', freq:888,
+    hz:'hertz · abundância infinita',
+    bencao:'✦ chuva de bênçãos ✦',
+    css:{
+      rgbLuz:'255,243,196', rgbMeio:'255,215,94', rgbForte:'255,179,0',
+      rgbAuroraA:'123,47,247', rgbAuroraB:'255,179,0',
+      g1:'#ffb300', g2:'#ffe9a3', g3:'#fffef0', g4:'#ff8f00',
+      noite:'#0a0518', nucleo:'#1c0f38'
+    },
+    canvas:{luz:'#fff3c4', meio:'#ffd75e', rgbLuz:'255,243,196', rgbMeio:'255,215,94'},
+    gema:['#ffffff','#bdf3ff','#7ad9ff','#3aa9e0'],
+    orbita:['✦','$','✦','₿','✦','€','✦','∞'],
+    itens:['moeda$','moeda$','moeda₿','moeda₿','moeda€','trevo','trevo','num','diamante','barra','ferradura','nota','nota','sol'],
+    explosao:['moeda$','moeda₿','trevo','faisca','faisca','diamante'],
+    frases:[
+      "Eu sou um ímã de abundância. Tudo o que toco prospera.",
+      "A riqueza flui para mim de forma fácil, constante e infinita.",
+      "A sorte me acompanha em cada passo, em cada escolha.",
+      "Eu mereço prosperar. Eu permito prosperar. Eu prospero agora.",
+      "O dinheiro chega a mim por caminhos esperados e inesperados.",
+      "Minha mente é fértil: cada pensamento planta ouro.",
+      "Eu vibro em oitocentos e oitenta e oito: abundância e infinito.",
+      "Portas de oportunidade se abrem para mim agora mesmo.",
+      "Gratidão multiplica tudo o que eu tenho e tudo o que eu sou.",
+      "Eu recebo com alegria toda a fartura que a vida me oferece.",
+      "Onde eu piso, a prosperidade floresce.",
+      "Hoje é um dia de sorte extraordinária para mim.",
+      "O universo conspira generosamente a meu favor."
+    ]
+  },
+  esmeralda: {
+    num:'528', freq:528,
+    hz:'hertz · cura e regeneração',
+    bencao:'✦ onda de cura ✦',
+    css:{
+      rgbLuz:'216,255,233', rgbMeio:'87,230,155', rgbForte:'20,181,102',
+      rgbAuroraA:'0,150,140', rgbAuroraB:'20,181,102',
+      g1:'#14b566', g2:'#a5ffd0', g3:'#f0fff8', g4:'#0a8a4c',
+      noite:'#04140c', nucleo:'#0b2e1d'
+    },
+    canvas:{luz:'#d8ffe9', meio:'#57e69b', rgbLuz:'216,255,233', rgbMeio:'87,230,155'},
+    gema:['#ffffff','#c9ffe2','#6ff0ae','#1fae6a'],
+    orbita:['✦','☘','✦','❋','✦','☀','✦','∞'],
+    itens:['trevo','trevo','trevo','folha','folha','folha','sol','sol','coracao','num','diamante','folha'],
+    explosao:['trevo','folha','faisca','faisca','sol','diamante'],
+    frases:[
+      "Cada célula do meu corpo se renova em perfeita saúde.",
+      "Energia vital percorre meu corpo da cabeça aos pés.",
+      "Meu corpo sabe se curar — e se cura agora.",
+      "Eu respiro saúde. Eu irradio vitalidade.",
+      "Meu sono é profundo, minha mente é serena, meu corpo é forte.",
+      "A cura flui em mim como um rio verde e calmo.",
+      "Eu agradeço ao meu corpo por tudo o que ele faz por mim.",
+      "Minha imunidade é forte. Minha energia é abundante.",
+      "A cada respiração, eu me regenero.",
+      "Saúde perfeita é o meu estado natural.",
+      "Eu escolho pensamentos e hábitos que me curam.",
+      "Meu coração bate em paz. Minha mente descansa em paz."
+    ]
+  },
+  violeta: {
+    num:'963', freq:963,
+    hz:'hertz · conexão divina',
+    bencao:'✦ luz divina ✦',
+    css:{
+      rgbLuz:'239,224,255', rgbMeio:'181,123,255', rgbForte:'123,47,247',
+      rgbAuroraA:'255,64,180', rgbAuroraB:'123,47,247',
+      g1:'#7b2ff7', g2:'#d9b8ff', g3:'#faf5ff', g4:'#4a12a8',
+      noite:'#070312', nucleo:'#1a0b38'
+    },
+    canvas:{luz:'#efe0ff', meio:'#b57bff', rgbLuz:'239,224,255', rgbMeio:'181,123,255'},
+    gema:['#ffffff','#e6ccff','#b57bff','#7b2ff7'],
+    orbita:['✦','☾','✦','✧','✦','☉','✦','∞'],
+    itens:['lua','lua','estrelaG','estrelaG','estrelaG','diamante','diamante','num','infinito','infinito','lua','estrelaG'],
+    explosao:['faisca','faisca','lua','diamante','infinito','faisca'],
+    frases:[
+      "Eu sou luz. Eu venho da luz. Eu retorno à luz.",
+      "Minha intuição me guia com clareza e precisão.",
+      "Eu estou conectado à sabedoria infinita do universo.",
+      "A paz profunda habita em mim agora.",
+      "Eu confio no fluxo perfeito da vida.",
+      "Meu espírito é vasto, livre e eterno.",
+      "Eu escuto o silêncio — e o silêncio me responde.",
+      "Tudo o que preciso saber se revela no momento certo.",
+      "Eu sou um com tudo o que existe.",
+      "Minha alma brilha além de qualquer sombra.",
+      "Gratidão abre os portais do meu espírito.",
+      "Eu medito, eu me elevo, eu transcendo."
+    ]
+  },
+  rosa: {
+    num:'639', freq:639,
+    hz:'hertz · amor e harmonia',
+    bencao:'✦ chuva de amor ✦',
+    css:{
+      rgbLuz:'255,227,239', rgbMeio:'255,143,192', rgbForte:'255,61,142',
+      rgbAuroraA:'255,120,60', rgbAuroraB:'255,61,142',
+      g1:'#ff3d8e', g2:'#ffc1dc', g3:'#fff5fa', g4:'#c2185b',
+      noite:'#140409', nucleo:'#380b1e'
+    },
+    canvas:{luz:'#ffe3ef', meio:'#ff8fc0', rgbLuz:'255,227,239', rgbMeio:'255,143,192'},
+    gema:['#ffffff','#ffd6e7','#ff9cc7','#ff5fa2'],
+    orbita:['✦','♥','✦','❀','✦','♥','✦','∞'],
+    itens:['coracao','coracao','coracao','coracao','flor','flor','flor','num','diamante','estrelaG','coracao','flor'],
+    explosao:['coracao','coracao','flor','faisca','faisca','diamante'],
+    frases:[
+      "Eu sou amor. Eu atraio amor. Eu irradio amor.",
+      "Meu coração está aberto para dar e receber.",
+      "Relações harmoniosas florescem ao meu redor.",
+      "Eu me amo profundamente, exatamente como sou.",
+      "O amor me encontra em todos os lugares.",
+      "Eu perdoo, eu liberto, eu sigo leve.",
+      "Minha presença acolhe e cura quem está perto.",
+      "Eu mereço um amor gentil, leal e verdadeiro.",
+      "Cada batida do meu coração emite gratidão.",
+      "A harmonia governa minha casa e minhas relações.",
+      "Eu sou digno de carinho, cuidado e ternura.",
+      "O amor que dou retorna multiplicado por mil."
+    ]
+  }
+};
+let TEMA = TEMAS.ouro;
+
+const $ = id => document.getElementById(id);
+const elFrase = $('frase'), elResp = $('respiracao'), elOito = $('oito'),
+      elHz = $('hz'), elBencao = $('bencao'), elOrbita = $('orbita'),
+      elFlash = $('flash'), elEnergia = $('energia'), elEnergiaNum = $('energiaNum');
+
+/* =====================  VOZ  ===================== */
+let vozLigada = false, vozPT = null, fi = 0;
+function achaVoz(){
+  const vozes = speechSynthesis.getVoices();
+  vozPT = vozes.find(v => v.lang === 'pt-BR') || vozes.find(v => v.lang.startsWith('pt')) || null;
+}
+if ('speechSynthesis' in window){ achaVoz(); speechSynthesis.onvoiceschanged = achaVoz; }
+function fala(texto){
+  if (!vozLigada || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(texto);
+  if (vozPT) u.voice = vozPT;
+  u.lang = 'pt-BR'; u.rate = .82; u.pitch = 1.02; u.volume = .95;
+  speechSynthesis.speak(u);
+}
+
+/* =====================  AFIRMAÇÕES  ===================== */
+elFrase.textContent = TEMA.frases[0];
+setInterval(() => {
+  elFrase.classList.remove('viva');
+  setTimeout(() => {
+    fi = (fi + 1) % TEMA.frases.length;
+    elFrase.textContent = TEMA.frases[fi];
+    elFrase.classList.add('viva');
+    fala(TEMA.frases[fi]);
+  }, 2000);
+}, 9000);
+
+setInterval(() => { elResp.textContent = 'inspire · · ·'; }, 8000);
+setTimeout(() => setInterval(() => { elResp.textContent = '· · · expire'; }, 8000), 4000);
+
+/* =====================  ENERGIA  ===================== */
+let energia = 888;
+function somaEnergia(qtd){
+  energia += qtd;
+  elEnergiaNum.textContent = energia.toLocaleString('pt-BR');
+  elEnergia.classList.remove('salta');
+  void elEnergia.offsetWidth;
+  elEnergia.classList.add('salta');
+}
+setInterval(() => somaEnergia(8), 8000);
+
+/* =====================  CANVAS  ===================== */
+const cvT = $('tras'), cvF = $('frente');
+const ctT = cvT.getContext('2d'), ctF = cvF.getContext('2d');
+let W, H;
+let DPR_MAX = 1.5;                       // teto de resolução (desempenho)
+const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function dimensiona(){
+  const DPR = Math.min(devicePixelRatio || 1, DPR_MAX);
+  W = innerWidth; H = innerHeight;
+  [cvT, cvF].forEach(c => {
+    c.width = W * DPR; c.height = H * DPR;
+    c.style.width = W + 'px'; c.style.height = H + 'px';
+    c.getContext('2d').setTransform(DPR, 0, 0, DPR, 0, 0);
+  });
+}
+addEventListener('resize', dimensiona);
+dimensiona();
+
+const R = (a, b) => a + Math.random() * (b - a);
+const escolhe = arr => arr[Math.floor(Math.random() * arr.length)];
+
+/* =============================================================
+   SPRITES PRÉ-RENDERIZADOS
+   Cada símbolo é desenhado UMA vez (com o brilho já embutido)
+   e depois apenas carimbado com drawImage — dezenas de vezes
+   mais rápido que gradientes + shadowBlur por frame.
+   ============================================================= */
+const SPRITES = {};
+const REF = 28;            // raio de referência dos sprites
+const PAD = 34;            // espaço para o glow embutido
+const LADO = REF * 4 + PAD * 2;
+
+function fazSprite(nome, sombra, desenhaFn){
+  const c = document.createElement('canvas');
+  c.width = c.height = LADO;
+  const ct = c.getContext('2d');
+  ct.translate(LADO / 2, LADO / 2);
+  ct.shadowColor = sombra;
+  ct.shadowBlur = 20;
+  desenhaFn(ct, REF);
+  SPRITES[nome] = c;
+}
+
+/* ---- desenhos vetoriais (executados só na criação do sprite) ---- */
+function vMoeda(simbolo){ return (ct, r) => {
+  const g = ct.createRadialGradient(-r*.3, -r*.3, r*.1, 0, 0, r);
+  g.addColorStop(0, '#fff6cf'); g.addColorStop(.45, '#ffd75e');
+  g.addColorStop(.8, '#e69500'); g.addColorStop(1, '#a35e00');
+  ct.fillStyle = g;
+  ct.beginPath(); ct.arc(0, 0, r, 0, 7); ct.fill();
+  ct.shadowBlur = 0;
+  ct.lineWidth = r * .14;
+  ct.strokeStyle = 'rgba(255,250,220,.9)';
+  ct.beginPath(); ct.arc(0, 0, r * .78, 0, 7); ct.stroke();
+  ct.fillStyle = '#8a5200';
+  ct.font = `bold ${r * 1.15}px Georgia`;
+  ct.textAlign = 'center'; ct.textBaseline = 'middle';
+  ct.fillText(simbolo, 0, r * .06);
+};}
+function vTrevo(ct, r){
+  const g = ct.createRadialGradient(0, 0, 0, 0, 0, r * 1.4);
+  g.addColorStop(0, '#a8ffcf'); g.addColorStop(.5, '#3ddc84'); g.addColorStop(1, '#0f7a3d');
+  ct.fillStyle = g;
+  for (let i = 0; i < 4; i++){
+    ct.save(); ct.rotate(i * Math.PI / 2);
+    ct.beginPath();
+    ct.moveTo(0, 0);
+    ct.bezierCurveTo(-r*.9, -r*.5, -r*.75, -r*1.55, 0, -r*1.15);
+    ct.bezierCurveTo(r*.75, -r*1.55, r*.9, -r*.5, 0, 0);
+    ct.fill(); ct.restore();
+  }
+  ct.shadowBlur = 0;
+  ct.strokeStyle = '#0f7a3d'; ct.lineWidth = r * .12;
+  ct.beginPath(); ct.moveTo(0, r*.2); ct.quadraticCurveTo(r*.35, r*1.1, r*.15, r*1.7); ct.stroke();
+}
+function vDiamante(ct, r){
+  const [c0, c1, c2, c3] = TEMA.gema;
+  const g = ct.createLinearGradient(-r, -r, r, r);
+  g.addColorStop(0, c0); g.addColorStop(.4, c1);
+  g.addColorStop(.7, c2); g.addColorStop(1, c3);
+  ct.fillStyle = g;
+  ct.beginPath();
+  ct.moveTo(-r, -r*.35); ct.lineTo(-r*.5, -r*.9); ct.lineTo(r*.5, -r*.9);
+  ct.lineTo(r, -r*.35); ct.lineTo(0, r);
+  ct.closePath(); ct.fill();
+  ct.shadowBlur = 0;
+  ct.strokeStyle = 'rgba(255,255,255,.85)'; ct.lineWidth = r*.08;
+  ct.beginPath();
+  ct.moveTo(-r, -r*.35); ct.lineTo(r, -r*.35);
+  ct.moveTo(-r*.5, -r*.9); ct.lineTo(-r*.25, -r*.35); ct.lineTo(0, r);
+  ct.moveTo(r*.5, -r*.9); ct.lineTo(r*.25, -r*.35); ct.lineTo(0, r);
+  ct.stroke();
+}
+function vBarra(ct, r){
+  const w = r * 2.1, h = r * 1.1, ch = w * .16;
+  const g = ct.createLinearGradient(0, -h/2, 0, h/2);
+  g.addColorStop(0, '#fff0b8'); g.addColorStop(.5, '#ffc233'); g.addColorStop(1, '#b8720a');
+  ct.fillStyle = g;
+  ct.beginPath();
+  ct.moveTo(-w/2 + ch, -h/2); ct.lineTo(w/2 - ch, -h/2);
+  ct.lineTo(w/2, h/2); ct.lineTo(-w/2, h/2);
+  ct.closePath(); ct.fill();
+  ct.shadowBlur = 0;
+  ct.strokeStyle = 'rgba(120,70,0,.6)'; ct.lineWidth = r*.08; ct.stroke();
+  ct.fillStyle = '#8a5200';
+  ct.font = `bold ${h*.5}px Trebuchet MS`;
+  ct.textAlign = 'center'; ct.textBaseline = 'middle';
+  ct.fillText('999.9', 0, h*.08);
+}
+function vFerradura(ct, r){
+  ct.lineCap = 'round';
+  const g = ct.createLinearGradient(-r, 0, r, 0);
+  g.addColorStop(0, '#ffe9a3'); g.addColorStop(.5, '#ffc233'); g.addColorStop(1, '#c07f10');
+  ct.strokeStyle = g; ct.lineWidth = r * .42;
+  ct.beginPath();
+  ct.arc(0, 0, r * .8, Math.PI * .82, Math.PI * .18, false);
+  ct.stroke();
+  ct.shadowBlur = 0;
+  ct.fillStyle = '#8a5200';
+  for (const lado of [-1, 1]){
+    const a = lado === -1 ? Math.PI * .82 : Math.PI * .18;
+    ct.beginPath();
+    ct.arc(Math.cos(a) * r * .8, Math.sin(a) * r * .8, r * .12, 0, 7);
+    ct.fill();
+  }
+}
+function vNota(ct, r){
+  const w = r * 2.6, h = r * 1.3;
+  const g = ct.createLinearGradient(0, -h/2, 0, h/2);
+  g.addColorStop(0, '#b8f2ce'); g.addColorStop(.5, '#57c785'); g.addColorStop(1, '#1e8a4c');
+  ct.fillStyle = g;
+  ct.fillRect(-w/2, -h/2, w, h);
+  ct.shadowBlur = 0;
+  ct.strokeStyle = 'rgba(230,255,240,.85)'; ct.lineWidth = r*.09;
+  ct.strokeRect(-w/2 + r*.16, -h/2 + r*.16, w - r*.32, h - r*.32);
+  ct.fillStyle = '#0d5c30';
+  ct.font = `bold ${h*.62}px Georgia`;
+  ct.textAlign = 'center'; ct.textBaseline = 'middle';
+  ct.fillText('$', 0, h*.05);
+}
+function vFaisca(cor){ return (ct, r) => {
+  ct.fillStyle = cor || '#fff9dd';
+  ct.beginPath();
+  for (let i = 0; i < 8; i++){
+    const ang = i * Math.PI / 4;
+    const rr = i % 2 ? r * .35 : r;
+    ct.lineTo(Math.cos(ang) * rr, Math.sin(ang) * rr);
+  }
+  ct.closePath(); ct.fill();
+};}
+function vCoracao(ct, r){
+  const g = ct.createRadialGradient(-r*.2, -r*.3, r*.1, 0, 0, r*1.3);
+  g.addColorStop(0, '#ffe3ef'); g.addColorStop(.5, '#ff5fa2'); g.addColorStop(1, '#c2185b');
+  ct.fillStyle = g;
+  ct.beginPath();
+  ct.moveTo(0, r*.6);
+  ct.bezierCurveTo(-r*1.2, -r*.1, -r*.6, -r*1.1, 0, -r*.4);
+  ct.bezierCurveTo(r*.6, -r*1.1, r*1.2, -r*.1, 0, r*.6);
+  ct.fill();
+}
+function vFolha(ct, r){
+  const g = ct.createLinearGradient(0, -r, 0, r);
+  g.addColorStop(0, '#c9ffb8'); g.addColorStop(.5, '#5fce5a'); g.addColorStop(1, '#1e7a2e');
+  ct.fillStyle = g;
+  ct.beginPath();
+  ct.moveTo(0, r);
+  ct.quadraticCurveTo(r*.85, r*.3, 0, -r);
+  ct.quadraticCurveTo(-r*.85, r*.3, 0, r);
+  ct.fill();
+  ct.shadowBlur = 0;
+  ct.strokeStyle = 'rgba(20,90,35,.7)'; ct.lineWidth = r*.08;
+  ct.beginPath(); ct.moveTo(0, r*.85); ct.lineTo(0, -r*.8); ct.stroke();
+}
+function vSol(ct, r){
+  ct.fillStyle = '#ffdf6b';
+  for (let i = 0; i < 8; i++){
+    ct.save(); ct.rotate(i * Math.PI / 4);
+    ct.beginPath();
+    ct.moveTo(-r*.16, -r*.75); ct.lineTo(r*.16, -r*.75); ct.lineTo(0, -r*1.45);
+    ct.fill(); ct.restore();
+  }
+  const g = ct.createRadialGradient(-r*.2, -r*.2, r*.05, 0, 0, r*.75);
+  g.addColorStop(0, '#fff7d0'); g.addColorStop(.7, '#ffce3a'); g.addColorStop(1, '#e69500');
+  ct.fillStyle = g;
+  ct.beginPath(); ct.arc(0, 0, r*.72, 0, 7); ct.fill();
+}
+function vLua(ct, r){
+  const g = ct.createLinearGradient(-r, 0, r*.4, 0);
+  g.addColorStop(0, '#ffffff'); g.addColorStop(.6, '#e6dcff'); g.addColorStop(1, '#b8a5e6');
+  ct.fillStyle = g;
+  ct.beginPath();
+  ct.arc(0, 0, r, -Math.PI/2, Math.PI/2, false);
+  ct.bezierCurveTo(r*.42, r*.55, r*.42, -r*.55, 0, -r);
+  ct.fill();
+}
+function vFlor(ct, r){
+  const g = ct.createRadialGradient(0, -r*.7, r*.05, 0, -r*.6, r*.8);
+  g.addColorStop(0, '#fff5fa'); g.addColorStop(.6, '#ff9cc7'); g.addColorStop(1, '#ff5fa2');
+  ct.fillStyle = g;
+  for (let i = 0; i < 5; i++){
+    ct.save(); ct.rotate(i * Math.PI * 2 / 5);
+    ct.beginPath();
+    ct.moveTo(0, 0);
+    ct.bezierCurveTo(-r*.55, -r*.35, -r*.45, -r*1.15, 0, -r*1.05);
+    ct.bezierCurveTo(r*.45, -r*1.15, r*.55, -r*.35, 0, 0);
+    ct.fill(); ct.restore();
+  }
+  ct.shadowBlur = 0;
+  ct.fillStyle = '#ffdf6b';
+  ct.beginPath(); ct.arc(0, 0, r*.28, 0, 7); ct.fill();
+}
+function vTexto(txt, tam){ return (ct, r) => {
+  ct.fillStyle = TEMA.canvas.luz;
+  ct.font = `bold ${r * tam}px Georgia`;
+  ct.textAlign = 'center'; ct.textBaseline = 'middle';
+  ct.fillText(txt, 0, 0);
+};}
+function vOrbe(ct, r){
+  const g = ct.createRadialGradient(0, 0, 0, 0, 0, r * 1.8);
+  g.addColorStop(0, `rgba(${TEMA.canvas.rgbLuz},1)`);
+  g.addColorStop(.4, `rgba(${TEMA.canvas.rgbMeio},.45)`);
+  g.addColorStop(1, `rgba(${TEMA.canvas.rgbMeio},0)`);
+  ct.shadowBlur = 0;
+  ct.fillStyle = g;
+  ct.beginPath(); ct.arc(0, 0, r * 1.8, 0, 7); ct.fill();
+}
+
+function montaSprites(){
+  const M = TEMA.canvas.meio;
+  fazSprite('moeda$', M, vMoeda('$'));
+  fazSprite('moeda₿', M, vMoeda('₿'));
+  fazSprite('moeda€', M, vMoeda('€'));
+  fazSprite('trevo', '#3ddc84', vTrevo);
+  fazSprite('diamante', TEMA.gema[2], vDiamante);
+  fazSprite('barra', M, vBarra);
+  fazSprite('ferradura', M, vFerradura);
+  fazSprite('nota', '#57c785', vNota);
+  fazSprite('coracao', '#ff8fc0', vCoracao);
+  fazSprite('folha', '#3ddc84', vFolha);
+  fazSprite('sol', M, vSol);
+  fazSprite('lua', '#d5c8ff', vLua);
+  fazSprite('flor', '#ff8fc0', vFlor);
+  fazSprite('faisca', M, vFaisca());
+  fazSprite('estrelaG', M, vFaisca(TEMA.canvas.luz));
+  fazSprite('num', M, vTexto(TEMA.num, 1.6));
+  fazSprite('infinito', M, vTexto('∞', 2));
+  fazSprite('orbe', 'transparent', vOrbe);
+}
+montaSprites();
+
+/* carimbo universal de sprite */
+function carimba(ct, nome, x, y, r, rot, sx, sy, alfa){
+  const sp = SPRITES[nome];
+  if (!sp) return;
+  const esc = r / REF;
+  ct.save();
+  ct.translate(x, y);
+  if (rot) ct.rotate(rot);
+  ct.scale(esc * (sx ?? 1), esc * (sy ?? 1));
+  if (alfa !== undefined) ct.globalAlpha = alfa;
+  ct.drawImage(sp, -LADO/2, -LADO/2);
+  ct.restore();
+}
+
+/* =====================  POPULAÇÕES  ===================== */
+let fator = reduz ? 0.3 : 1;             // reduzido pela qualidade adaptativa
+const caindo = [], subindo = [], brilhos = [], cadentes = [], poeira = [], explosao = [], bokeh = [];
+
+function novoCaindo(inicial, extra){
+  const tipo = escolhe(TEMA.itens);
+  return {
+    tipo,
+    x: R(0, W),
+    y: inicial ? R(-H, H) : R(-160, -40),
+    r: tipo === 'trevo' ? R(9, 20) : tipo === 'diamante' ? R(8, 15) : R(10, 24),
+    vy: extra ? R(3.5, 7) : R(.6, 2.3),
+    balanco: R(0, 6.28), vBalanco: R(.004, .012), amp: R(10, 48),
+    fase: R(0, 6.28), vFase: R(.01, .05),
+    rot: R(-.02, .02), ang: R(0, 6.28),
+    z: Math.random() < .5 ? 'tras' : 'frente',
+    alfa: R(.55, 1),
+    extra: !!extra
+  };
+}
+function povoar(){
+  caindo.length = subindo.length = brilhos.length = bokeh.length = 0;
+  for (let i = 0; i < 85 * fator; i++) caindo.push(novoCaindo(true));
+  for (let i = 0; i < 40 * fator; i++) subindo.push({
+    x: R(0, W), y: R(0, H), r: R(1.5, 6), vy: R(.15, .8),
+    alfa: R(.15, .55), fase: R(0, 6.28)
+  });
+  for (let i = 0; i < 40 * fator; i++) brilhos.push({
+    x: R(0, W), y: R(0, H), r: R(1.5, 5), fase: R(0, 6.28), v: R(.02, .06)
+  });
+  for (let i = 0; i < 6 * fator; i++) bokeh.push({
+    x: R(0, W), y: R(0, H), r: R(40, 120),
+    vx: R(-.12, .12), vy: R(-.18, -.04),
+    alfa: R(.04, .1), fase: R(0, 6.28)
+  });
+}
+povoar();
+
+function novaCadente(){
+  const daEsq = Math.random() < .5;
+  cadentes.push({
+    x: daEsq ? -60 : W + 60,
+    y: R(0, H * .4),
+    vx: (daEsq ? 1 : -1) * R(9, 16),
+    vy: R(2.5, 5),
+    trilha: []
+  });
+}
+
+/* explosão de manifestação */
+function explode(x, y){
+  const qtd = Math.round(22 * fator) + 4;
+  for (let i = 0; i < qtd; i++){
+    const ang = R(0, 6.28), forca = R(3, 11);
+    explosao.push({
+      tipo: escolhe(TEMA.explosao),
+      x, y,
+      vx: Math.cos(ang) * forca,
+      vy: Math.sin(ang) * forca - R(2, 5),
+      r: R(6, 15),
+      fase: R(0, 6.28), vFase: R(.05, .18),
+      ang: R(0, 6.28), rot: R(-.15, .15),
+      vida: 1
+    });
+  }
+  explosao.push({ tipo: 'onda', x, y, r: 6, vida: 1 });
+  const el = document.createElement('div');
+  el.className = 'mais888';
+  el.textContent = `+${TEMA.num} ✦`;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.fontSize = R(20, 34) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2300);
+  somaEnergia(parseInt(TEMA.num));
+  sino(TEMA.freq * 1.5);
+}
+addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  explode(e.clientX, e.clientY);
+});
+
+/* poeira do cursor (mais espaçada) */
+let ultimaPoeira = 0;
+addEventListener('pointermove', e => {
+  const agora = performance.now();
+  if (agora - ultimaPoeira < 40 || reduz) return;
+  ultimaPoeira = agora;
+  poeira.push({
+    x: e.clientX + R(-6, 6), y: e.clientY + R(-6, 6),
+    vx: R(-.4, .4), vy: R(-.9, -.2),
+    r: R(2, 4.5), vida: 1
+  });
+  if (poeira.length > 90) poeira.shift();
+});
+
+/* =====================  CHUVA DE BÊNÇÃOS  ===================== */
+function chuvaDeBencaos(){
+  elFlash.classList.remove('brilha'); void elFlash.offsetWidth;
+  elFlash.classList.add('brilha');
+  elBencao.classList.remove('viva'); void elBencao.offsetWidth;
+  elBencao.classList.add('viva');
+  const extras = Math.round(38 * fator) + 7;
+  for (let i = 0; i < extras; i++){
+    setTimeout(() => caindo.push(novoCaindo(false, true)), i * 45);
+  }
+  somaEnergia(parseInt(TEMA.num) * 10);
+  harpa();
+}
+setInterval(chuvaDeBencaos, 52000);
+setTimeout(chuvaDeBencaos, 14000);
+
+/* =====================  QUALIDADE ADAPTATIVA  ===================== */
+let medias = [], tPrev = performance.now(), ajustes = 0;
+function mideFPS(agora){
+  const dt = agora - tPrev; tPrev = agora;
+  if (dt < 250){                       // ignora pausas de aba
+    medias.push(dt);
+    if (medias.length >= 120){         // ~2s de amostra
+      const media = medias.reduce((a, b) => a + b) / medias.length;
+      medias = [];
+      if (media > 22 && ajustes < 3){  // abaixo de ~45fps → reduz carga
+        ajustes++;
+        fator *= .65;
+        if (ajustes >= 2 && DPR_MAX > 1){ DPR_MAX = 1; dimensiona(); }
+        povoar();
+      }
+    }
+  }
+}
+
+/* =====================  LAÇO PRINCIPAL  ===================== */
+function laco(agora){
+  mideFPS(agora);
+  ctT.clearRect(0, 0, W, H);
+  ctF.clearRect(0, 0, W, H);
+
+  /* bokeh de profundidade */
+  for (const b of bokeh){
+    b.x += b.vx; b.y += b.vy; b.fase += .008;
+    if (b.y < -b.r) { b.y = H + b.r; b.x = R(0, W); }
+    if (b.x < -b.r) b.x = W + b.r;
+    if (b.x > W + b.r) b.x = -b.r;
+    carimba(ctT, 'orbe', b.x, b.y, b.r * .6, 0, 1, 1,
+            b.alfa * (0.7 + 0.3 * Math.sin(b.fase)));
+  }
+
+  /* orbes subindo */
+  for (const o of subindo){
+    o.y -= o.vy; o.fase += .02;
+    if (o.y < -20){ o.y = H + 20; o.x = R(0, W); }
+    carimba(ctT, 'orbe', o.x, o.y, o.r * 2.2, 0, 1, 1,
+            o.alfa * (0.6 + 0.4 * Math.sin(o.fase)));
+  }
+
+  /* estrelas cintilando */
+  for (const b of brilhos){
+    b.fase += b.v;
+    carimba(ctT, 'faisca', b.x, b.y, b.r, 0, 1, 1,
+            (.5 + .5 * Math.sin(b.fase)) * .9);
+  }
+
+  /* estrelas cadentes */
+  if (!reduz && Math.random() < .006) novaCadente();
+  for (let i = cadentes.length - 1; i >= 0; i--){
+    const s = cadentes[i];
+    s.x += s.vx; s.y += s.vy;
+    s.trilha.push({ x: s.x, y: s.y });
+    if (s.trilha.length > 16) s.trilha.shift();
+    for (let j = 0; j < s.trilha.length; j++){
+      const p = s.trilha[j], f = j / s.trilha.length;
+      carimba(ctT, 'orbe', p.x, p.y, 2 + f * 5, 0, 1, 1, f * .8);
+    }
+    if (s.x < -120 || s.x > W + 120 || s.y > H + 60) cadentes.splice(i, 1);
+  }
+
+  /* chuva de símbolos */
+  for (let i = caindo.length - 1; i >= 0; i--){
+    const c = caindo[i];
+    c.y += c.vy; c.balanco += c.vBalanco; c.fase += c.vFase; c.ang += c.rot;
+    const x = c.x + Math.sin(c.balanco) * c.amp;
+    if (c.y > H + 90){
+      if (c.extra){ caindo.splice(i, 1); continue; }
+      Object.assign(c, novoCaindo(false));
+    }
+    desenhaCaindo(c.z === 'tras' ? ctT : ctF, c, x);
+  }
+
+  /* poeira do cursor */
+  for (let i = poeira.length - 1; i >= 0; i--){
+    const p = poeira[i];
+    p.x += p.vx; p.y += p.vy; p.vida -= .02;
+    if (p.vida <= 0){ poeira.splice(i, 1); continue; }
+    carimba(ctF, 'orbe', p.x, p.y, p.r * 1.6, 0, 1, 1, p.vida);
+  }
+
+  /* explosões */
+  for (let i = explosao.length - 1; i >= 0; i--){
+    const p = explosao[i];
+    if (p.tipo === 'onda'){
+      p.r += 7; p.vida -= .03;
+      if (p.vida <= 0){ explosao.splice(i, 1); continue; }
+      ctF.save();
+      ctF.globalAlpha = p.vida * .8;
+      ctF.strokeStyle = TEMA.canvas.luz; ctF.lineWidth = 3;
+      ctF.beginPath(); ctF.arc(p.x, p.y, p.r, 0, 7); ctF.stroke();
+      ctF.restore();
+      continue;
+    }
+    p.x += p.vx; p.y += p.vy;
+    p.vy += .18; p.vx *= .985;
+    p.fase += p.vFase; p.ang += p.rot;
+    p.vida -= .011;
+    if (p.vida <= 0){ explosao.splice(i, 1); continue; }
+    desenhaCaindo(ctF, p, p.x, Math.min(p.vida * 1.4, 1));
+  }
+
+  requestAnimationFrame(laco);
+}
+
+function desenhaCaindo(ct, c, x, alfaExtra){
+  const alfa = (alfaExtra !== undefined ? alfaExtra : c.alfa);
+  switch (c.tipo){
+    case 'moeda$': case 'moeda₿': case 'moeda€':
+      carimba(ct, c.tipo, x, c.y, c.r, 0,
+              Math.max(Math.abs(Math.cos(c.fase)), .12), 1, alfa);
+      break;
+    case 'nota':
+      carimba(ct, 'nota', x, c.y, c.r, Math.sin(c.fase) * .5,
+              1, Math.max(Math.abs(Math.sin(c.fase * .7)), .3), alfa);
+      break;
+    case 'trevo':     carimba(ct, 'trevo', x, c.y, c.r, c.ang, 1, 1, alfa); break;
+    case 'sol':       carimba(ct, 'sol', x, c.y, c.r * .8, c.fase * .3, 1, 1, alfa); break;
+    case 'barra':     carimba(ct, 'barra', x, c.y, c.r, Math.sin(c.balanco ?? c.fase) * .35, 1, 1, alfa); break;
+    case 'ferradura': carimba(ct, 'ferradura', x, c.y, c.r, Math.sin(c.balanco ?? c.fase) * .4, 1, 1, alfa); break;
+    case 'diamante':  carimba(ct, 'diamante', x, c.y, c.r, Math.sin(c.fase) * .25, 1, 1, alfa); break;
+    case 'coracao':   carimba(ct, 'coracao', x, c.y, c.r, Math.sin(c.fase) * .25, 1, 1, alfa); break;
+    case 'folha':     carimba(ct, 'folha', x, c.y, c.r, Math.sin(c.fase) * .5 + .5, 1, 1, alfa); break;
+    case 'lua':       carimba(ct, 'lua', x, c.y, c.r, Math.sin(c.fase) * .2 - .35, 1, 1, alfa); break;
+    case 'flor':      carimba(ct, 'flor', x, c.y, c.r, c.fase * .4, 1, 1, alfa); break;
+    case 'faisca':    carimba(ct, 'faisca', x, c.y, c.r * .8, 0, 1, 1, alfa); break;
+    case 'estrelaG':  carimba(ct, 'estrelaG', x, c.y, c.r, 0, 1, 1, alfa); break;
+    case 'infinito':  carimba(ct, 'infinito', x, c.y, c.r, Math.sin(c.fase) * .25, 1, 1, alfa); break;
+    case 'num':       carimba(ct, 'num', x, c.y, c.r, Math.sin(c.fase) * .2, 1, 1, alfa); break;
+  }
+}
+requestAnimationFrame(laco);
+
+/* =====================  PARALLAX (suavizado, sem transition CSS)  ===================== */
+const camadaFundo = $('camadaFundo');
+const palcoMandala = $('palcoMandala');
+let alvoX = 0, alvoY = 0, atualX = 0, atualY = 0;
+if (!reduz){
+  addEventListener('pointermove', e => {
+    alvoX = (e.clientX / W - .5);
+    alvoY = (e.clientY / H - .5);
+  });
+  addEventListener('deviceorientation', e => {
+    if (e.gamma == null) return;
+    alvoX = Math.max(-.5, Math.min(.5, e.gamma / 60));
+    alvoY = Math.max(-.5, Math.min(.5, (e.beta - 45) / 90));
+  });
+  (function suaviza(){
+    atualX += (alvoX - atualX) * .06;
+    atualY += (alvoY - atualY) * .06;
+    camadaFundo.style.transform  = `translate3d(${atualX * -26}px, ${atualY * -18}px, 0)`;
+    palcoMandala.style.transform = `translate3d(${atualX * 14}px, ${atualY * 10}px, 0)`;
+    requestAnimationFrame(suaviza);
+  })();
+}
+
+/* =====================  SOM  ===================== */
+let audio = null, tocando = false;
+const btnSom = $('btnSom');
+
+function ligaSom(){
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  const mestre = ac.createGain();
+  mestre.gain.value = 0;
+  mestre.connect(ac.destination);
+  const F = TEMA.freq;
+  const cria = (freq, ganho) => {
+    const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = freq;
+    const g = ac.createGain(); g.gain.value = ganho;
+    o.connect(g); g.connect(mestre); o.start();
+  };
+  cria(F, .05);
+  cria(F - 4, .04);
+  cria(F / 2, .022);
+  cria(F / 4, .028);
+  cria(F * 2, .008);
+  const lfo = ac.createOscillator(); lfo.frequency.value = .1;
+  const lfoG = ac.createGain(); lfoG.gain.value = .016;
+  lfo.connect(lfoG); lfoG.connect(mestre.gain); lfo.start();
+  mestre.gain.linearRampToValueAtTime(.09, ac.currentTime + 3);
+  return { ac, mestre };
+}
+function reiniciaSom(){
+  if (!audio) return;
+  const velho = audio;
+  velho.mestre.gain.linearRampToValueAtTime(0, velho.ac.currentTime + 1.2);
+  setTimeout(() => velho.ac.close(), 1400);
+  audio = tocando ? ligaSom() : null;
+}
+function sino(freq){
+  if (!tocando || !audio) return;
+  const { ac, mestre } = audio;
+  const t0 = ac.currentTime;
+  [1, 2.42, 3.76].forEach((mult, i) => {
+    const o = ac.createOscillator();
+    o.type = 'sine'; o.frequency.value = freq * mult;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(.05 / (i + 1), t0 + .015);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + 5 - i);
+    o.connect(g); g.connect(mestre);
+    o.start(t0); o.stop(t0 + 5.2);
+  });
+}
+setInterval(() => sino(TEMA.freq), 34000);
+function harpa(){
+  if (!tocando || !audio) return;
+  const { ac, mestre } = audio;
+  const notas = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.7, 1318.5, 1568, 1760];
+  notas.forEach((f, i) => {
+    const t0 = ac.currentTime + i * .09;
+    const o = ac.createOscillator();
+    o.type = 'triangle'; o.frequency.value = f;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(.035, t0 + .02);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + 2.2);
+    o.connect(g); g.connect(mestre);
+    o.start(t0); o.stop(t0 + 2.4);
+  });
+}
+btnSom.addEventListener('click', async e => {
+  e.stopPropagation();
+  if (!tocando){
+    tocando = true;
+    if (!audio) audio = ligaSom();
+    else {
+      await audio.ac.resume();
+      audio.mestre.gain.linearRampToValueAtTime(.09, audio.ac.currentTime + 2);
+    }
+    btnSom.textContent = '🔇 Silenciar';
+    btnSom.classList.add('ativo');
+    setTimeout(() => sino(TEMA.freq), 800);
+  } else {
+    audio.mestre.gain.linearRampToValueAtTime(0, audio.ac.currentTime + 1.5);
+    setTimeout(() => { if (!tocando && audio) audio.ac.suspend(); }, 1600);
+    tocando = false;
+    btnSom.textContent = '🔊 Som';
+    btnSom.classList.remove('ativo');
+  }
+});
+
+/* =====================  VOZ  ===================== */
+const btnVoz = $('btnVoz');
+btnVoz.addEventListener('click', e => {
+  e.stopPropagation();
+  vozLigada = !vozLigada;
+  btnVoz.classList.toggle('ativo', vozLigada);
+  btnVoz.textContent = vozLigada ? '🗣 Voz ativa' : '🗣 Voz';
+  if (vozLigada) fala(TEMA.frases[fi]);
+  else if ('speechSynthesis' in window) speechSynthesis.cancel();
+});
+
+/* =====================  TROCA DE TEMA  ===================== */
+function montaOrbita(){
+  elOrbita.innerHTML = TEMA.orbita
+    .map((s, i) => `<span style="--a:${i * 45}deg">${s}</span>`)
+    .join('');
+}
+montaOrbita();
+
+function trocaTema(chave){
+  TEMA = TEMAS[chave];
+  const raiz = document.documentElement.style;
+  const c = TEMA.css;
+  raiz.setProperty('--rgbLuz', c.rgbLuz);
+  raiz.setProperty('--rgbMeio', c.rgbMeio);
+  raiz.setProperty('--rgbForte', c.rgbForte);
+  raiz.setProperty('--rgbAuroraA', c.rgbAuroraA);
+  raiz.setProperty('--rgbAuroraB', c.rgbAuroraB);
+  raiz.setProperty('--g1', c.g1); raiz.setProperty('--g2', c.g2);
+  raiz.setProperty('--g3', c.g3); raiz.setProperty('--g4', c.g4);
+  raiz.setProperty('--noite', c.noite);
+  raiz.setProperty('--nucleo', c.nucleo);
+
+  elOito.textContent = TEMA.num;
+  elHz.textContent = TEMA.hz;
+  elBencao.textContent = TEMA.bencao;
+  montaOrbita();
+  montaSprites();                        // sprites nas cores do novo tema
+
+  for (const item of caindo){
+    const novo = novoCaindo(true);
+    novo.x = item.x; novo.y = item.y;
+    Object.assign(item, novo);
+  }
+
+  fi = 0;
+  elFrase.classList.remove('viva');
+  setTimeout(() => {
+    elFrase.textContent = TEMA.frases[0];
+    elFrase.classList.add('viva');
+    fala(TEMA.frases[0]);
+  }, 900);
+
+  reiniciaSom();
+
+  document.querySelectorAll('.tbtn').forEach(b =>
+    b.classList.toggle('ativo', b.dataset.tema === chave));
+
+  setTimeout(() => chuvaDeBencaos(), 1200);
+}
+document.querySelectorAll('.tbtn').forEach(b =>
+  b.addEventListener('click', e => {
+    e.stopPropagation();
+    if (!b.classList.contains('ativo')) trocaTema(b.dataset.tema);
+  }));
+
+/* =====================  TELA CHEIA + AUTO-OCULTAR  ===================== */
+$('btnTela').addEventListener('click', e => {
+  e.stopPropagation();
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+});
+
+const controles = $('controles'), dica = $('dica'), temasBox = $('temas');
+let esconde;
+function mexeu(){
+  controles.classList.remove('some');
+  dica.classList.remove('some');
+  temasBox.classList.remove('some');
+  elEnergia.classList.remove('some');
+  document.body.style.cursor = 'default';
+  clearTimeout(esconde);
+  esconde = setTimeout(() => {
+    controles.classList.add('some');
+    dica.classList.add('some');
+    temasBox.classList.add('some');
+    document.body.style.cursor = 'none';
+  }, 4500);
+}
+['mousemove','touchstart','keydown'].forEach(e => addEventListener(e, mexeu));
+mexeu();
+</script>
+</body>
+</html>

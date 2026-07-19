@@ -186,12 +186,13 @@ body {
   pointer-events: none; user-select: none;
 }
 
-/* reveal on enter */
-.content > * { opacity: 0; transform: translateY(34px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
-.panel.in .content > * { opacity: 1; transform: none; }
-.panel.in .content > *:nth-child(2) { transition-delay: .1s; }
-.panel.in .content > *:nth-child(3) { transition-delay: .2s; }
-.panel.in .content > *:nth-child(4) { transition-delay: .3s; }
+/* reveal on enter — keyframe animation (fires reliably on class add) */
+.content > * { opacity: 0; }
+.panel.in .content > * { animation: contentRise .8s cubic-bezier(.2,.7,.2,1) both; }
+.panel.in .content > *:nth-child(2) { animation-delay: .1s; }
+.panel.in .content > *:nth-child(3) { animation-delay: .2s; }
+.panel.in .content > *:nth-child(4) { animation-delay: .3s; }
+@keyframes contentRise { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: none; } }
 
 /* ─────────── INTRO ─────────── */
 .p-intro { justify-content: center; text-align: center; }
@@ -636,6 +637,65 @@ body {
 }
 .coffee-box h3 { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .coffee-cup .smoke { display: none; } }
+
+/* ─────────── PROGRESS BAR ─────────── */
+.progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 70;
+  pointer-events: none;
+}
+.progress i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, #f7931a, #22d3ee 25%, #34e0a1 45%, #ff007a 70%, #ffc94d);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--acc, #f7931a) 60%, transparent);
+  transition: width .12s linear;
+}
+
+/* ─────────── ABUNDÂNCIA 888 SCENE ─────────── */
+.ab-rays {
+  position: absolute; left: 68%; top: 50%; width: 180vmax; height: 180vmax;
+  transform: translate(-50%, -50%); mix-blend-mode: screen;
+  background: repeating-conic-gradient(from 0deg, rgba(255,201,77,0.10) 0deg 6deg, transparent 6deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 56%);
+          mask-image: radial-gradient(circle, #000 0%, transparent 56%);
+  animation: abSpin 80s linear infinite;
+}
+@keyframes abSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.ab-halo {
+  position: absolute; left: 68%; top: 50%; width: 74vmin; height: 74vmin;
+  transform: translate(-50%, -50%); mix-blend-mode: screen;
+  background: radial-gradient(circle, rgba(255,243,196,0.45) 0%, rgba(255,201,77,0.20) 30%, transparent 65%);
+  animation: abPulse 7s ease-in-out infinite;
+}
+@keyframes abPulse { 50% { transform: translate(-50%, -50%) scale(1.16); opacity: 0.85; } }
+.ab-eight {
+  position: absolute; left: 68%; top: 50%; transform: translate(-50%, -50%);
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(120px, 24vmin, 280px); line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px rgba(255,216,107,0.55);
+  text-shadow: 0 0 70px rgba(255,179,0,0.35);
+  animation: abFloat 9s ease-in-out infinite;
+  user-select: none;
+}
+@keyframes abFloat { 50% { transform: translate(-50%, -55%); } }
+.p-abund h2 .ghost { -webkit-text-stroke-color: rgba(255,201,77,0.7); }
+@media (max-width: 900px) { .ab-rays, .ab-halo, .ab-eight { left: 50%; opacity: 0.45; } }
+
+/* ─────────── CV VARIANT LINK ─────────── */
+.cv-alt {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 14px; padding: 16px 20px; border-radius: 16px;
+  text-decoration: none; color: var(--ink-soft);
+  border: 1px dashed var(--line); background: rgba(12, 11, 22, 0.45);
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: border-color .3s, background .3s, color .3s;
+}
+.cv-alt:hover { border-color: rgba(52,231,255,0.5); background: rgba(52,231,255,0.05); color: var(--ink); }
+.cv-alt .led { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #34e7ff; box-shadow: 0 0 10px #34e7ff; animation: cvBlink 2s infinite; }
+@keyframes cvBlink { 50% { opacity: 0.25; } }
+.cv-alt b { color: #34e7ff; font-weight: 600; }
+.cv-alt .arr { margin-left: auto; transition: transform .3s; }
+.cv-alt:hover .arr { transform: translateX(5px); }
 
 /* ─────────── RESPONSIVE / MOTION ─────────── */
 @media (max-width: 900px) {

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeepPools — Scanner de Liquidez DeFi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --abyss:#050914;
+  --deep:#0A1128;
+  --panel:rgba(16,26,54,.55);
+  --line:rgba(94,234,212,.14);
+  --aqua:#2DE1C2;
+  --violet:#8B7CFF;
+  --gold:#FFC876;
+  --coral:#FF6B8B;
+  --ink:#E8F1FF;
+  --muted:#8DA2C6;
+  --glow-aqua:0 0 24px rgba(45,225,194,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Space Grotesk',sans-serif;
+  background:var(--abyss);
+  color:var(--ink);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* ---------- fundo líquido ---------- */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:drift 22s ease-in-out infinite alternate}
+.blob.b1{width:55vw;height:55vw;background:radial-gradient(circle,#0E4C5C,transparent 65%);top:-15%;left:-10%}
+.blob.b2{width:45vw;height:45vw;background:radial-gradient(circle,#3B2A7A,transparent 65%);bottom:-20%;right:-8%;animation-delay:-8s}
+.blob.b3{width:35vw;height:35vw;background:radial-gradient(circle,#124C46,transparent 65%);top:35%;left:45%;animation-delay:-15s}
+@keyframes drift{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(6vw,-4vh) scale(1.15)}
+  100%{transform:translate(-4vw,5vh) scale(.95)}
+}
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none}
+.grid-overlay{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(45,225,194,.05) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(45,225,194,.05) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at 50% 0%,black 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at 50% 0%,black 30%,transparent 75%);
+}
+.wrap{position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 20px 90px}
+
+/* ---------- header ---------- */
+header{padding:44px 0 10px;text-align:center}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--aqua);border:1px solid var(--line);border-radius:100px;padding:7px 16px;
+  background:rgba(45,225,194,.06);box-shadow:var(--glow-aqua);
+  animation:pulseBorder 3s ease-in-out infinite;
+}
+@keyframes pulseBorder{0%,100%{box-shadow:0 0 12px rgba(45,225,194,.2)}50%{box-shadow:0 0 28px rgba(45,225,194,.45)}}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--aqua);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+h1{
+  font-family:'Unbounded',sans-serif;font-weight:800;
+  font-size:clamp(2rem,6vw,4.2rem);line-height:1.05;margin:22px 0 14px;
+  background:linear-gradient(100deg,#EAFBF6 10%,var(--aqua) 42%,var(--violet) 75%,#EAFBF6 110%);
+  background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shine 7s linear infinite;
+}
+@keyframes shine{to{background-position:220% center}}
+.sub{color:var(--muted);max-width:640px;margin:0 auto;font-size:clamp(.95rem,2vw,1.1rem)}
+.sub b{color:var(--ink)}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:34px 0 8px}
+.stat{
+  background:var(--panel);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:18px;padding:18px 16px;text-align:center;
+  position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;
+}
+.stat::before{content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.06),transparent);
+  animation:sweep 4.5s infinite}
+@keyframes sweep{0%{left:-100%}60%,100%{left:160%}}
+.stat:hover{transform:translateY(-4px);box-shadow:var(--glow-aqua)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:clamp(1.2rem,3vw,1.7rem);color:var(--aqua)}
+.stat .l{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+
+/* ---------- filtros ---------- */
+.filters{
+  background:var(--panel);backdrop-filter:blur(18px);
+  border:1px solid var(--line);border-radius:22px;padding:22px;margin:26px 0;
+  display:grid;gap:18px;
+}
+.f-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label.fl{display:block;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+select,input[type=search]{
+  width:100%;background:rgba(5,9,20,.7);border:1px solid var(--line);border-radius:12px;
+  color:var(--ink);padding:11px 13px;font-family:'Space Grotesk',sans-serif;font-size:.95rem;outline:none;
+  transition:border-color .25s,box-shadow .25s;
+}
+select:focus,input[type=search]:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(45,225,194,.15)}
+/* slider TVL — o "dreno" */
+.tvl-box{grid-column:1/-1}
+.tvl-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.tvl-val{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.25rem;color:var(--gold);text-shadow:0 0 18px rgba(255,200,118,.4)}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:100px;margin-top:12px;
+  background:linear-gradient(90deg,var(--coral),var(--gold) 45%,var(--aqua));
+  outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--aqua) 60%);
+  border:2px solid #05343A;box-shadow:0 0 18px rgba(45,225,194,.8);
+  transition:transform .2s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff,var(--aqua) 60%);
+  border:2px solid #05343A;box-shadow:0 0 18px rgba(45,225,194,.8)}
+.tvl-marks{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  border:1px solid var(--line);background:rgba(5,9,20,.6);color:var(--muted);
+  border-radius:100px;padding:8px 15px;font-size:.8rem;cursor:pointer;
+  transition:all .25s;font-family:'Space Grotesk',sans-serif;user-select:none;
+}
+.chip:hover{color:var(--ink);border-color:rgba(45,225,194,.4)}
+.chip.on{background:linear-gradient(120deg,rgba(45,225,194,.18),rgba(139,124,255,.18));color:var(--aqua);border-color:var(--aqua);box-shadow:0 0 14px rgba(45,225,194,.25)}
+.count-line{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:.85rem;color:var(--muted)}
+.count-line b{color:var(--aqua);font-family:'JetBrains Mono',monospace}
+
+/* ---------- lista de pools ---------- */
+.pools{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.card{
+  position:relative;background:var(--panel);backdrop-filter:blur(16px);
+  border:1px solid var(--line);border-radius:20px;padding:20px;
+  overflow:hidden;opacity:0;transform:translateY(24px);
+  animation:rise .6s forwards;
+  transition:transform .3s,border-color .3s,box-shadow .3s;
+}
+@keyframes rise{to{opacity:1;transform:translateY(0)}}
+.card:hover{transform:translateY(-6px) scale(1.015);border-color:rgba(45,225,194,.45);box-shadow:0 18px 50px rgba(0,0,0,.5),var(--glow-aqua)}
+.card::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;
+  background:radial-gradient(500px circle at var(--mx,50%) var(--my,50%),rgba(45,225,194,.10),transparent 40%);
+  opacity:0;transition:opacity .3s}
+.card:hover::after{opacity:1}
+.rank{
+  position:absolute;top:14px;right:16px;font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;color:var(--muted);letter-spacing:.1em;
+}
+.card.top3 .rank{color:var(--gold);text-shadow:0 0 12px rgba(255,200,118,.6)}
+.c-head{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+/* anel de confiabilidade — assinatura */
+.ring{position:relative;width:64px;height:64px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .track{stroke:rgba(255,255,255,.08);fill:none;stroke-width:6}
+.ring .bar{fill:none;stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:163;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1);
+  filter:drop-shadow(0 0 6px currentColor)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.05rem}
+.c-title{min-width:0}
+.sym{font-family:'Unbounded',sans-serif;font-weight:600;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj{display:flex;gap:8px;align-items:center;margin-top:5px;flex-wrap:wrap}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;border:1px solid var(--line);color:var(--muted)}
+.tag.p{color:var(--violet);border-color:rgba(139,124,255,.4);background:rgba(139,124,255,.08)}
+.tag.c{color:var(--aqua);border-color:rgba(45,225,194,.35);background:rgba(45,225,194,.06)}
+.tag.stable{color:var(--gold);border-color:rgba(255,200,118,.4);background:rgba(255,200,118,.07)}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:14px 0}
+.m .mv{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.98rem}
+.m .ml{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.mv.tvl{color:var(--aqua)}.mv.apy{color:var(--gold)}.mv.vol{color:var(--violet)}
+.bar-tvl{height:5px;border-radius:100px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:4px}
+.bar-tvl i{display:block;height:100%;border-radius:100px;
+  background:linear-gradient(90deg,var(--aqua),var(--violet));
+  box-shadow:0 0 10px rgba(45,225,194,.6);
+  transform-origin:left;animation:grow 1.1s cubic-bezier(.2,.8,.2,1) forwards;transform:scaleX(0)}
+@keyframes grow{to{transform:scaleX(1)}}
+.c-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px}
+.risk{font-size:.72rem;color:var(--muted)}
+.risk .ok{color:var(--aqua)}.risk .warn{color:var(--coral)}
+.link{
+  font-size:.78rem;font-weight:700;color:var(--aqua);text-decoration:none;
+  padding:8px 14px;border-radius:100px;border:1px solid rgba(45,225,194,.35);
+  transition:all .25s;white-space:nowrap;
+}
+.link:hover{background:var(--aqua);color:#04202A;box-shadow:0 0 22px rgba(45,225,194,.5)}
+
+/* ---------- loading / vazio ---------- */
+.skeleton{height:190px;border-radius:20px;border:1px solid var(--line);
+  background:linear-gradient(100deg,rgba(255,255,255,.03) 30%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.03) 70%);
+  background-size:200% 100%;animation:shimmer 1.3s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.empty,.error{
+  grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);
+  border:1px dashed var(--line);border-radius:20px;
+}
+.empty b,.error b{color:var(--ink);display:block;font-size:1.1rem;margin-bottom:6px}
+.more{display:block;margin:30px auto 0;padding:13px 34px;border-radius:100px;cursor:pointer;
+  font-family:'Unbounded',sans-serif;font-size:.8rem;font-weight:600;color:#04202A;
+  background:linear-gradient(120deg,var(--aqua),var(--violet));border:none;
+  box-shadow:0 0 26px rgba(45,225,194,.35);transition:transform .25s,box-shadow .25s}
+.more:hover{transform:translateY(-3px);box-shadow:0 0 40px rgba(139,124,255,.5)}
+footer{margin-top:56px;text-align:center;font-size:.75rem;color:var(--muted)}
+footer a{color:var(--aqua);text-decoration:none}
+
+@media (max-width:640px){
+  .pools{grid-template-columns:1fr}
+  .metrics{grid-template-columns:1fr 1fr}
+  .m:last-child{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="bg">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+</div>
+<canvas id="particles"></canvas>
+<div class="grid-overlay"></div>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow"><span class="dot"></span> dados ao vivo · defillama api</span>
+    <h1>Deep&shy;Pools</h1>
+    <p class="sub">Scanner de <b>pools de liquidez</b> em Uniswap, Curve, Aave, Meteora, Ondo e centenas de protocolos. Filtre pelo tamanho, descarte as pequenas e veja um <b>score de confiabilidade</b> para cada pool.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="s-pools">—</div><div class="l">Pools rastreadas</div></div>
+    <div class="stat"><div class="v" id="s-tvl">—</div><div class="l">TVL total</div></div>
+    <div class="stat"><div class="v" id="s-proj">—</div><div class="l">Protocolos</div></div>
+    <div class="stat"><div class="v" id="s-chains">—</div><div class="l">Blockchains</div></div>
+  </div>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="tvl-box">
+      <div class="tvl-head">
+        <label class="fl" for="tvl">Tamanho mínimo da pool (TVL) — o dreno das pequenas</label>
+        <span class="tvl-val" id="tvl-out">$10M</span>
+      </div>
+      <input type="range" id="tvl" min="0" max="100" value="55" aria-label="TVL mínimo">
+      <div class="tvl-marks"><span>$100k</span><span>$1M</span><span>$10M</span><span>$100M</span><span>$1B+</span></div>
+    </div>
+
+    <div class="f-row">
+      <div>
+        <label class="fl" for="q">Buscar par / token</label>
+        <input type="search" id="q" placeholder="ex.: ETH, USDC, WBTC…">
+      </div>
+      <div>
+        <label class="fl" for="proj">Protocolo</label>
+        <select id="proj"><option value="">Todos os protocolos</option></select>
+      </div>
+      <div>
+        <label class="fl" for="chain">Blockchain</label>
+        <select id="chain"><option value="">Todas as chains</option></select>
+      </div>
+      <div>
+        <label class="fl" for="sort">Ordenar por</label>
+        <select id="sort">
+          <option value="score">🛡 Confiabilidade</option>
+          <option value="tvl">💧 TVL</option>
+          <option value="vol">📊 Volume 24h</option>
+          <option value="apy">🔥 APY</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="fl">Atalhos rápidos</label>
+      <div class="chips">
+        <span class="chip" data-f="stable">Só stablecoins</span>
+        <span class="chip" data-f="noil">Sem risco de IL</span>
+        <span class="chip" data-f="vol">Com volume 24h</span>
+        <span class="chip" data-f="blue">Blue chips</span>
+        <span class="chip" data-f="sane">APY &lt; 60% (anti-golpe)</span>
+      </div>
+    </div>
+
+    <div class="count-line">
+      <span>Mostrando <b id="shown">0</b> de <b id="total">0</b> pools após o filtro</span>
+      <span id="filtered-out"></span>
+    </div>
+  </section>
+
+  <main class="pools" id="pools">
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+  </main>
+  <button class="more" id="more" hidden>Carregar mais pools</button>
+
+  <footer>
+    Dados agregados via <a href="https://defillama.com/yields" target="_blank" rel="noopener">DefiLlama</a> · score de confiabilidade é heurístico (TVL, volume, risco de impermanent loss, volatilidade do APY, reputação do protocolo) e <b>não é recomendação de investimento</b>.
+  </footer>
+</div>
+
+<script>
+/* ================= partículas ================= */
+const cv=document.getElementById('particles'),ctx=cv.getContext('2d');
+let W,H,pts=[];
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+resize();addEventListener('resize',resize);
+if(!reduced){
+  const N=Math.min(70,Math.floor(innerWidth/18));
+  for(let i=0;i<N;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.6,vy:-(Math.random()*.5+.15),vx:(Math.random()-.5)*.2,a:Math.random()*.5+.15});
+  (function loop(){
+    ctx.clearRect(0,0,W,H);
+    for(const p of pts){
+      p.y+=p.vy;p.x+=p.vx;
+      if(p.y<-10){p.y=H+10;p.x=Math.random()*W}
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);
+      ctx.fillStyle=`rgba(45,225,194,${p.a})`;ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+}
+
+/* ================= dados ================= */
+const BLUE=new Set(['uniswap-v3','uniswap-v2','curve-dex','aave-v3','aave-v2','lido','compound-v3','balancer-v2','pancakeswap-amm-v3','pancakeswap-amm','maker','rocket-pool','convex-finance','ondo-finance','sky-lending','morpho-blue','raydium-amm','meteora-dlmm','orca-dex','aerodrome-slipstream','aerodrome-v1','ethena','spark','fluid-lending','gmx-v2-perps','jito','marinade-liquid-staking']);
+const SITES={'uniswap':'https://app.uniswap.org','curve':'https://curve.finance','aave':'https://app.aave.com','pancakeswap':'https://pancakeswap.finance','balancer':'https://balancer.fi','meteora':'https://app.meteora.ag','ondo':'https://ondo.finance','raydium':'https://raydium.io','orca':'https://www.orca.so','aerodrome':'https://aerodrome.finance','lido':'https://lido.fi','compound':'https://compound.finance','morpho':'https://morpho.org','ethena':'https://ethena.fi','gmx':'https://gmx.io','jito':'https://jito.network','fluid':'https://fluid.io','spark':'https://spark.fi','sky':'https://sky.money'};
+
+let ALL=[],VISIBLE=60;
+const $=id=>document.getElementById(id);
+const fmt=n=>{
+  if(n==null||isNaN(n))return'—';
+  if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';
+  if(n>=1e3)return'$'+(n/1e3).toFixed(0)+'k';
+  return'$'+n.toFixed(0);
+};
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+
+/* score de confiabilidade 0–100 */
+function score(p){
+  let s=0;
+  const t=p.tvlUsd||0;
+  s+=Math.min(38,Math.max(0,(Math.log10(Math.max(t,1))-5)*9.5));           // TVL (log): $100k→0 … $1B+→38
+  const v=p.volumeUsd1d||0;
+  if(v>0){const r=v/Math.max(t,1);s+=Math.min(16,Math.log10(v)/8*10+Math.min(6,r*20));}
+  if(p.ilRisk==='no')s+=11;
+  if(p.stablecoin)s+=6;
+  if(p.exposure==='single')s+=4;
+  if(BLUE.has(p.project))s+=12;
+  if(p.sigma!=null)s+=Math.max(0,7-Math.min(7,Math.abs(p.sigma)*2));       // baixa volatilidade
+  const a=p.apy||0;
+  if(a>100)s-=Math.min(22,(a-100)/25);                                     // APY absurdo = suspeito
+  if(p.predictions&&p.predictions.predictedClass==='Stable/Up')s+=4;
+  return Math.round(Math.max(3,Math.min(99,s)));
+}
+function ringColor(s){return s>=75?'#2DE1C2':s>=55?'#FFC876':s>=35?'#8B7CFF':'#FF6B8B'}
+function projSite(p){
+  const key=Object.keys(SITES).find(k=>p.project.startsWith(k));
+  return key?SITES[key]:'https://defillama.com/yields/pool/'+p.pool;
+}
+
+/* filtros */
+const chips={stable:false,noil:false,vol:false,blue:false,sane:false};
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+  chips[c.dataset.f]=!chips[c.dataset.f];c.classList.toggle('on');VISIBLE=60;render();
+}));
+const tvlSteps=v=>Math.round(Math.pow(10,5+ v/100*4));   // 0→$100k … 100→$1B
+['q','proj','chain','sort'].forEach(id=>$(id).addEventListener('input',()=>{VISIBLE=60;render()}));
+$('tvl').addEventListener('input',()=>{$('tvl-out').textContent=fmt(tvlSteps(+$('tvl').value));VISIBLE=60;render()});
+$('more').addEventListener('click',()=>{VISIBLE+=60;render(true)});
+
+function filtered(){
+  const minT=tvlSteps(+$('tvl').value),
+        q=$('q').value.trim().toLowerCase(),
+        pj=$('proj').value,ch=$('chain').value;
+  return ALL.filter(p=>{
+    if(p.tvlUsd<minT)return false;
+    if(pj&&p.project!==pj)return false;
+    if(ch&&p.chain!==ch)return false;
+    if(q&&!(p.symbol.toLowerCase().includes(q)||p.project.includes(q)))return false;
+    if(chips.stable&&!p.stablecoin)return false;
+    if(chips.noil&&p.ilRisk!=='no')return false;
+    if(chips.vol&&!(p.volumeUsd1d>0))return false;
+    if(chips.blue&&!BLUE.has(p.project))return false;
+    if(chips.sane&&(p.apy||0)>=60)return false;
+    return true;
+  });
+}
+function sorted(list){
+  const k=$('sort').value;
+  return list.sort((a,b)=>k==='tvl'?b.tvlUsd-a.tvlUsd
+    :k==='apy'?(b.apy||0)-(a.apy||0)
+    :k==='vol'?(b.volumeUsd1d||0)-(a.volumeUsd1d||0)
+    :b._score-a._score);
+}
+
+function card(p,i,maxT){
+  const c=ringColor(p._score),off=163-163*p._score/100;
+  const pct=Math.max(4,Math.sqrt(p.tvlUsd/maxT)*100);
+  return `<article class="card ${i<3?'top3':''}" style="animation-delay:${Math.min(i%60,20)*40}ms">
+    <span class="rank">#${String(i+1).padStart(2,'0')}</span>
+    <div class="c-head">
+      <div class="ring" title="Score de confiabilidade">
+        <svg width="64" height="64"><circle class="track" cx="32" cy="32" r="26"/>
+        <circle class="bar" cx="32" cy="32" r="26" style="stroke:${c};color:${c};stroke-dashoffset:${off}"/></svg>
+        <span class="num" style="color:${c}">${p._score}</span>
+      </div>
+      <div class="c-title">
+        <div class="sym" title="${p.symbol}">${p.symbol}</div>
+        <div class="proj">
+          <span class="tag p">${cap(p.project.replace(/-/g,' '))}</span>
+          <span class="tag c">${p.chain}</span>
+          ${p.stablecoin?'<span class="tag stable">stable</span>':''}
+        </div>
+      </div>
+    </div>
+    <div class="metrics">
+      <div class="m"><div class="mv tvl">${fmt(p.tvlUsd)}</div><div class="ml">TVL</div>
+        <div class="bar-tvl"><i style="width:${pct}%"></i></div></div>
+      <div class="m"><div class="mv apy">${p.apy!=null?p.apy.toFixed(2)+'%':'—'}</div><div class="ml">APY</div></div>
+      <div class="m"><div class="mv vol">${fmt(p.volumeUsd1d)}</div><div class="ml">Vol 24h</div></div>
+    </div>
+    <div class="c-foot">
+      <span class="risk">IL: ${p.ilRisk==='no'?'<span class="ok">baixo ✓</span>':'<span class="warn">sim ⚠</span>'} · exposição ${p.exposure==='single'?'única':'multi'}</span>
+      <a class="link" href="${projSite(p)}" target="_blank" rel="noopener">Abrir pool ↗</a>
+    </div>
+  </article>`;
+}
+
+function render(append){
+  const list=sorted(filtered());
+  $('shown').textContent=Math.min(VISIBLE,list.length).toLocaleString('pt-BR');
+  $('total').textContent=list.length.toLocaleString('pt-BR');
+  $('filtered-out').textContent='🚫 '+(ALL.length-list.length).toLocaleString('pt-BR')+' pools pequenas/fora do filtro descartadas';
+  const maxT=list[0]?Math.max(...list.slice(0,VISIBLE).map(p=>p.tvlUsd)):1;
+  const slice=list.slice(0,VISIBLE);
+  $('pools').innerHTML=slice.length
+    ? slice.map((p,i)=>card(p,i,maxT)).join('')
+    : `<div class="empty"><b>Nenhuma pool passou no filtro</b>Diminua o TVL mínimo ou remova alguns atalhos.</div>`;
+  $('more').hidden=list.length<=VISIBLE;
+  // efeito de brilho seguindo o mouse
+  document.querySelectorAll('.card').forEach(el=>el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    el.style.setProperty('--mx',(e.clientX-r.left)+'px');
+    el.style.setProperty('--my',(e.clientY-r.top)+'px');
+  }));
+}
+
+async function load(){
+  try{
+    const res=await fetch('https://yields.llama.fi/pools');
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    ALL=(json.data||[]).filter(p=>p.tvlUsd>=1e5&&p.symbol);
+    ALL.forEach(p=>p._score=score(p));
+    // stats
+    $('s-pools').textContent=ALL.length.toLocaleString('pt-BR');
+    $('s-tvl').textContent=fmt(ALL.reduce((a,p)=>a+p.tvlUsd,0));
+    const projs=[...new Set(ALL.map(p=>p.project))].sort(),
+          chains=[...new Set(ALL.map(p=>p.chain))].sort();
+    $('s-proj').textContent=projs.length;
+    $('s-chains').textContent=chains.length;
+    $('proj').innerHTML='<option value="">Todos os protocolos</option>'+projs.map(p=>`<option value="${p}">${cap(p.replace(/-/g,' '))}</option>`).join('');
+    $('chain').innerHTML='<option value="">Todas as chains</option>'+chains.map(c=>`<option>${c}</option>`).join('');
+    render();
+  }catch(e){
+    $('pools').innerHTML=`<div class="error"><b>Falha ao carregar os dados ao vivo</b>A API pública do DefiLlama (yields.llama.fi) não respondeu — verifique sua conexão ou tente recarregar a página.<br><br><button class="more" onclick="load()" style="margin:0 auto">Tentar novamente</button></div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>

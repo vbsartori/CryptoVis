@@ -228,6 +228,18 @@
     }, 50);
   }
 
+  /* ---------- scroll progress bar ---------- */
+  const prog = document.querySelector('.progress i');
+  if (prog) {
+    function upProg() {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      prog.style.width = (max > 0 ? (scrollY / max) * 100 : 0) + '%';
+    }
+    addEventListener('scroll', upProg, { passive: true });
+    addEventListener('resize', upProg, { passive: true });
+    upProg();
+  }
+
   /* ---------- copy buttons ---------- */
   document.querySelectorAll('.copy-btn').forEach(btn => {
     btn.addEventListener('click', async () => {

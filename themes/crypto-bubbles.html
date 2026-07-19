@@ -1531,10 +1531,235 @@
            b.name.toLowerCase().includes(searchQuery);
   }
 
+  // ─────────── SPRITES REALISTAS (pré-renderizados 1x) ───────────
+  // Filme de interferência: as cores físicas de uma bolha de sabão real —
+  // bandas pastéis que vivem na borda e quase desaparecem no centro.
+  function makeFilmSprite(S = 512) {
+    const src = document.createElement('canvas');
+    src.width = src.height = S;
+    const c = src.getContext('2d');
+    const R = S / 2;
+    c.translate(R, R);
+
+    // Bandas espectrais em anel (duas voltas de matiz = interferência de 2ª ordem)
+    const SEG = 96;
+    const layers = [
+      { width: R * 0.17, rad: R - R * 0.085 - 1, turns: 1, off: 0,   alpha: 0.55 },
+      { width: R * 0.11, rad: R - R * 0.22,      turns: 2, off: 137, alpha: 0.30 },
+      { width: R * 0.09, rad: R - R * 0.34,      turns: 3, off: 261, alpha: 0.16 },
+    ];
+    for (const L of layers) {
+      for (let s = 0; s < SEG; s++) {
+        const a0 = (s / SEG) * Math.PI * 2;
+        const a1 = ((s + 1.5) / SEG) * Math.PI * 2;
+        const hue = ((s / SEG) * 360 * L.turns + L.off) % 360;
+        c.strokeStyle = `hsla(${hue}, 92%, 74%, ${L.alpha})`;
+        c.lineWidth = L.width;
+        c.beginPath();
+        c.arc(0, 0, L.rad, a0, a1);
+        c.stroke();
+      }
+    }
+    // Manchas de espessura do filme (redemoinhos irregulares de cor)
+    const blobs = [
+      [ 0.30, -0.42, 0.36, 310], [-0.48,  0.18, 0.30, 175],
+      [ 0.10,  0.52, 0.28, 145], [-0.20, -0.55, 0.24,  45],
+      [ 0.55,  0.28, 0.26, 265],
+    ];
+    for (const [bx, by, br, hue] of blobs) {
+      const g = c.createRadialGradient(bx * R, by * R, 0, bx * R, by * R, br * R);
+      g.addColorStop(0, `hsla(${hue}, 90%, 72%, 0.22)`);
+      g.addColorStop(1, `hsla(${hue}, 90%, 72%, 0)`);
+      c.fillStyle = g;
+      c.beginPath();
+      c.arc(bx * R, by * R, br * R, 0, Math.PI * 2);
+      c.fill();
+    }
+
+    // Suaviza tudo e aplica a máscara radial: borda forte, centro quase nada
+    const out = document.createElement('canvas');
+    out.width = out.height = S;
+    const oc = out.getContext('2d');
+    oc.filter = 'blur(7px)';
+    oc.drawImage(src, 0, 0);
+    oc.filter = 'none';
+    oc.globalCompositeOperation = 'destination-in';
+    const mask = oc.createRadialGradient(R, R, 0, R, R, R);
+    mask.addColorStop(0,    'rgba(0,0,0,0.05)');
+    mask.addColorStop(0.55, 'rgba(0,0,0,0.10)');
+    mask.addColorStop(0.80, 'rgba(0,0,0,0.55)');
+    mask.addColorStop(0.94, 'rgba(0,0,0,1)');
+    mask.addColorStop(1,    'rgba(0,0,0,0)');
+    oc.fillStyle = mask;
+    oc.fillRect(0, 0, S, S);
+    return out;
+  }
+
+  // Reflexos: a "janela" elíptica no alto, o ponto duro, o arco de luz inferior
+  function makeGlossSprite(S = 512) {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = S;
+    const c = cv.getContext('2d');
+    const R = S / 2;
+    c.translate(R, R);
+    c.beginPath();
+    c.arc(0, 0, R - 1, 0, Math.PI * 2);
+    c.clip();
+
+    // Reflexo principal (janela/céu) — elipse suave girada no alto-esquerdo
+    c.save();
+    c.translate(-R * 0.30, -R * 0.42);
+    c.rotate(-0.55);
+    c.scale(1.55, 0.62);
+    const g1 = c.createRadialGradient(0, 0, 0, 0, 0, R * 0.34);
+    g1.addColorStop(0,    'rgba(255,255,255,0.85)');
+    g1.addColorStop(0.35, 'rgba(255,255,255,0.30)');
+    g1.addColorStop(1,    'rgba(255,255,255,0)');
+    c.fillStyle = g1;
+    c.beginPath();
+    c.arc(0, 0, R * 0.34, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    // Ponto especular duro
+    c.save();
+    const g2 = c.createRadialGradient(-R * 0.40, -R * 0.50, 0, -R * 0.40, -R * 0.50, R * 0.085);
+    g2.addColorStop(0, 'rgba(255,255,255,0.95)');
+    g2.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g2;
+    c.beginPath();
+    c.arc(-R * 0.40, -R * 0.50, R * 0.085, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    // Arco de luz inferior (o brilho que contorna a base de bolhas reais)
+    c.save();
+    c.lineCap = 'round';
+    c.shadowColor = 'rgba(255,255,255,0.8)';
+    c.shadowBlur = R * 0.07;
+    c.strokeStyle = 'rgba(255,255,255,0.30)';
+    c.lineWidth = R * 0.035;
+    c.beginPath();
+    c.arc(0, 0, R * 0.86, Math.PI * 0.22, Math.PI * 0.78);
+    c.stroke();
+    // Franjas coloridas coladas ao arco (dispersão)
+    c.shadowBlur = 0;
+    c.strokeStyle = 'rgba(140,235,255,0.20)';
+    c.lineWidth = R * 0.022;
+    c.beginPath();
+    c.arc(0, 0, R * 0.815, Math.PI * 0.26, Math.PI * 0.74);
+    c.stroke();
+    c.strokeStyle = 'rgba(255,150,220,0.18)';
+    c.beginPath();
+    c.arc(0, 0, R * 0.905, Math.PI * 0.26, Math.PI * 0.74);
+    c.stroke();
+    c.restore();
+
+    // Fresnel geral: leve clareamento na borda inteira
+    const g3 = c.createRadialGradient(0, 0, R * 0.80, 0, 0, R);
+    g3.addColorStop(0, 'rgba(255,255,255,0)');
+    g3.addColorStop(1, 'rgba(255,255,255,0.10)');
+    c.fillStyle = g3;
+    c.beginPath();
+    c.arc(0, 0, R, 0, Math.PI * 2);
+    c.fill();
+
+    return cv;
+  }
+
+  const FILM  = makeFilmSprite(512);
+  const GLOSS = makeGlossSprite(512);
+
+  // ─────────── FX: partículas de estouro + micro-bolhas ambiente ───────────
+  let particles = [];
+  let motes = [];
+
+  function initMotes() {
+    motes = [];
+    if (REDUCED) return;
+    const n = W < 720 ? 14 : 26;
+    for (let i = 0; i < n; i++) {
+      motes.push({
+        x: rand(0, W), y: rand(0, H),
+        r: rand(1.5, 5),
+        sp: rand(7, 20),
+        ph: rand(0, Math.PI * 2),
+        a: rand(0.10, 0.30),
+      });
+    }
+  }
+
+  function spawnBurst(cx, cy) {
+    if (REDUCED) return;
+    for (let i = 0; i < 28; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = rand(1.2, 5.5);
+      particles.push({
+        x: cx, y: cy,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 0.6,
+        life: rand(0.7, 1),
+        hue: rand(0, 360),
+        r: rand(0.8, 2.4),
+      });
+    }
+    if (particles.length > 300) particles.splice(0, particles.length - 300);
+  }
+
+  function updateFx(dt) {
+    if (REDUCED) return;
+    for (const m of motes) {
+      m.y -= m.sp * dt;
+      m.x += Math.sin(performance.now() * 0.0006 + m.ph) * 0.15;
+      if (m.y < -8) { m.y = H + 8; m.x = rand(0, W); }
+      if (m.x < -8) m.x = W + 8;
+      if (m.x > W + 8) m.x = -8;
+    }
+    for (const p of particles) {
+      p.x += p.vx * dt * 60;
+      p.y += p.vy * dt * 60;
+      p.vx *= 0.955;
+      p.vy = p.vy * 0.955 + 0.02;
+      p.life -= dt * 1.5;
+    }
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  function renderMotes() {
+    if (REDUCED || !motes.length) return;
+    ctx.save();
+    for (const m of motes) {
+      ctx.globalAlpha = m.a;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(m.x - m.r * 0.35, m.y - m.r * 0.35, Math.max(0.4, m.r * 0.22), 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function renderParticles() {
+    if (!particles.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = `hsla(${p.hue}, 92%, 76%, 1)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // ─────────── RENDER ───────────
   function drawBubble(b, t) {
-    const x = b.x, y = b.y, r = b.r;
-    if (r < 0.5) return;
+    const x = b.x, y = b.y, rr = b.r;
+    if (rr < 0.5) return;
 
     const change = changeOf(b);
     const col = colorFor(change);
@@ -1544,111 +1769,87 @@
     ctx.save();
     if (searchQuery && !matched) ctx.globalAlpha = 0.13;
 
-    const wobble = REDUCED ? 1 : 1 + Math.sin(t * 0.0009 * b.pulse + b.seed) * 0.01;
-    const rr = r * wobble;
+    // Deformação orgânica: a bolha se espreme, como sabão de verdade
+    const wob  = REDUCED ? 0 : Math.sin(t * 0.0011 * b.pulse + b.seed);
+    const wob2 = REDUCED ? 0 : Math.sin(t * 0.0007 * b.pulse + b.seed * 2.7);
+    ctx.translate(x, y);
+    ctx.rotate(wob2 * 0.05);
+    ctx.scale(1 + wob * 0.018, 1 - wob * 0.018);
 
-    // 1. HALO externo (glow aditivo)
-    const haloR = rr * (1.6 + intensity * 1.2 + b.hover * 0.3);
+    // 1. HALO-SINAL (verde/vermelho — o dado continua mandando)
+    const haloR = rr * (1.55 + intensity * 1.15 + b.hover * 0.3);
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    const haloGrad = ctx.createRadialGradient(x, y, rr * 0.85, x, y, haloR);
-    const haloAlpha = 0.18 + intensity * 0.32 + b.hover * 0.15;
+    const haloGrad = ctx.createRadialGradient(0, 0, rr * 0.82, 0, 0, haloR);
+    const haloAlpha = 0.13 + intensity * 0.34 + b.hover * 0.15;
     haloGrad.addColorStop(0,    rgba(col.rim, haloAlpha));
     haloGrad.addColorStop(0.55, rgba(col.rim, haloAlpha * 0.35));
     haloGrad.addColorStop(1,    rgba(col.rim, 0));
     ctx.fillStyle = haloGrad;
     ctx.beginPath();
-    ctx.arc(x, y, haloR, 0, Math.PI * 2);
+    ctx.arc(0, 0, haloR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // 2. CORPO (vidro translúcido)
-    const bodyGrad = ctx.createRadialGradient(
-      x - rr * 0.25, y - rr * 0.30, rr * 0.05,
-      x, y, rr
-    );
-    bodyGrad.addColorStop(0,    rgba(col.bright, 0.05));
-    bodyGrad.addColorStop(0.55, rgba(col.rim,    0.06));
-    bodyGrad.addColorStop(0.85, rgba(col.deep,   0.18));
-    bodyGrad.addColorStop(1,    rgba(col.rim,    0.45 + intensity * 0.15));
+    // 2. CORPO — vidro quase invisível com Fresnel (transparente no centro)
+    const bodyGrad = ctx.createRadialGradient(0, 0, rr * 0.1, 0, 0, rr);
+    bodyGrad.addColorStop(0,    'rgba(255,255,255,0.012)');
+    bodyGrad.addColorStop(0.70, 'rgba(255,255,255,0.022)');
+    bodyGrad.addColorStop(0.88, rgba(col.rim, 0.05 + intensity * 0.06));
+    bodyGrad.addColorStop(1,    rgba(col.rim, 0.20 + intensity * 0.18));
     ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.arc(x, y, rr, 0, Math.PI * 2);
+    ctx.arc(0, 0, rr, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. FILME IRIDESCENTE — arcos de matiz rotativa, o arco-íris da bolha de sabão
-    if (rr > 16) {
-      ctx.save();
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.lineCap = 'round';
-      const spin = REDUCED ? 0 : t * 0.00045;
-      for (let k = 0; k < 3; k++) {
-        const hue = (t * (REDUCED ? 0 : 0.014) + b.seed * 57 + k * 120) % 360;
-        const a0  = b.seed + spin * (k % 2 ? 1 : -1) + k * 2.1;
-        const lw  = Math.max(1.2, rr * 0.05);
-        ctx.strokeStyle = `hsla(${hue}, 90%, 70%, ${0.09 + intensity * 0.07 + b.hover * 0.06})`;
-        ctx.lineWidth = lw;
-        ctx.beginPath();
-        ctx.arc(x, y, rr - lw * 0.9, a0, a0 + 1.7);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // 4. BORDA NEON
+    // Sombra interna fina (espessura da casca)
     ctx.save();
-    ctx.shadowColor = rgba(col.rim, 0.85);
-    ctx.shadowBlur  = 14 + intensity * 28 + b.hover * 12;
-    ctx.lineWidth   = 1.0 + intensity * 1.8 + b.hover * 0.8;
-    ctx.strokeStyle = rgba(col.bright, 0.75 + intensity * 0.25);
+    ctx.lineWidth = Math.max(1, rr * 0.032);
+    ctx.strokeStyle = 'rgba(0,0,0,0.16)';
     ctx.beginPath();
-    ctx.arc(x, y, rr - ctx.lineWidth * 0.4, 0, Math.PI * 2);
+    ctx.arc(0, 0, rr - ctx.lineWidth * 0.6 - 1, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
 
-    // 5. ESCURECIMENTO interno (casca oca)
+    // 3. FILME DE INTERFERÊNCIA — duas camadas girando em sentidos opostos
+    if (rr > 9) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const baseA = ctx.globalAlpha;
+      ctx.rotate(b.seed * 3 + (REDUCED ? 0 : t * 0.00028 * b.pulse));
+      ctx.globalAlpha = baseA * (0.48 + intensity * 0.28 + b.hover * 0.14);
+      ctx.drawImage(FILM, -rr, -rr, rr * 2, rr * 2);
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.rotate(-b.seed * 2 - (REDUCED ? 0 : t * 0.00016 * b.pulse));
+      ctx.globalAlpha *= 0.22;
+      ctx.drawImage(FILM, -rr * 1.02, -rr * 1.02, rr * 2.04, rr * 2.04);
+      ctx.restore();
+    }
+
+    // 4. BORDA-SINAL neon (fina, mas cresce com |variação|)
     ctx.save();
-    ctx.lineWidth = Math.max(1, rr * 0.04);
-    ctx.strokeStyle = rgba([0,0,0], 0.18);
+    ctx.shadowColor = rgba(col.rim, 0.9);
+    ctx.shadowBlur  = 10 + intensity * 26 + b.hover * 12;
+    ctx.lineWidth   = 0.8 + intensity * 1.7 + b.hover * 0.8;
+    ctx.strokeStyle = rgba(col.bright, 0.55 + intensity * 0.40);
     ctx.beginPath();
-    ctx.arc(x, y, rr - ctx.lineWidth * 0.5 - 1, 0, Math.PI * 2);
+    ctx.arc(0, 0, rr - ctx.lineWidth * 0.4, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
 
-    // 6. BRILHO ESPECULAR (crescente superior-esquerdo)
-    if (rr > 14) {
-      const hx = x - rr * 0.32;
-      const hy = y - rr * 0.42;
-      const hRad = rr * 0.42;
-      const specGrad = ctx.createRadialGradient(hx, hy, 0, hx, hy, hRad);
-      specGrad.addColorStop(0,   'rgba(255,255,255,0.55)');
-      specGrad.addColorStop(0.4, 'rgba(255,255,255,0.18)');
-      specGrad.addColorStop(1,   'rgba(255,255,255,0)');
+    // 5. REFLEXOS (a luz vem sempre da mesma direção — não gira)
+    if (rr > 8) {
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(x, y, rr, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.fillStyle = specGrad;
-      ctx.beginPath();
-      ctx.arc(hx, hy, hRad, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.rotate(-wob2 * 0.05); // cancela a rotação da deformação
+      ctx.globalAlpha *= 0.95;
+      ctx.drawImage(GLOSS, -rr, -rr, rr * 2, rr * 2);
       ctx.restore();
     }
 
-    // 7. BRILHO secundário (ponto inferior-direito)
-    if (rr > 22) {
-      ctx.save();
-      ctx.globalAlpha *= 0.55;
-      ctx.beginPath();
-      ctx.arc(x + rr * 0.42, y + rr * 0.36, Math.max(1.2, rr * 0.05), 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = rr * 0.18;
-      ctx.fill();
-      ctx.restore();
-    }
-
-    // 8. ANEL de seleção / spotlight de busca
+    // 6. ANEL de seleção / spotlight de busca
     const spotlight = searchQuery && matched;
     if (selectedBubble === b || spotlight) {
       ctx.save();
@@ -1658,32 +1859,31 @@
       ctx.lineDashOffset = REDUCED ? 0 : -t * 0.02;
       ctx.strokeStyle = rgba(col.bright, 0.5 + pulse * 0.4);
       ctx.beginPath();
-      ctx.arc(x, y, rr + 7 + pulse * 3, 0, Math.PI * 2);
+      ctx.arc(0, 0, rr + 7 + pulse * 3, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
 
-    // 9. ÍCONE
+    // 7. ÍCONE
     const img = imageCache.get(b.imageUrl);
     let iconDrawn = false;
     if (img && img.complete && img.naturalWidth && !img.failed) {
       const iconSize = rr * (rr > 50 ? 0.46 : rr > 28 ? 0.55 : 0.62);
-      const iy = rr > 38 ? y - rr * 0.30 : y;
-      const ix = x;
+      const iy = rr > 38 ? -rr * 0.30 : 0;
       ctx.save();
       ctx.beginPath();
-      ctx.arc(ix, iy, iconSize / 2, 0, Math.PI * 2);
+      ctx.arc(0, iy, iconSize / 2, 0, Math.PI * 2);
       ctx.clip();
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
-      ctx.fillRect(ix - iconSize/2, iy - iconSize/2, iconSize, iconSize);
+      ctx.fillRect(-iconSize / 2, iy - iconSize / 2, iconSize, iconSize);
       try {
-        ctx.drawImage(img, ix - iconSize / 2, iy - iconSize / 2, iconSize, iconSize);
+        ctx.drawImage(img, -iconSize / 2, iy - iconSize / 2, iconSize, iconSize);
         iconDrawn = true;
       } catch (e) { /* tainted, skip */ }
       ctx.restore();
     }
 
-    // 10. TEXTO
+    // 8. TEXTO
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const txtCol = col.type === 'pos' ? '#d8ffe8'
@@ -1695,7 +1895,7 @@
       ctx.fillStyle = '#ffffff';
       ctx.shadowColor = 'rgba(0,0,0,0.5)';
       ctx.shadowBlur = 4;
-      ctx.fillText(b.symbol, x, y + rr * 0.18);
+      ctx.fillText(b.symbol, 0, rr * 0.18);
       ctx.shadowBlur = 0;
 
       let secText, secSize;
@@ -1708,24 +1908,24 @@
       }
       ctx.font = `600 ${Math.round(secSize)}px 'JetBrains Mono', monospace`;
       ctx.fillStyle = txtCol;
-      ctx.fillText(secText, x, y + rr * 0.50);
+      ctx.fillText(secText, 0, rr * 0.50);
     } else if (rr > 22) {
       if (iconDrawn) {
         ctx.font = `700 ${Math.round(rr * 0.32)}px 'Manrope', sans-serif`;
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
         ctx.shadowBlur = 3;
-        ctx.fillText(b.symbol, x, y + rr * 0.45);
+        ctx.fillText(b.symbol, 0, rr * 0.45);
         ctx.shadowBlur = 0;
       } else {
         ctx.font = `700 ${Math.round(rr * 0.42)}px 'Manrope', sans-serif`;
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(b.symbol, x, y);
+        ctx.fillText(b.symbol, 0, 0);
       }
     } else if (rr > 12 && !iconDrawn) {
       ctx.font = `700 ${Math.round(rr * 0.7)}px 'Manrope', sans-serif`;
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(b.symbol[0] || '?', x, y);
+      ctx.fillText(b.symbol[0] || '?', 0, 0);
     }
 
     ctx.restore();
@@ -1733,6 +1933,7 @@
 
   function render(t) {
     ctx.clearRect(0, 0, W, H);
+    renderMotes();
     const drawOrder = bubbles.slice().sort((a, b) => a.r - b.r);
     const top = hoverBubble || selectedBubble;
     if (top) {
@@ -1740,6 +1941,7 @@
       if (idx >= 0) { drawOrder.splice(idx, 1); drawOrder.push(top); }
     }
     for (const b of drawOrder) drawBubble(b, t);
+    renderParticles();
   }
 
   // ─────────── MAIN LOOP ───────────
@@ -1753,6 +1955,7 @@
     let safety = 4;
     while (physAcc > step && safety-- > 0) {
       tickPhysics(step);
+      updateFx(step);
       physAcc -= step;
     }
     render(now);
@@ -1973,6 +2176,7 @@
       // Clique no vazio → explosão divertida + fecha painel
       closePanel();
       const cx = e.clientX, cy = e.clientY;
+      spawnBurst(cx, cy);
       bubbles.forEach(b => {
         const dx = b.x - cx, dy = b.y - cy;
         const dist = Math.hypot(dx, dy);
@@ -2203,6 +2407,7 @@
   // ─────────── BOOT ───────────
   window.addEventListener('resize', resize);
   resize();
+  initMotes();
   loadData(false);
   requestAnimationFrame(loop);
 })();

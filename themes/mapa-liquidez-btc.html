@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABISSAL · Mapa de Liquidez do Bitcoin</title>
+<style>
+  :root{
+    --abyss:#04060C;
+    --panel:rgba(13,19,33,.72);
+    --panel2:#101829;
+    --line:#1B2540;
+    --line2:#26324F;
+    --ink:#EAF0FA;
+    --muted:#7686A6;
+    --cyan:#2EE6C8;
+    --ember:#FF8547;
+    --gold:#F7C948;
+    --red:#FF5470;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--abyss);
+    color:var(--ink);
+    font-family:"Sora","Segoe UI",system-ui,-apple-system,sans-serif;
+    overflow:hidden;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+
+  /* ===== fundo ambiente ===== */
+  .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:drift 24s ease-in-out infinite alternate}
+  .bg .b1{width:54vw;height:54vw;left:-15vw;bottom:-30vw;background:radial-gradient(circle,rgba(46,230,200,.16),transparent 65%)}
+  .bg .b2{width:48vw;height:48vw;right:-13vw;top:-24vw;background:radial-gradient(circle,rgba(255,133,71,.15),transparent 65%);animation-delay:-9s}
+  .bg .b3{width:30vw;height:30vw;left:38vw;top:32vh;background:radial-gradient(circle,rgba(247,201,72,.06),transparent 65%);animation-delay:-17s}
+  @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(5vw,-4vh) scale(1.14)}}
+  .bg .grid{
+    position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(rgba(27,37,64,.5) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(27,37,64,.5) 1px,transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 30%,transparent 100%);
+  }
+  .bg .noise{
+    position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  #app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column}
+
+  /* ===== Header ===== */
+  header{
+    flex:none;display:flex;align-items:center;gap:18px;
+    padding:10px 20px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(10,14,26,.92),rgba(10,14,26,.55));
+    backdrop-filter:blur(10px);
+  }
+  .brand{display:flex;flex-direction:column;gap:2px;min-width:150px}
+  .brand h1{
+    font-family:"Unbounded","Sora",sans-serif;font-weight:800;font-size:20px;letter-spacing:.16em;
+    display:flex;
+    animation:surge 7s ease-in-out infinite;    /* clarão periódico no nome inteiro */
+  }
+  .brand h1 .l{
+    display:inline-block;
+    background:linear-gradient(180deg,#FFFFFF 20%, #93A9CE 90%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:lwave 3.2s cubic-bezier(.4,0,.2,1) infinite;
+    animation-delay:calc(var(--i)*.13s);
+    will-change:transform,filter;
+  }
+  /* onda de incandescência percorrendo as letras, como o ping do sonar */
+  @keyframes lwave{
+    0%,28%,100%{ transform:translateY(0) scale(1); filter:brightness(1) drop-shadow(0 0 0 rgba(46,230,200,0)); }
+    8%{ transform:translateY(-3px) scale(1.06);
+        filter:brightness(2) drop-shadow(0 0 10px rgba(46,230,200,.95)) drop-shadow(0 0 26px rgba(46,230,200,.5)); }
+    16%{ transform:translateY(1px) scale(.99);
+        filter:brightness(1.15) drop-shadow(0 0 6px rgba(255,133,71,.55)); }
+  }
+  @keyframes surge{
+    0%,88%,100%{ filter:brightness(1) }
+    92%{ filter:brightness(1.55) drop-shadow(0 0 18px rgba(255,133,71,.8)) }
+    95%{ filter:brightness(1.1) }
+  }
+  /* linha de varredura sob o título */
+  .brand .scan{
+    height:2px;border-radius:2px;overflow:hidden;position:relative;
+    background:rgba(27,37,64,.8);
+  }
+  .brand .scan::before{
+    content:'';position:absolute;top:0;bottom:0;width:34%;
+    background:linear-gradient(90deg,transparent, var(--cyan) 45%, #fff 50%, var(--ember) 55%, transparent);
+    animation:scanmove 3.2s cubic-bezier(.4,0,.2,1) infinite;
+    box-shadow:0 0 12px rgba(46,230,200,.8);
+  }
+  @keyframes scanmove{from{left:-34%}to{left:100%}}
+  .brand .tag{font-size:9.5px;color:var(--muted);letter-spacing:.3em;text-transform:uppercase}
+
+  .ticker{display:flex;align-items:center;gap:14px;margin-left:auto}
+  .delta{
+    font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:8px;letter-spacing:.02em;
+    background:rgba(46,230,200,.12);color:var(--cyan);border:1px solid rgba(46,230,200,.25);
+  }
+  .delta.neg{background:rgba(255,84,112,.1);color:var(--red);border-color:rgba(255,84,112,.3)}
+  .big-price{display:flex;flex-direction:column;align-items:flex-end}
+  .big-price .val{font-size:30px;font-weight:600;letter-spacing:-.01em;transition:color .25s;line-height:1.05;
+    text-shadow:0 0 26px rgba(247,201,72,.3)}
+  .big-price .val.up{color:var(--cyan)} .big-price .val.down{color:var(--red)}
+  .big-price .sub{font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;display:flex;gap:7px;align-items:center}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:pul 1.6s infinite}
+  .pulse.off{background:var(--red);animation:none}
+  @keyframes pul{0%{box-shadow:0 0 0 0 rgba(247,201,72,.6)}70%{box-shadow:0 0 0 8px rgba(247,201,72,0)}100%{box-shadow:0 0 0 0 rgba(247,201,72,0)}}
+
+  .sources{display:flex;gap:6px;flex-wrap:wrap;max-width:44vw}
+  .chip{
+    display:flex;align-items:center;gap:6px;
+    background:rgba(16,24,41,.7);border:1px solid var(--line);border-radius:999px;
+    padding:4px 10px;font-size:10.5px;color:var(--muted);white-space:nowrap;transition:all .2s;
+  }
+  .chip:hover{border-color:var(--line2)}
+  .chip .dot{width:6px;height:6px;border-radius:50%;background:#37456A;flex:none}
+  .chip.on{color:var(--ink);border-color:rgba(46,230,200,.35)}
+  .chip.on .dot{background:var(--cyan);box-shadow:0 0 7px rgba(46,230,200,.9)}
+  .chip.err .dot{background:var(--red)}
+  .chip .px{font-size:10px;color:var(--muted)}
+  .chip.on .px{color:var(--gold)}
+
+  .demo-banner{
+    display:none;flex:none;margin:8px 20px 0;padding:8px 14px;border-radius:10px;font-size:12px;
+    background:rgba(255,133,71,.1);border:1px solid rgba(255,133,71,.35);color:#FFC9A8;
+  }
+  .demo-banner.show{display:block}
+
+  /* ===== corpo ===== */
+  .wrap{flex:1;min-height:0;display:grid;grid-template-columns:1fr 316px}
+  .chart-area{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;padding:10px 6px 8px 12px}
+
+  .toolbar{flex:none;display:flex;align-items:center;gap:10px;padding:0 10px 8px;flex-wrap:wrap}
+  .toolbar .lbl{font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase}
+  .tf{display:flex;gap:3px;background:rgba(16,24,41,.7);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .tf button{
+    background:transparent;border:0;color:var(--muted);font-family:inherit;
+    font-size:11.5px;padding:4px 11px;border-radius:6px;cursor:pointer;transition:all .15s;
+  }
+  .tf button:hover{color:var(--ink)}
+  .tf button.act{background:linear-gradient(180deg,#182238,#131C2F);color:var(--gold);box-shadow:inset 0 0 0 1px var(--line2)}
+  .tf button:focus-visible,.zbtn:focus-visible{outline:2px solid var(--cyan);outline-offset:1px}
+  .legend{display:flex;gap:14px;margin-left:auto;font-size:10.5px;color:var(--muted);flex-wrap:wrap}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+  .legend .lg-s i{background:var(--ember);box-shadow:0 0 8px rgba(255,133,71,.7)}
+  .legend .lg-l i{background:var(--cyan);box-shadow:0 0 8px rgba(46,230,200,.7)}
+  .legend .lg-p i{background:var(--gold);box-shadow:0 0 8px rgba(247,201,72,.7)}
+
+  /* moldura aurora animada em volta do gráfico */
+  .frame{position:relative;flex:1;min-height:0;border-radius:18px;padding:1.5px;overflow:hidden}
+  .frame::before{
+    content:'';position:absolute;inset:-60%;
+    background:conic-gradient(from 0deg,
+      rgba(46,230,200,.0) 0deg, rgba(46,230,200,.55) 70deg, rgba(46,230,200,0) 140deg,
+      rgba(255,133,71,0) 180deg, rgba(255,133,71,.5) 250deg, rgba(255,133,71,0) 320deg);
+    animation:spinborder 9s linear infinite;
+  }
+  @keyframes spinborder{to{transform:rotate(360deg)}}
+  #chartBox{
+    position:absolute;inset:1.5px;touch-action:none;
+    border-radius:16.5px;overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(255,133,71,.05), transparent 55%),
+      radial-gradient(120% 90% at 50% 100%, rgba(46,230,200,.06), transparent 55%),
+      rgba(5,8,15,.96);
+    box-shadow:inset 0 0 60px rgba(0,0,0,.6);
+  }
+  canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+  canvas.grabbing{cursor:grabbing}
+  #status{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;
+    color:var(--muted);font-size:13px;letter-spacing:.14em;pointer-events:none;
+  }
+  #status .ring{width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--cyan);animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .zoomctl{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:5}
+  .zbtn{
+    width:32px;height:32px;border-radius:9px;border:1px solid var(--line2);
+    background:rgba(13,19,33,.85);color:var(--ink);font-size:15px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);
+    font-family:inherit;transition:all .15s;
+  }
+  .zbtn:hover{border-color:rgba(46,230,200,.55);color:var(--cyan);transform:translateY(-1px);box-shadow:0 4px 14px rgba(46,230,200,.15)}
+  .zbtn:active{transform:translateY(0) scale(.95)}
+  .zhint{
+    position:absolute;left:12px;bottom:10px;font-size:10px;color:var(--muted);
+    background:rgba(13,19,33,.8);border:1px solid var(--line);border-radius:8px;
+    padding:4px 10px;letter-spacing:.05em;z-index:5;pointer-events:none;backdrop-filter:blur(4px);
+  }
+  .vrange{
+    position:absolute;right:110px;top:12px;font-size:10.5px;color:var(--muted);
+    background:rgba(13,19,33,.8);border:1px solid var(--line);border-radius:8px;
+    padding:4px 10px;z-index:5;pointer-events:none;backdrop-filter:blur(4px);
+  }
+  .vrange b{color:var(--ink)}
+
+  /* ===== painel lateral ===== */
+  aside{
+    border-left:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;min-height:0;
+    scrollbar-width:thin;scrollbar-color:var(--line2) transparent;
+  }
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;
+    backdrop-filter:blur(8px);flex:none;
+    box-shadow:0 8px 28px rgba(0,0,0,.35);
+    transition:border-color .25s;
+  }
+  .panel:hover{border-color:var(--line2)}
+  .panel h3{
+    font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px;
+  }
+  .panel h3::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+  .magnet-track{position:relative;height:13px;border-radius:999px;overflow:hidden;
+    background:linear-gradient(90deg, rgba(46,230,200,.85), rgba(46,230,200,.1) 48%, rgba(255,133,71,.1) 52%, rgba(255,133,71,.9));
+    box-shadow:inset 0 1px 4px rgba(0,0,0,.5);}
+  .magnet-needle{
+    position:absolute;top:-4px;width:3px;height:21px;background:var(--gold);
+    border-radius:2px;left:50%;transform:translateX(-50%);
+    box-shadow:0 0 12px rgba(247,201,72,1);transition:left .8s cubic-bezier(.2,.8,.2,1);
+  }
+  .magnet-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:7px;letter-spacing:.08em}
+  .magnet-read{margin-top:10px;font-size:12.5px;line-height:1.55;color:var(--ink)}
+  .magnet-read b{color:var(--gold)}
+
+  .zone{
+    display:flex;align-items:center;gap:9px;padding:8px 6px;margin:0 -6px;border-radius:8px;
+    cursor:pointer;transition:background .15s, transform .15s;
+    animation:zin .4s ease backwards;
+  }
+  .zone:nth-child(1){animation-delay:.02s}.zone:nth-child(2){animation-delay:.07s}
+  .zone:nth-child(3){animation-delay:.12s}.zone:nth-child(4){animation-delay:.17s}
+  .zone:nth-child(5){animation-delay:.22s}
+  @keyframes zin{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+  .zone:hover{background:rgba(255,255,255,.05);transform:translateX(-2px)}
+  .zone .price{font-size:12.5px;min-width:82px;font-weight:600}
+  .zone .dist{font-size:9.5px;color:var(--muted);min-width:48px;text-align:right}
+  .zone .bar{flex:1;height:6px;border-radius:4px;background:rgba(255,255,255,.05);overflow:hidden}
+  .zone .bar i{display:block;height:100%;border-radius:4px;transition:width .6s ease}
+  .zone.short .bar i{background:linear-gradient(90deg, rgba(255,133,71,.35), var(--ember));box-shadow:0 0 8px rgba(255,133,71,.5)}
+  .zone.long .bar i{background:linear-gradient(90deg, rgba(46,230,200,.35), var(--cyan));box-shadow:0 0 8px rgba(46,230,200,.5)}
+  .zone.short .price{color:var(--ember)} .zone.long .price{color:var(--cyan)}
+
+  .foot-note{font-size:10.5px;color:var(--muted);line-height:1.6;padding:2px 4px}
+  .foot-note b{color:var(--ink)}
+
+  /* ===== responsivo ===== */
+  @media(max-width:1280px){
+    .wrap{grid-template-columns:1fr 284px}
+    .sources{max-width:36vw}
+    .big-price .val{font-size:26px}
+  }
+  @media(max-width:1100px){
+    .sources .chip .px{display:none}
+    .legend{display:none}
+  }
+  @media(max-width:980px){
+    body{overflow:auto}
+    #app{height:auto;min-height:100vh}
+    header{flex-wrap:wrap;padding:12px 14px;gap:10px}
+    .sources{max-width:100%;order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+    .sources .chip .px{display:inline}
+    .ticker{margin-left:auto}
+    .wrap{grid-template-columns:1fr}
+    .frame{height:62vh;min-height:400px;flex:none}
+    aside{border-left:0;border-top:1px solid var(--line);overflow:visible}
+    .vrange{display:none}
+    .zbtn{width:40px;height:40px;font-size:17px}
+    .zhint{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .pulse,.bg .blob,#status .ring,.frame::before,.brand h1,.brand h1 .l,.brand .scan::before{animation:none}
+    .magnet-needle,.zone .bar i,.zone{transition:none;animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="grid"></div>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="noise"></div>
+</div>
+
+<div id="app">
+<header>
+  <div class="brand">
+    <h1 id="brandTitle">ABISSAL</h1>
+    <div class="scan" aria-hidden="true"></div>
+    <div class="tag">Mapa de liquidez · BTC</div>
+  </div>
+
+  <div class="sources" id="sources"></div>
+
+  <div class="ticker">
+    <span class="delta" id="delta24">— 24h</span>
+    <div class="big-price">
+      <div class="val mono" id="bigPrice">—</div>
+      <div class="sub"><span class="pulse" id="wsPulse"></span><span id="priceSub">conectando às fontes…</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="demo-banner" id="demoBanner">
+  ⚠ Sem acesso às APIs das corretoras neste ambiente — exibindo <b>simulação realista</b>.
+  Abra o arquivo direto no seu navegador para dados 100% reais.
+</div>
+
+<div class="wrap">
+  <section class="chart-area">
+    <div class="toolbar">
+      <span class="lbl">Candles</span>
+      <div class="tf" id="tfBox">
+        <button data-tf="15m">15m</button>
+        <button data-tf="1h">1h</button>
+        <button data-tf="4h" class="act">4h</button>
+        <button data-tf="1d">1D</button>
+      </div>
+      <span class="lbl">Sonar</span>
+      <div class="tf" id="sonarBox">
+        <button data-mode="sweep" title="Varredura lenta acendendo as zonas">Varredura</button>
+        <button data-mode="off" title="Sem efeito de sonar">Desligado</button>
+        <button data-mode="blaze" class="act" title="Zonas mais ativas permanentemente incandescentes">Incandescente</button>
+      </div>
+      <div class="legend">
+        <span class="lg-s"><i></i>Shorts p/ liquidar (acima)</span>
+        <span class="lg-l"><i></i>Longs p/ liquidar (abaixo)</span>
+        <span class="lg-p"><i></i>Preço ao vivo</span>
+      </div>
+    </div>
+
+    <div class="frame">
+      <div id="chartBox">
+        <canvas id="cv"></canvas>
+        <div class="zoomctl">
+          <button class="zbtn" id="zin"  title="Aproximar">+</button>
+          <button class="zbtn" id="zout" title="Afastar">−</button>
+          <button class="zbtn" id="zfit" title="Ver mapa completo" style="font-size:13px">⤢</button>
+          <button class="zbtn" id="zpx"  title="Centralizar no preço" style="font-size:12px;color:var(--gold)">⌖</button>
+        </div>
+        <div class="vrange mono" id="vrange"></div>
+        <div class="zhint">🖱 role p/ zoom · arraste p/ navegar · 2× clique aproxima · passe o mouse p/ sondar</div>
+        <div id="status"><span class="ring"></span> sondando o abismo…</div>
+      </div>
+    </div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <h3>Ímã de liquidez</h3>
+      <div class="magnet-track"><div class="magnet-needle" id="needle"></div></div>
+      <div class="magnet-labels"><span>PUXA ↓</span><span>EQUILÍBRIO</span><span>PUXA ↑</span></div>
+      <div class="magnet-read" id="magnetRead">Calculando o desequilíbrio…</div>
+    </div>
+
+    <div class="panel">
+      <h3>Zonas acima · caça aos shorts</h3>
+      <div id="zonesUp"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Zonas abaixo · caça aos longs</h3>
+      <div id="zonesDown"></div>
+    </div>
+
+    <div class="foot-note">
+      <b>Como ler:</b> as faixas brilhantes são bolsões estimados de liquidações + ordens reais
+      no book, consolidados de várias corretoras sobre <b>~500 dias</b> de histórico. O preço
+      tende a ser <b>atraído</b> ao lado com mais liquidez; enquanto essas zonas não são visitadas,
+      o movimento fica travado. Clique numa zona para focar. Alavancagens 10×/25×/50×/100×.
+      Não é recomendação de investimento.
+    </div>
+  </aside>
+</div>
+</div>
+
+<script>
+/* ================================================================
+   ABISSAL — liquidez consolidada · sonar · partículas · zoom/pan
+   Fontes: Binance (WS + REST), Bybit, OKX, Coinbase, Kraken
+   ================================================================ */
+const $ = id => document.getElementById(id);
+const fmt$ = (v,d=0)=> v==null?'—':v.toLocaleString('pt-BR',{style:'currency',currency:'USD',maximumFractionDigits:d});
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const SOURCES = [
+  {id:'binance-ws', name:'Binance WS', px:null, on:false},
+  {id:'binance',    name:'Binance',  px:null, on:false},
+  {id:'bybit',      name:'Bybit',    px:null, on:false},
+  {id:'okx',        name:'OKX',      px:null, on:false},
+  {id:'coinbase',   name:'Coinbase', px:null, on:false},
+  {id:'kraken',     name:'Kraken',   px:null, on:false},
+];
+
+const state = {
+  tf:'4h',
+  candles:[], daily:[],
+  price:null, prevPrice:null, pct24:null,
+  map:null,
+  view:{lo:null,hi:null},
+  mouse:null,
+  demo:false,
+  tickAt:0,       // p/ ripple quando o preço muda
+  sonarMode:'blaze',   // 'sweep' | 'off' | 'blaze'
+};
+
+function renderSources(){
+  $('sources').innerHTML = SOURCES.map(s=>`
+    <div class="chip ${s.on?'on':(s.tried?'err':'')}">
+      <span class="dot"></span>${s.name}
+      <span class="px mono">${s.px?fmt$(s.px):''}</span>
+    </div>`).join('');
+}
+const src = id => SOURCES.find(s=>s.id===id);
+
+async function jget(url, ms=8000){
+  const c = new AbortController();
+  const t = setTimeout(()=>c.abort(), ms);
+  try{
+    const r = await fetch(url,{signal:c.signal});
+    if(!r.ok) throw new Error(r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+/* ---------- preços ---------- */
+async function pollPrices(){
+  const jobs = [
+    ['binance', async()=> parseFloat((await jget('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT')).price)],
+    ['bybit',   async()=> parseFloat((await jget('https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT')).result.list[0].lastPrice)],
+    ['okx',     async()=> parseFloat((await jget('https://www.okx.com/api/v5/market/ticker?instId=BTC-USDT')).data[0].last)],
+    ['coinbase',async()=> parseFloat((await jget('https://api.coinbase.com/v2/prices/BTC-USD/spot')).data.amount)],
+    ['kraken',  async()=> { const d=await jget('https://api.kraken.com/0/public/Ticker?pair=XBTUSD'); return parseFloat(Object.values(d.result)[0].c[0]); }],
+  ];
+  await Promise.allSettled(jobs.map(async ([id,fn])=>{
+    const s = src(id); s.tried = true;
+    try{ s.px = await fn(); s.on = true; }
+    catch(e){ s.on = false; }
+  }));
+  const live = SOURCES.filter(s=>s.on && s.px);
+  if(live.length && !src('binance-ws').on){
+    const agg = live.reduce((a,s)=>a+s.px,0)/live.length;
+    setPrice(agg, `média de ${live.length} corretora${live.length>1?'s':''}`);
+  }
+  renderSources();
+}
+
+function connectWS(){
+  try{
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+    ws.onmessage = e=>{
+      const d = JSON.parse(e.data);
+      const s = src('binance-ws'); s.on = true; s.px = parseFloat(d.c);
+      state.pct24 = parseFloat(d.P);
+      setPrice(s.px, 'Binance · websocket ao vivo');
+    };
+    ws.onclose = ()=>{ src('binance-ws').on=false; renderSources(); setTimeout(connectWS, 5000); };
+    ws.onerror = ()=> ws.close();
+  }catch(e){}
+}
+
+function setPrice(p, subtitle){
+  state.prevPrice = state.price; state.price = p;
+  if(state.prevPrice!=null && Math.abs(p-state.prevPrice)>0.5) state.tickAt = performance.now();
+  const el = $('bigPrice');
+  el.textContent = fmt$(p,0);
+  el.classList.toggle('up',   state.prevPrice!=null && p>state.prevPrice);
+  el.classList.toggle('down', state.prevPrice!=null && p<state.prevPrice);
+  $('priceSub').textContent = subtitle;
+  $('wsPulse').classList.remove('off');
+  if(state.pct24!=null){
+    const d = $('delta24');
+    d.textContent = `${state.pct24>=0?'▲':'▼'} ${Math.abs(state.pct24).toFixed(2)}% 24h`;
+    d.classList.toggle('neg', state.pct24<0);
+  }
+}
+
+/* ---------- candles ---------- */
+async function fetchTF(iv, n){
+  try{
+    const d = await jget(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${iv}&limit=${n}`);
+    return d.map(k=>({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[7]}));
+  }catch(e){}
+  try{
+    const ivb = {'15m':'15','1h':'60','4h':'240','1d':'D'}[iv];
+    const d = await jget(`https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=${ivb}&limit=${n}`);
+    return d.result.list.reverse().map(k=>({t:+k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[6]}));
+  }catch(e){}
+  return null;
+}
+
+/* ---------- order books ---------- */
+async function fetchBooks(){
+  const books = [];
+  const push = (p,q)=> books.push([p, p*q]);
+  const jobs = [
+    async()=>{ const d=await jget('https://api.binance.com/api/v3/depth?symbol=BTCUSDT&limit=1000');
+      d.bids.forEach(b=>push(+b[0],+b[1])); d.asks.forEach(a=>push(+a[0],+a[1])); },
+    async()=>{ const d=await jget('https://api.bybit.com/v5/market/orderbook?category=linear&symbol=BTCUSDT&limit=500');
+      d.result.b.forEach(b=>push(+b[0],+b[1])); d.result.a.forEach(a=>push(+a[0],+a[1])); },
+    async()=>{ const d=await jget('https://www.okx.com/api/v5/market/books?instId=BTC-USDT-SWAP&sz=400');
+      const btcPerCt = 0.01;
+      d.data[0].bids.forEach(b=>push(+b[0],+b[1]*btcPerCt));
+      d.data[0].asks.forEach(a=>push(+a[0],+a[1]*btcPerCt)); },
+  ];
+  await Promise.allSettled(jobs.map(f=>f()));
+  return books;
+}
+
+/* ---------- mapa ---------- */
+const LEVS = [[10,.34],[25,.30],[50,.21],[100,.15]];
+const MAINT = 0.005;
+
+function accumulate(cs, longs, shorts, lo, size, NB, px, halfLifeBars){
+  const N = cs.length; if(!N) return;
+  const bi = p => Math.max(0, Math.min(NB-1, Math.floor((p-lo)/size)));
+  const sufLow = new Float64Array(N), sufHigh = new Float64Array(N);
+  let ml=Infinity, mh=-Infinity;
+  for(let i=N-1;i>=0;i--){ ml=Math.min(ml,cs[i].l); mh=Math.max(mh,cs[i].h); sufLow[i]=ml; sufHigh[i]=mh; }
+  for(let i=0;i<N;i++){
+    const c = cs[i];
+    const entry = (c.h+c.l+c.c)/3;
+    const w = c.v * Math.exp(-(N-1-i)/halfLifeBars);
+    for(const [L,lw] of LEVS){
+      const liqLong  = entry * (1 - 1/L + MAINT);
+      const liqShort = entry * (1 + 1/L - MAINT);
+      if(liqLong  < px && !(i<N-1 && sufLow[i+1]  <= liqLong))  longs[bi(liqLong)]  += w*lw;
+      if(liqShort > px && !(i<N-1 && sufHigh[i+1] >= liqShort)) shorts[bi(liqShort)] += w*lw;
+    }
+  }
+}
+
+function buildMap(books){
+  const all = state.daily.length ? state.daily : state.candles;
+  if(!all.length) return null;
+  const px = state.price || all[all.length-1].c;
+
+  const lo = Math.min(...all.map(c=>c.l)) * 0.96;
+  const hi = Math.max(...all.map(c=>c.h)) * 1.04;
+  const NB = 560;
+  const size = (hi-lo)/NB;
+
+  const Ld = new Float64Array(NB), Sd = new Float64Array(NB);
+  const Lt = new Float64Array(NB), St = new Float64Array(NB);
+  const book = new Float64Array(NB);
+  accumulate(state.daily,   Ld, Sd, lo, size, NB, px, 180);
+  accumulate(state.candles, Lt, St, lo, size, NB, px, 90);
+  const bi = p => Math.max(0, Math.min(NB-1, Math.floor((p-lo)/size)));
+  for(const [p,usd] of books){ if(p>lo&&p<hi) book[bi(p)] += usd; }
+
+  const norm = a => { const m = Math.max(...a, 1e-9); return Array.from(a, v=>v/m); };
+  const nLd=norm(Ld), nSd=norm(Sd), nLt=norm(Lt), nSt=norm(St), nb=norm(book);
+  const intL = nLd.map((v,i)=> .45*v + .30*nLt[i] + .25*nb[i]);
+  const intS = nSd.map((v,i)=> .45*v + .30*nSt[i] + .25*nb[i]);
+
+  state.map = {lo,hi,size,NB,intL,intS,px};
+  if(state.view.lo==null){ state.view.lo=lo; state.view.hi=hi; }
+  updateSidePanels();
+  return state.map;
+}
+
+/* ---------- zonas + ímã ---------- */
+function clusters(int, lo, size, px, above, limit=5){
+  const out=[];
+  for(let i=0;i<int.length;i++){
+    const p = lo + (i+.5)*size;
+    if(above ? p<=px : p>=px) continue;
+    if(int[i]>0.10) out.push({p, s:int[i]});
+  }
+  out.sort((a,b)=>b.s-a.s);
+  const picked=[];
+  for(const z of out){
+    if(picked.every(q=>Math.abs(q.p-z.p)/px > 0.008)) picked.push(z);
+    if(picked.length===limit) break;
+  }
+  return picked.sort((a,b)=> above ? a.p-b.p : b.p-a.p);
+}
+
+let topUp=[], topDn=[];
+function updateSidePanels(){
+  const M = state.map; if(!M) return;
+  const px = state.price || M.px;
+  topUp = clusters(M.intS, M.lo, M.size, px, true);
+  topDn = clusters(M.intL, M.lo, M.size, px, false);
+  const row = (z,cls)=>`
+    <div class="zone ${cls}" data-p="${z.p.toFixed(0)}" title="Clique para focar no gráfico">
+      <span class="price mono">${fmt$(z.p,0)}</span>
+      <span class="bar"><i style="width:${Math.round(z.s*100)}%"></i></span>
+      <span class="dist mono">${((z.p-px)/px*100).toFixed(1)}%</span>
+    </div>`;
+  $('zonesUp').innerHTML   = topUp.length? topUp.map(z=>row(z,'short')).join('') : '<div class="foot-note">Sem bolsões relevantes acima.</div>';
+  $('zonesDown').innerHTML = topDn.length? topDn.map(z=>row(z,'long')).join('')  : '<div class="foot-note">Sem bolsões relevantes abaixo.</div>';
+
+  let upSum=0, dnSum=0;
+  for(let i=0;i<M.NB;i++){
+    const p = M.lo + (i+.5)*M.size;
+    const d = (p-px)/px;
+    if(d>0 && d<0.08) upSum += M.intS[i];
+    if(d<0 && d>-0.08) dnSum += M.intL[i];
+  }
+  const tot = upSum+dnSum || 1;
+  const bias = upSum/tot;
+  $('needle').style.left = (8 + bias*84).toFixed(1)+'%';
+  const strongest = bias>=.5 ? topUp[0] : topDn[topDn.length-1] || topDn[0];
+  const pct = Math.round(Math.abs(bias-.5)*200);
+  $('magnetRead').innerHTML = strongest
+    ? `<b>${pct}%</b> de desequilíbrio puxando para ${bias>=.5?'<b>cima</b> — alvo provável em':'<b>baixo</b> — alvo provável em'} <b class="mono">${fmt$(strongest.p,0)}</b>. Enquanto essa zona não for visitada, tendência de lateralização.`
+    : 'Liquidez equilibrada — sem ímã claro por perto.';
+}
+
+document.addEventListener('click', e=>{
+  const z = e.target.closest('.zone'); if(!z) return;
+  const p = +z.dataset.p;
+  const px = state.price || (state.map&&state.map.px); if(!p||!px) return;
+  const lo = Math.min(p,px), hi = Math.max(p,px);
+  const pad = (hi-lo)*0.35 + px*0.004;
+  animateView(lo-pad, hi+pad);
+});
+
+/* ================= VIEW ================= */
+function clampView(lo,hi){
+  const M = state.map; if(!M) return [lo,hi];
+  const minSpan = M.px*0.004;
+  const maxSpan = (M.hi-M.lo);
+  let span = Math.min(maxSpan, Math.max(minSpan, hi-lo));
+  let c = (lo+hi)/2;
+  c = Math.max(M.lo+span/2, Math.min(M.hi-span/2, c));
+  return [c-span/2, c+span/2];
+}
+function setView(lo,hi){ [state.view.lo,state.view.hi] = clampView(lo,hi); updVRange(); }
+function zoomAt(factor, focusPrice){
+  const v = state.view;
+  const f = focusPrice==null ? (v.lo+v.hi)/2 : focusPrice;
+  setView(f-(f-v.lo)*factor, f+(v.hi-f)*factor);
+}
+let animId=null;
+function animateView(lo,hi){
+  cancelAnimationFrame(animId);
+  const s={lo:state.view.lo,hi:state.view.hi}, t0=performance.now();
+  if(REDUCE){ setView(lo,hi); return; }
+  const step = now=>{
+    const k = Math.min(1,(now-t0)/450), e = 1-Math.pow(1-k,3);
+    setView(s.lo+(lo-s.lo)*e, s.hi+(hi-s.hi)*e);
+    if(k<1) animId=requestAnimationFrame(step);
+  };
+  animId=requestAnimationFrame(step);
+}
+function updVRange(){
+  if(state.view.lo==null) return;
+  $('vrange').innerHTML = `visível: <b>${fmt$(state.view.lo,0)}</b> → <b>${fmt$(state.view.hi,0)}</b>`;
+}
+
+/* ================= CANVAS ================= */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){
+  const r = $('chartBox').getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio||1);
+  W = r.width; H = r.height;
+  cv.width = Math.max(1,W*DPR); cv.height = Math.max(1,H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+new ResizeObserver(resize).observe($('chartBox'));
+window.addEventListener('resize', resize);
+
+const PADR = 96, PADT = 12, PADB = 16;
+const yOf = p => PADT + (1-(p-state.view.lo)/(state.view.hi-state.view.lo)) * (H-PADT-PADB);
+const pOf = y => state.view.lo + (1-(y-PADT)/(H-PADT-PADB)) * (state.view.hi-state.view.lo);
+
+function niceStep(span, target){
+  const raw = span/target;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  for(const m of [1,2,2.5,5,10]) if(mag*m >= raw) return mag*m;
+  return mag*10;
+}
+function tag(x,y,text,fill,inkColor,align='left'){
+  ctx.font = '600 11px ui-monospace,monospace';
+  const tw = ctx.measureText(text).width+14;
+  const xx = align==='right'? x-tw : x;
+  ctx.fillStyle = fill;
+  ctx.beginPath(); ctx.roundRect(xx, y-10, tw, 20, 5); ctx.fill();
+  ctx.fillStyle = inkColor; ctx.fillText(text, xx+7, y+4);
+  return tw;
+}
+
+/* partículas do sonar */
+const sparks = [];
+function spawnSpark(x,y,above){
+  if(sparks.length>140) return;
+  sparks.push({x,y,vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.35,
+    life:1, above, r:1+Math.random()*1.8});
+}
+
+function draw(ts){
+  requestAnimationFrame(draw);
+  if(!state.candles.length || !state.map || state.view.lo==null) return;
+  $('status').style.display='none';
+  const M = state.map, cs = state.candles, v = state.view;
+  const px = state.price || M.px;
+  ctx.clearRect(0,0,W,H);
+
+  const chartW = W-PADR;
+  const t = (ts||0)/1000;
+
+  /* posição do sonar (usada p/ acender as faixas) */
+  const mode = REDUCE ? 'off' : state.sonarMode;
+  const sweepPeriod = 7;                 // segundos por varredura
+  const innerH = H-PADT-PADB;
+  const sy = mode==='sweep' ? PADT + ((t % sweepPeriod)/sweepPeriod) * innerH : -9999;
+
+  /* --- calor --- */
+  const i0 = Math.max(0, Math.floor((v.lo-M.lo)/M.size));
+  const i1 = Math.min(M.NB-1, Math.ceil((v.hi-M.lo)/M.size));
+  for(let i=i0;i<=i1;i++){
+    const p0 = M.lo+i*M.size;
+    const yTop = yOf(p0+M.size), hh = Math.max(1, yOf(p0)-yTop);
+    const above = (p0+M.size/2) > px;
+    const val = above ? M.intS[i] : M.intL[i];
+    if(val<0.045) continue;
+    const shimmer = 1 + 0.08*Math.sin(t*1.4 + i*0.35);
+    /* incêndio conforme o modo do sonar */
+    let ignite = 0;
+    const dSweep = Math.abs((yTop+hh/2) - sy);
+    if(mode==='sweep'){
+      ignite = Math.exp(-dSweep/55) * 0.65;                 // acende na passagem
+    } else if(mode==='blaze' && val>0.35){
+      // radar "rápido demais para ver": zonas ativas ficam incandescentes,
+      // com cintilação acelerada proporcional à força
+      ignite = (0.35 + 0.3*Math.sin(t*7 + i*1.7) + 0.15*Math.sin(t*13 + i*0.6)) * val;
+    }
+    const a = Math.min(.98, val*val*.95*shimmer + ignite*val);
+
+    const g = ctx.createLinearGradient(0,0,chartW,0);
+    if(above){
+      g.addColorStop(0, `rgba(255,133,71,${(a*.28).toFixed(3)})`);
+      g.addColorStop(1, `rgba(255,133,71,${(a*.62).toFixed(3)})`);
+    }else{
+      g.addColorStop(0, `rgba(46,230,200,${(a*.28).toFixed(3)})`);
+      g.addColorStop(1, `rgba(46,230,200,${(a*.62).toFixed(3)})`);
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, yTop, chartW, hh);
+    ctx.fillStyle = above ? `rgba(255,133,71,${Math.min(1,a+.2)})` : `rgba(46,230,200,${Math.min(1,a+.2)})`;
+    ctx.fillRect(chartW+4, yTop, (PADR-12)*val, hh);
+
+    /* núcleo incandescente no modo blaze: brasas nas zonas mais fortes */
+    if(mode==='blaze' && val>0.55){
+      const heat = (a - val*val*.95) / Math.max(.1,val); // parcela vinda do ignite
+      const core = Math.max(0, Math.min(1, heat)) * val;
+      if(core>0.05){
+        ctx.save();
+        ctx.shadowColor = above ? 'rgba(255,170,110,.95)' : 'rgba(120,255,235,.95)';
+        ctx.shadowBlur = 18*core;
+        ctx.fillStyle = above
+          ? `rgba(255,200,150,${(core*.5).toFixed(3)})`
+          : `rgba(190,255,244,${(core*.5).toFixed(3)})`;
+        ctx.fillRect(chartW*0.35, yTop, chartW*0.65, hh);
+        ctx.restore();
+      }
+    }
+
+    /* faíscas: na varredura, onde o sonar cruza; no blaze, brotando das brasas */
+    if(mode==='sweep' && val>0.45 && dSweep<6 && Math.random()<0.5){
+      spawnSpark(Math.random()*chartW, yTop+hh/2, above);
+    } else if(mode==='blaze' && val>0.6 && Math.random()<0.05){
+      spawnSpark(chartW*0.35 + Math.random()*chartW*0.65, yTop+hh/2, above);
+    }
+  }
+
+  /* --- linha de varredura (só no modo Varredura) --- */
+  if(mode==='sweep'){
+    const trail = 110;
+    const sg = ctx.createLinearGradient(0,sy-trail,0,sy);
+    sg.addColorStop(0,'rgba(150,225,255,0)');
+    sg.addColorStop(.7,'rgba(150,225,255,.05)');
+    sg.addColorStop(1,'rgba(180,235,255,.13)');
+    ctx.fillStyle = sg; ctx.fillRect(0,sy-trail,chartW,trail);
+    ctx.save();
+    ctx.shadowColor='rgba(160,230,255,.9)'; ctx.shadowBlur=16;
+    ctx.strokeStyle='rgba(190,240,255,.55)'; ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(chartW,sy); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* --- faíscas --- */
+  for(let i=sparks.length-1;i>=0;i--){
+    const s = sparks[i];
+    s.x+=s.vx; s.y+=s.vy; s.life-=0.02;
+    if(s.life<=0){ sparks.splice(i,1); continue; }
+    ctx.fillStyle = s.above
+      ? `rgba(255,180,130,${(s.life*.9).toFixed(2)})`
+      : `rgba(140,255,235,${(s.life*.9).toFixed(2)})`;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r*s.life,0,7); ctx.fill();
+  }
+
+  /* --- grade + números --- */
+  const span = v.hi-v.lo;
+  const step = niceStep(span, Math.max(6, Math.floor(innerH/44)));
+  ctx.font = '10.5px ui-monospace,monospace';
+  const first = Math.ceil(v.lo/step)*step;
+  for(let p=first; p<=v.hi; p+=step){
+    const yy = yOf(p);
+    ctx.strokeStyle = 'rgba(27,37,64,.9)';
+    ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(chartW,yy); ctx.stroke();
+    ctx.fillStyle = 'rgba(150,165,195,.95)';
+    ctx.fillText(fmt$(p,0), chartW+6, yy-3);
+  }
+  if(span/step < 14 && step/5 > 1){
+    ctx.strokeStyle = 'rgba(27,37,64,.4)';
+    for(let p=Math.ceil(v.lo/(step/5))*(step/5); p<=v.hi; p+=step/5){
+      const yy = yOf(p);
+      ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(chartW,yy); ctx.stroke();
+    }
+  }
+
+  /* --- candles --- */
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0,0,chartW,H); ctx.clip();
+  const n = cs.length, cw = chartW/n;
+  for(let i=0;i<n;i++){
+    const c = cs[i];
+    if(c.h < v.lo || c.l > v.hi) continue;
+    const x = i*cw + cw*0.5;
+    const up = c.c>=c.o;
+    ctx.strokeStyle = up? 'rgba(234,240,250,.55)':'rgba(234,240,250,.33)';
+    ctx.beginPath(); ctx.moveTo(x,yOf(c.h)); ctx.lineTo(x,yOf(c.l)); ctx.stroke();
+    ctx.fillStyle = up? 'rgba(234,240,250,.88)':'rgba(96,112,145,.88)';
+    const bh = Math.max(1, Math.abs(yOf(c.o)-yOf(c.c)));
+    ctx.fillRect(x-Math.max(.6,cw*.32), Math.min(yOf(c.o),yOf(c.c)), Math.max(1.2,cw*.64), bh);
+  }
+  ctx.restore();
+
+  /* --- etiquetas das zonas mais fortes --- */
+  const drawZoneTags = (zs, rgba)=> zs.slice(0,3).forEach(z=>{
+    if(z.p<v.lo||z.p>v.hi) return;
+    const yy = yOf(z.p);
+    ctx.strokeStyle = rgba(0.35);
+    ctx.setLineDash([3,5]);
+    ctx.beginPath(); ctx.moveTo(0,yy); ctx.lineTo(chartW,yy); ctx.stroke();
+    ctx.setLineDash([]);
+    tag(50, yy, `${fmt$(z.p,0)} · ${Math.round(z.s*100)}%`, 'rgba(9,13,24,.85)', rgba(0.95));
+  });
+  drawZoneTags(topUp, a=>`rgba(255,133,71,${a})`);
+  drawZoneTags(topDn, a=>`rgba(46,230,200,${a})`);
+
+  /* --- linha do preço + ripple no tick --- */
+  if(px>=v.lo && px<=v.hi){
+    const yp = yOf(px);
+    const glow = 0.55 + 0.35*Math.sin(t*2.2);
+    ctx.save();
+    ctx.shadowColor = `rgba(247,201,72,${glow})`; ctx.shadowBlur = 14;
+    ctx.strokeStyle = 'rgba(247,201,72,.95)'; ctx.lineWidth = 1.6;
+    ctx.setLineDash([7,5]);
+    ctx.beginPath(); ctx.moveTo(0,yp); ctx.lineTo(chartW,yp); ctx.stroke();
+    ctx.restore(); ctx.setLineDash([]);
+    /* ripple quando o preço mexe */
+    const dt = (performance.now()-state.tickAt)/600;
+    if(!REDUCE && dt<1){
+      const rr = 6+dt*30;
+      ctx.strokeStyle = `rgba(247,201,72,${(1-dt)*.7})`;
+      ctx.lineWidth = 2*(1-dt)+0.5;
+      ctx.beginPath(); ctx.arc(chartW-8, yp, rr, 0, 7); ctx.stroke();
+    }
+    tag(chartW-6, yp, fmt$(px,0), '#F7C948', '#04060C', 'right');
+  } else {
+    const up = px > v.hi;
+    const yy = up? PADT+16 : H-PADB-16;
+    const lbl = `${up?'▲':'▼'} preço ${fmt$(px,0)} ${up?'acima':'abaixo'} da vista`;
+    ctx.font='600 11px ui-monospace,monospace';
+    const tw = ctx.measureText(lbl).width+16;
+    tag(chartW/2-tw/2, yy, lbl, '#F7C948', '#04060C');
+  }
+
+  /* --- crosshair de sonda --- */
+  if(state.mouse){
+    const {x,y} = state.mouse;
+    if(x<chartW && y>PADT && y<H-PADB){
+      const p = pOf(y);
+      ctx.strokeStyle='rgba(234,240,250,.22)';
+      ctx.setLineDash([2,4]);
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(chartW,y); ctx.stroke();
+      ctx.setLineDash([]);
+      const idx = Math.max(0, Math.min(M.NB-1, Math.floor((p-M.lo)/M.size)));
+      const above = p>px;
+      const inten = Math.round((above?M.intS[idx]:M.intL[idx])*100);
+      const lado = above? 'shorts':'longs';
+      tag(chartW-6, y, `${fmt$(p,0)} · ${lado} ${inten}%`, 'rgba(9,13,24,.92)',
+          above?'rgba(255,133,71,.95)':'rgba(46,230,200,.95)', 'right');
+    }
+  }
+}
+
+/* ---------- interação ---------- */
+cv.addEventListener('wheel', e=>{
+  e.preventDefault();
+  if(state.view.lo==null) return;
+  zoomAt(e.deltaY>0 ? 1.14 : 1/1.14, pOf(e.offsetY));
+},{passive:false});
+
+cv.addEventListener('dblclick', e=>{
+  if(state.view.lo==null) return;
+  const p = pOf(e.offsetY);
+  animateView(p*0.985, p*1.015);
+});
+
+cv.addEventListener('pointermove', e=>{
+  const r = cv.getBoundingClientRect();
+  state.mouse = {x:e.clientX-r.left, y:e.clientY-r.top};
+});
+cv.addEventListener('pointerleave', ()=> state.mouse=null);
+
+let drag=null;
+cv.addEventListener('pointerdown', e=>{
+  if(e.pointerType==='touch') return;
+  drag = {y:e.clientY, lo:state.view.lo, hi:state.view.hi};
+  cv.classList.add('grabbing'); cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  const dy = e.clientY - drag.y;
+  const dp = dy/(H-PADT-PADB) * (drag.hi-drag.lo);
+  setView(drag.lo+dp, drag.hi+dp);
+});
+const endDrag = ()=>{ drag=null; cv.classList.remove('grabbing'); };
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+
+let touches=new Map(), pinch=null;
+cv.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  for(const t of e.changedTouches) touches.set(t.identifier,{y:t.clientY});
+  if(touches.size===2){
+    const [a,b]=[...touches.values()];
+    pinch={d:Math.max(20,Math.abs(a.y-b.y)), lo:state.view.lo, hi:state.view.hi,
+           mid:pOf(((a.y+b.y)/2)-cv.getBoundingClientRect().top)};
+  } else if(touches.size===1){
+    drag={y:[...touches.values()][0].y, lo:state.view.lo, hi:state.view.hi};
+  }
+},{passive:false});
+cv.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  for(const t of e.changedTouches){ const o=touches.get(t.identifier); if(o) o.y=t.clientY; }
+  if(pinch && touches.size===2){
+    const [a,b]=[...touches.values()];
+    const d = Math.max(20, Math.abs(a.y-b.y));
+    const span = (pinch.hi-pinch.lo) * (pinch.d/d);
+    setView(pinch.mid-span/2, pinch.mid+span/2);
+  } else if(drag && touches.size===1){
+    const y=[...touches.values()][0].y;
+    const dp = (y-drag.y)/(H-PADT-PADB) * (drag.hi-drag.lo);
+    setView(drag.lo+dp, drag.hi+dp);
+  }
+},{passive:false});
+cv.addEventListener('touchend', e=>{
+  for(const t of e.changedTouches) touches.delete(t.identifier);
+  if(touches.size<2) pinch=null;
+  if(touches.size===0) drag=null;
+});
+
+$('zin').onclick  = ()=> zoomAt(1/1.35);
+$('zout').onclick = ()=> zoomAt(1.35);
+$('zfit').onclick = ()=> { if(state.map) animateView(state.map.lo, state.map.hi); };
+$('zpx').onclick  = ()=> {
+  const px = state.price || (state.map&&state.map.px); if(!px) return;
+  animateView(px*0.94, px*1.06);
+};
+
+/* ---------- modo demo ---------- */
+function demoData(){
+  state.demo = true;
+  $('demoBanner').classList.add('show');
+  $('wsPulse').classList.add('off');
+  const now=Date.now();
+  let p=58000; const daily=[];
+  for(let i=0;i<500;i++){
+    const cycle = Math.sin(i/70)*9000 + i*95;
+    const o=p, c=58000+cycle+(Math.random()-.5)*2500;
+    const h=Math.max(o,c)+Math.random()*1600, l=Math.min(o,c)-Math.random()*1600;
+    daily.push({t:now-(500-i)*864e5,o,h,l,c,v:2e9+Math.random()*3e9}); p=c;
+  }
+  state.daily=daily;
+  let q=daily[daily.length-1].c; const cs=[];
+  for(let i=0;i<240;i++){
+    const o=q, c=q+(Math.random()-.5)*900;
+    cs.push({t:now-(240-i)*144e5,o,h:Math.max(o,c)+Math.random()*400,l:Math.min(o,c)-Math.random()*400,c,v:4e7+Math.random()*6e7}); q=c;
+  }
+  state.candles=cs;
+  state.pct24 = -0.42;
+  setPrice(q,'SIMULAÇÃO — sem conexão com as corretoras');
+  buildMap([]);
+  setInterval(()=>{
+    q += (Math.random()-.5)*160;
+    setPrice(q,'SIMULAÇÃO — sem conexão com as corretoras');
+    if(state.map) state.map.px=q;
+    updateSidePanels();
+  },1800);
+}
+
+/* ---------- orquestração ---------- */
+async function refreshAll(){
+  const ivMap = {'15m':['15m',240],'1h':['1h',240],'4h':['4h',300],'1d':['1d',400]};
+  const [iv,n] = ivMap[state.tf];
+  const [tf, daily] = await Promise.all([ fetchTF(iv,n), fetchTF('1d',500) ]);
+  if(!tf && !daily){
+    if(!state.demo && !SOURCES.some(s=>s.on)) demoData();
+    return;
+  }
+  state.demo=false;
+  if(tf) state.candles = tf;
+  if(daily) state.daily = daily;
+  const books = await fetchBooks();
+  buildMap(books);
+}
+
+$('sonarBox').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#sonarBox button').forEach(x=>x.classList.remove('act'));
+  b.classList.add('act');
+  state.sonarMode = b.dataset.mode;
+  sparks.length = 0;   // limpa faíscas ao trocar de modo
+});
+
+$('tfBox').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('.tf button').forEach(x=>x.classList.remove('act'));
+  b.classList.add('act');
+  state.tf = b.dataset.tf;
+  refreshAll();
+});
+
+(async function init(){
+  /* título: divide em letras p/ a onda de incandescência */
+  const h = $('brandTitle');
+  h.innerHTML = [...h.textContent].map((ch,i)=>`<span class="l" style="--i:${i}">${ch}</span>`).join('');
+
+  renderSources();
+  resize();
+  requestAnimationFrame(draw);
+  connectWS();
+  pollPrices();  setInterval(pollPrices, 10000);
+  setInterval(renderSources, 3000);
+  await refreshAll();
+  setInterval(refreshAll, 45000);
+  const f = document.createElement('link');
+  f.rel='stylesheet';
+  f.href='https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Sora:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap';
+  document.head.appendChild(f);
+})();
+</script>
+</body>
+</html>

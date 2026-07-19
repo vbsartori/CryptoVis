@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bruno Sartori — Regulatory Console · 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Spline+Sans:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05070c;
+    --bg2:#080c14;
+    --panel:#0a1019;
+    --panel2:#0c1422;
+    --grid:rgba(60,230,255,.035);
+    --line:#16202f;
+    --line2:#1d2b3d;
+    --cyan:#34e7ff;
+    --cyan-d:#1893a8;
+    --lime:#aef34e;
+    --violet:#a274ff;
+    --magenta:#ff52c8;
+    --text:#bcc9d8;
+    --text-s:#8497ab;
+    --muted:#586a7e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Spline Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+  /* ---------- WebGL layer ---------- */
+  #gl{position:fixed;inset:0;z-index:0;pointer-events:none;display:block;}
+
+  .wrap{position:relative;z-index:1;}
+
+  .sheet{
+    max-width:1000px;margin:44px auto;position:relative;overflow:hidden;
+    background:
+      radial-gradient(circle at 12% -2%, rgba(52,231,255,.06), transparent 40%),
+      radial-gradient(circle at 90% 102%, rgba(162,116,255,.06), transparent 44%),
+      linear-gradient(180deg,rgba(7,10,17,.62),rgba(5,7,12,.72));
+    border:1px solid var(--line2);
+    box-shadow:0 0 0 1px rgba(52,231,255,.05),0 44px 100px -44px rgba(0,0,0,.95);
+    backdrop-filter:blur(2px);
+  }
+  .fx{position:absolute;inset:0;pointer-events:none;z-index:0;}
+  .fx.grid{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:42px 42px;
+    mask-image:radial-gradient(circle at 50% 25%,#000 35%,transparent 88%);-webkit-mask-image:radial-gradient(circle at 50% 25%,#000 35%,transparent 88%);}
+  .fx.scan{background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);opacity:.45;}
+  .inner{position:relative;z-index:2;}
+
+  /* corner-bracket helper */
+  .hud{position:relative;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(52,231,255,.02),transparent);}
+  .hud::before,.hud::after{content:"";position:absolute;width:12px;height:12px;border-color:var(--cyan);z-index:3;}
+  .hud::before{top:-1px;left:-1px;border-top:2px solid;border-left:2px solid;}
+  .hud::after{bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid;}
+
+  /* ---- header ---- */
+  header{padding:46px 50px 30px;border-bottom:1px solid var(--line2);position:relative;background:linear-gradient(180deg,rgba(52,231,255,.03),transparent);}
+  header::after{content:"";position:absolute;left:0;bottom:-1px;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan) 25%,var(--violet) 75%,transparent);box-shadow:0 0 12px var(--cyan);}
+  .callsign{font-family:'Spline Sans Mono',monospace;font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .callsign .led{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 9px var(--lime);animation:blink 2s infinite;}
+  .callsign .r3d{color:var(--violet);letter-spacing:.14em;border:1px solid var(--violet);padding:1px 7px;border-radius:2px;font-size:.62rem;}
+  @keyframes blink{50%{opacity:.25;}}
+  h1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:clamp(2.7rem,6.6vw,4.5rem);line-height:.98;text-transform:uppercase;letter-spacing:.02em;color:#e9f6ff;
+     text-shadow:0 0 20px rgba(52,231,255,.4), 1px 1px 0 #0a2a33, 2px 2px 0 #082027, 3px 3px 0 #051318;}
+  h1 .ac{color:var(--cyan);}
+  .role-line{font-family:'Spline Sans Mono',monospace;font-size:clamp(.82rem,1.9vw,1rem);color:var(--text-s);margin-top:14px;line-height:1.7;max-width:64ch;}
+  .role-line .c{color:var(--cyan);}.role-line .v{color:var(--violet);}.role-line .l{color:var(--lime);}
+  .statusbar{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px;}
+  .chip{font-family:'Spline Sans Mono',monospace;font-size:.72rem;color:var(--text-s);background:rgba(12,20,34,.8);border:1px solid var(--line2);padding:6px 12px;display:flex;gap:8px;align-items:center;}
+  .chip b{color:var(--cyan);font-weight:600;}
+  .chip .m{color:var(--muted);}
+  .contact2{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px 22px;font-family:'Spline Sans Mono',monospace;font-size:.78rem;color:var(--text-s);}
+  .contact2 .k{color:var(--violet);}
+
+  /* ---- modules (3D tilt) ---- */
+  .modules{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;padding:30px 50px 6px;perspective:900px;}
+  .mod{padding:18px 18px 16px;transform-style:preserve-3d;transition:transform .14s ease-out, box-shadow .2s;will-change:transform;position:relative;background-color:rgba(9,14,23,.55);}
+  .mod .glare{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;opacity:0;transition:opacity .2s;
+    background:radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(52,231,255,.14), transparent 60%);}
+  .mod:hover .glare{opacity:1;}
+  .mod:hover{box-shadow:0 18px 40px -18px rgba(52,231,255,.25);}
+  .mod .mhead{font-family:'Spline Sans Mono',monospace;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:8px;}
+  .mod .mhead .id{color:var(--cyan);}
+  .mod h3{font-family:'Chakra Petch',sans-serif;font-size:1.18rem;font-weight:600;color:#e3f1fb;letter-spacing:.02em;transform:translateZ(18px);}
+  .mod p{font-size:.83rem;color:var(--text-s);margin-top:7px;transform:translateZ(10px);}
+  .mod.primary{background:linear-gradient(180deg,rgba(52,231,255,.07),rgba(9,14,23,.55));}
+  .mod.primary h3{color:var(--cyan);}
+  .mod.primary::before,.mod.primary::after{border-color:var(--cyan);}
+  .mod.fin::before,.mod.fin::after{border-color:var(--violet);}
+  .mod.fin h3{color:var(--violet);}
+  .mod.fin .glare{background:radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(162,116,255,.16), transparent 60%);}
+  .mod.data::before,.mod.data::after{border-color:var(--lime);}
+  .mod.data h3{color:var(--lime);}
+  .mod.data .glare{background:radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(174,243,78,.13), transparent 60%);}
+  .mtag{display:inline-block;font-family:'Spline Sans Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--line2);border-radius:2px;color:var(--text-s);margin:8px 5px 0 0;transform:translateZ(6px);}
+
+  /* ---- value chain / signal path (floating nodes) ---- */
+  .pipe{padding:24px 50px 6px;}
+  .pipe-title{font-family:'Spline Sans Mono',monospace;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+  .pipe-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;position:relative;}
+  .pipe-row::before{content:"";position:absolute;top:21px;left:11%;right:11%;height:2px;background:linear-gradient(90deg,var(--cyan),var(--lime),var(--cyan));opacity:.4;
+    background-size:200% 100%;animation:flow 6s linear infinite;}
+  @keyframes flow{to{background-position:-200% 0;}}
+  .node{text-align:center;position:relative;}
+  .node .dot{width:44px;height:44px;margin:0 auto 10px;border:1px solid var(--cyan);background:var(--panel);display:flex;align-items:center;justify-content:center;position:relative;z-index:2;
+    clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);box-shadow:0 0 14px rgba(52,231,255,.18);
+    animation:bob 5.5s ease-in-out infinite;}
+  .node:nth-child(2) .dot{animation-delay:1.3s;}
+  .node:nth-child(3) .dot{animation-delay:2.6s;}
+  .node:nth-child(4) .dot{animation-delay:3.9s;}
+  @keyframes bob{50%{transform:translateY(-5px);}}
+  .node .dot svg{width:20px;height:20px;stroke:var(--cyan);fill:none;stroke-width:1.6;}
+  .node .nm{font-family:'Chakra Petch',sans-serif;font-size:.96rem;font-weight:600;color:#dcebf8;letter-spacing:.02em;}
+  .node .st{font-family:'Spline Sans Mono',monospace;font-size:.64rem;color:var(--text-s);margin-top:2px;}
+  .node .st.on{color:var(--lime);}
+
+  /* ---- body ---- */
+  .body{display:grid;grid-template-columns:1fr 300px;gap:0;padding-top:24px;}
+  main{padding:18px 48px 50px;}
+  aside{padding:24px 34px 50px;background:rgba(7,11,18,.46);border-left:1px solid var(--line2);}
+  section{margin-bottom:32px;}section:last-child{margin-bottom:0;}
+  .sec-title{font-family:'Chakra Petch',sans-serif;font-size:1.32rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#dbeaf8;display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .sec-title .bk{font-family:'Spline Sans Mono',monospace;font-size:.85rem;color:var(--cyan);}
+  .sec-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent);}
+  aside .sec-title{font-size:1.06rem;}aside .sec-title::after{display:none;}
+
+  .intro{font-size:1rem;color:var(--text-s);}
+  .intro strong{color:#e2eef9;font-weight:600;}.intro .c{color:var(--cyan);}.intro .v{color:var(--violet);}
+
+  .log{margin-bottom:26px;}
+  .log-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--line2);padding-bottom:8px;margin-bottom:16px;}
+  .log-co{font-family:'Chakra Petch',sans-serif;font-size:1.2rem;font-weight:600;color:#e2eef9;letter-spacing:.02em;}
+  .log-span{font-family:'Spline Sans Mono',monospace;font-size:.7rem;color:var(--cyan);letter-spacing:.05em;}
+  .entry{position:relative;padding-left:22px;margin-bottom:20px;}
+  .entry:last-child{margin-bottom:0;}
+  .entry::before{content:"";position:absolute;left:0;top:7px;width:8px;height:8px;background:var(--bg);border:2px solid var(--cyan);box-shadow:0 0 7px var(--cyan);}
+  .entry::after{content:"";position:absolute;left:3.5px;top:19px;bottom:-18px;width:1px;background:var(--line2);}
+  .entry:last-child::after{display:none;}
+  .entry h4{font-family:'Chakra Petch',sans-serif;font-size:1.05rem;font-weight:600;color:#e2eef9;letter-spacing:.01em;}
+  .entry .org{font-size:.86rem;color:var(--cyan);font-weight:500;margin-top:2px;}
+  .entry .ts{font-family:'Spline Sans Mono',monospace;font-size:.7rem;color:var(--muted);margin-top:3px;}
+  .entry ul{margin:10px 0 0;padding-left:17px;}
+  .entry li{font-size:.88rem;color:var(--text-s);margin-bottom:6px;}
+  .entry li::marker{color:var(--cyan);}
+  .entry li strong{color:#dcebf8;font-weight:600;}
+  .entry li .hl{color:var(--lime);font-weight:600;}
+
+  .compact{display:grid;gap:2px;}
+  .crow{display:grid;grid-template-columns:1fr auto;gap:8px 16px;padding:8px 0;border-bottom:1px dotted var(--line2);align-items:baseline;}
+  .crow:last-child{border-bottom:none;}
+  .crole{font-weight:600;color:#dcebf8;font-size:.87rem;}
+  .corg{font-size:.81rem;color:var(--text-s);}
+  .cwhen{font-family:'Spline Sans Mono',monospace;font-size:.68rem;color:var(--muted);white-space:nowrap;}
+
+  /* aside */
+  .read{margin-bottom:14px;border-left:2px solid var(--cyan);padding-left:12px;}
+  .read .v{font-family:'Chakra Petch',sans-serif;font-size:1.6rem;font-weight:700;color:#e9f6ff;line-height:1;text-shadow:0 0 14px rgba(52,231,255,.35);}
+  .read .k{font-family:'Spline Sans Mono',monospace;font-size:.7rem;color:var(--text-s);text-transform:uppercase;letter-spacing:.06em;}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;}
+  .tag2{font-family:'Spline Sans Mono',monospace;font-size:.71rem;background:rgba(12,20,34,.8);border:1px solid var(--line2);color:var(--text-s);padding:5px 10px;border-radius:2px;}
+  .tag2.cy{border-color:var(--cyan);color:var(--cyan);}
+  .tag2.vi{border-color:var(--violet);color:var(--violet);}
+  .tag2.li{border-color:var(--lime);color:var(--lime);}
+  .lang-row{display:flex;justify-content:space-between;align-items:baseline;font-size:.89rem;margin-bottom:8px;}
+  .lang-row .lv{font-family:'Spline Sans Mono',monospace;font-size:.72rem;color:var(--cyan);}
+  .award{display:flex;gap:9px;margin-bottom:12px;font-size:.84rem;color:var(--text-s);}
+  .award .mk{color:var(--lime);flex:0 0 auto;text-shadow:0 0 6px var(--lime);}
+  .award strong{color:#dcebf8;font-weight:600;}
+  .pub{font-size:.84rem;color:var(--text-s);margin-bottom:9px;padding-left:15px;position:relative;}
+  .pub::before{content:"»";position:absolute;left:0;color:var(--violet);font-weight:700;}
+  .pub strong{color:#dcebf8;}
+
+  footer{padding:16px 48px;border-top:1px solid var(--line2);font-family:'Spline Sans Mono',monospace;font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  footer strong{color:var(--cyan);}
+
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .7s ease forwards;}
+  @keyframes rise{to{opacity:1;transform:none;}}
+
+  @media (max-width:820px){
+    .sheet{margin:0;}
+    header{padding:34px 22px 26px;}
+    .modules{grid-template-columns:1fr;padding:24px 22px 4px;}
+    .pipe{padding:22px 22px 4px;}
+    .pipe-row{grid-template-columns:repeat(2,1fr);gap:18px 0;}
+    .pipe-row::before{display:none;}
+    .body{grid-template-columns:1fr;}
+    main{padding:14px 22px;}
+    aside{border-left:none;border-top:1px solid var(--line2);padding:24px 22px;}
+    footer{padding:16px 22px;}
+    .crow{grid-template-columns:1fr;}.cwhen{justify-self:start;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{animation:none;opacity:1;transform:none;}
+    .node .dot,.pipe-row::before,.callsign .led{animation:none;}
+  }
+  @media print{
+    body{background:var(--bg);}#gl{display:none;}
+    .sheet{margin:0;max-width:100%;box-shadow:none;backdrop-filter:none;background:var(--bg2);}
+    .reveal{animation:none;opacity:1;transform:none;}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .log,.entry,.mod,.crow{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<div class="wrap">
+<div class="sheet">
+
+  <div class="fx grid"></div>
+  <div class="fx scan"></div>
+
+  <div class="inner">
+
+  <header class="reveal">
+    <div class="callsign"><span class="led"></span>regulatory_console // bruno.sartori <span class="r3d">render.3d ✓</span></div>
+    <h1>Bruno <span class="ac">Sartori</span></h1>
+    <p class="role-line">[ <span class="c">Especialista Regulatório · Energia Elétrica</span> ] — domínio das quatro pontas: geração · transmissão · distribuição · comercialização // segundo eixo: <span class="v">estratégia financeira &amp; DeFi</span> // terceiro: <span class="l">dados &amp; IA</span>.</p>
+    <div class="statusbar">
+      <span class="chip"><span class="m">exp</span><b>20+ anos</b></span>
+      <span class="chip"><span class="m">cadeia</span><b>4/4 segmentos</b></span>
+      <span class="chip"><span class="m">impacto</span><b>R$ 5M</b></span>
+      <span class="chip"><span class="m">grupo</span><b>Copel · 17a</b></span>
+    </div>
+    <div class="contact2">
+      <span><span class="k">mail:</span> vbsartori@gmail.com</span>
+      <span><span class="k">in:</span> linkedin.com/in/bruno-sartori-18ba45</span>
+      <span><span class="k">loc:</span> Curitiba · PR · BR</span>
+    </div>
+  </header>
+
+  <!-- modules -->
+  <div class="modules reveal" style="animation-delay:.06s">
+    <div class="hud mod primary tilt">
+      <div class="glare"></div>
+      <div class="mhead"><span>módulo core</span><span class="id">[01]</span></div>
+      <h3>Regulação de Energia</h3>
+      <p>Eixo central. Impacto regulatório, defesa em processos punitivos, consultas públicas e estratégia normativa para todo o Grupo — cobrindo G, T, D e C.</p>
+      <span class="mtag">ANEEL</span><span class="mtag">Concessões</span><span class="mtag">Consultas públicas</span><span class="mtag">Compliance</span>
+    </div>
+    <div class="hud mod fin tilt">
+      <div class="glare"></div>
+      <div class="mhead"><span>módulo</span><span class="id">[02]</span></div>
+      <h3>Finanças &amp; DeFi</h3>
+      <p>Risco (VaR/CVaR), portfólio e estruturas avançadas em DeFi: staking/restaking, pools, colateral e delta-neutro.</p>
+      <span class="mtag">VaR/CVaR</span><span class="mtag">Cripto</span><span class="mtag">Portfólio</span>
+    </div>
+    <div class="hud mod data tilt">
+      <div class="glare"></div>
+      <div class="mhead"><span>módulo</span><span class="id">[03]</span></div>
+      <h3>Dados &amp; IA</h3>
+      <p>Python/RPA, web scraping regulatório, Power BI e Data Science; uso de IA (Claude, Gemini).</p>
+      <span class="mtag">Python</span><span class="mtag">RPA</span><span class="mtag">Power BI</span>
+    </div>
+  </div>
+
+  <!-- pipeline -->
+  <div class="pipe reveal" style="animation-delay:.1s">
+    <div class="pipe-title">// cadeia de valor — cobertura ponta a ponta</div>
+    <div class="pipe-row">
+      <div class="node">
+        <div class="dot"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <div class="nm">Geração</div><div class="st on">● regulatório</div>
+      </div>
+      <div class="node">
+        <div class="dot"><svg viewBox="0 0 24 24"><path d="M6 21 9 4h6l3 17M8 9h8M7 14h10"/></svg></div>
+        <div class="nm">Transmissão</div><div class="st on">● regulatório</div>
+      </div>
+      <div class="node">
+        <div class="dot"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7M5 10v10h14V10M10 20v-5h4v5"/></svg></div>
+        <div class="nm">Distribuição</div><div class="st on">● hands-on</div>
+      </div>
+      <div class="node">
+        <div class="dot"><svg viewBox="0 0 24 24"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg></div>
+        <div class="nm">Comercialização</div><div class="st on">● hands-on</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="body">
+    <main>
+
+      <section class="reveal" style="animation-delay:.13s">
+        <h2 class="sec-title"><span class="bk">//</span> Perfil</h2>
+        <p class="intro">Engenheiro eletricista com mais de <strong>20 anos no setor elétrico</strong>, atuando como <strong>especialista regulatório</strong> com visão integral da cadeia — da operação e qualidade na <strong>distribuição</strong>, ao risco e portfólio na <strong>comercialização</strong>, à estratégia regulatória de <strong>geração e transmissão</strong> no nível da holding. Combina esse núcleo com <span class="v">estratégia financeira avançada</span> (incluindo criptoativos) e <span class="c">dados &amp; IA</span> aplicados à regulação.</p>
+      </section>
+
+      <section class="reveal" style="animation-delay:.15s">
+        <h2 class="sec-title"><span class="bk">//</span> Histórico</h2>
+
+        <div class="log">
+          <div class="log-head"><span class="log-co">Copel — Companhia Paranaense de Energia</span><span class="log-span">17a · Curitiba/PR</span></div>
+
+          <div class="entry">
+            <h4>Engenheiro Eletricista Sênior — Regulação</h4>
+            <div class="org">Copel Holding — Diretoria de Mercado e Regulação</div>
+            <div class="ts">mar.2023 → atual</div>
+            <ul>
+              <li>Avaliação técnica, econômica e financeira dos <strong>impactos das revisões regulatórias</strong>, com análise estratégica ao Grupo (geração, transmissão, comercialização, distribuição e participações).</li>
+              <li>Contratos de Compartilhamento de Estrutura; alterações de Concessões, Autorizações e Registros.</li>
+              <li>Estratégia e defesa em <strong>processos administrativos punitivos</strong> (Notificações e Autos de Infração).</li>
+              <li>Coordenação de contribuições em <strong>consultas públicas e tomadas de subsídio</strong>; atuação setorial.</li>
+              <li>Aquisição/alienação de ativos; <span class="hl">automação RPA/Python</span>, web scraping regulatório, Power BI, Data Science.</li>
+            </ul>
+          </div>
+
+          <div class="entry">
+            <h4>Engenheiro Eletricista Sênior — Comercialização</h4>
+            <div class="org">Copel Comercialização — Mercado Livre de Energia</div>
+            <div class="ts">set.2016 → fev.2023</div>
+            <ul>
+              <li>Planejamento do mercado de energia, balanço energético e análise de tendências de preços.</li>
+              <li>Riscos financeiros (<span class="hl">VaR / CVaR</span>), impacto financeiro em default (risco de crédito).</li>
+              <li>Controle do lastro energético e <strong>gestão de portfólio</strong>.</li>
+            </ul>
+          </div>
+
+          <div class="entry">
+            <h4>Engenheiro Eletricista Sênior — Distribuição</h4>
+            <div class="org">Copel Distribuição — Operação, Manutenção e Desempenho</div>
+            <div class="ts">jun.2009 → set.2016</div>
+            <ul>
+              <li>Gestão de indicadores de continuidade (<strong>DEC/FEC, DIC/FIC/DMIC/DICRI</strong>).</li>
+              <li>Idealizador do sistema <strong>IQS — Índices de Qualidade do Sistema</strong> (GOP, SOD, CIS, ArcGIS).</li>
+              <li>Correção de apuração DIC/FIC/DMIC com <span class="hl">economia de R$ 5 milhões</span>.</li>
+              <li>Limites DEC/FEC, Mapa dos Conjuntos ANEEL (2013–2016), implantação do CIS (Elucid/Sonda).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="log-head"><span class="log-co">CELESC — Centrais Elétricas de Santa Catarina</span><span class="log-span">Distribuição · SC</span></div>
+          <div class="entry">
+            <h4>Engenheiro Eletricista</h4>
+            <div class="ts">jun.2006 → jun.2009</div>
+            <ul>
+              <li>Indicadores de continuidade (DEC, FEC, DIC, FIC, DMIC) e estudo de metas (2009–2012).</li>
+              <li>Gerente do grupo de trabalho do <strong>SIMO</strong> e responsável pela certificação <strong>ISO 9001:2000</strong>; atendimento à ANEEL.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="log-head"><span class="log-co">Motorola Solutions</span><span class="log-span">Telecom · CDMA</span></div>
+          <div class="entry">
+            <h4>Engenheiro Eletricista</h4>
+            <div class="ts">mar.2005 → abr.2006</div>
+            <ul>
+              <li>Projetos de ERBs (~1.500 estações), análise de desempenho e interface com cliente (VIVO PR/SC), CDMA 1x (3G)/EVDO.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="log">
+          <div class="log-head"><span class="log-co">Início de carreira — Engenharia · Eletrônica · Qualidade</span><span class="log-span">1998–2005</span></div>
+          <div class="compact">
+            <div class="crow"><div><span class="crole">Téc. Eletrônica</span> · <span class="corg">Kromberg &amp; Schubert</span> — protótipos automotivos; ISO/TS 16949</div><span class="cwhen">2005</span></div>
+            <div class="crow"><div><span class="crole">Téc. Eletrônica</span> · <span class="corg">Electrolux</span> — auditorias, ensaios de confiabilidade, automação</div><span class="cwhen">2003–05</span></div>
+            <div class="crow"><div><span class="crole">Estag. Eng.</span> · <span class="corg">Allen Decibel / Andrew Corp.</span> — telecom wireless, ERP, ISO 9001</div><span class="cwhen">2003</span></div>
+            <div class="crow"><div><span class="crole">Estag. Eng.</span> · <span class="corg">Quantum (Kabel)</span> — projetos eletrônicos, PCB, firmware</div><span class="cwhen">2000–02</span></div>
+            <div class="crow"><div><span class="crole">Estag. Eng.</span> · <span class="corg">UTFPR / EZAVEL</span> — gestão energética industrial, produto</div><span class="cwhen">2000–01</span></div>
+            <div class="crow"><div><span class="crole">Téc. Eletrônica</span> · <span class="corg">Henry · Bematech · Siproel</span> — Assembly, qualidade, ERP, SMD/SMT</div><span class="cwhen">1998–00</span></div>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="reveal" style="animation-delay:.18s">
+        <h2 class="sec-title"><span class="bk">//</span> Formação</h2>
+        <div class="log" style="margin-bottom:0;">
+          <div class="entry" style="margin-bottom:18px;">
+            <h4>Pós — Direito de Energia e Aspectos Estratégicos do Setor Elétrico Brasileiro</h4>
+            <div class="org">Escola da Magistratura Federal</div><div class="ts">2023 → 2024</div>
+          </div>
+          <div class="entry" style="margin-bottom:18px;">
+            <h4>Pós — Tecnologia da Informação</h4>
+            <div class="org">FAE Centro Universitário</div><div class="ts">2019 → 2020</div>
+          </div>
+          <div class="entry" style="margin-bottom:18px;">
+            <h4>Engenharia Elétrica e Eletrônica</h4>
+            <div class="org">UTFPR</div><div class="ts">2000 → 2005</div>
+          </div>
+          <div class="entry">
+            <h4>Técnico em Eletrônica Industrial</h4>
+            <div class="org">UTFPR</div><div class="ts">1994 → 1998</div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <aside class="reveal" style="animation-delay:.12s">
+      <section>
+        <h2 class="sec-title">Readouts</h2>
+        <div class="read"><div class="v">20+</div><div class="k">anos · setor elétrico</div></div>
+        <div class="read"><div class="v">4/4</div><div class="k">elos da cadeia</div></div>
+        <div class="read"><div class="v">R$5M</div><div class="k">economia comprovada</div></div>
+      </section>
+
+      <section>
+        <h2 class="sec-title">Top skills</h2>
+        <div class="tags">
+          <span class="tag2 cy">Regulação</span>
+          <span class="tag2 vi">DeFi</span>
+          <span class="tag2 li">Claude</span>
+          <span class="tag2 li">Gemini</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec-title">Stack</h2>
+        <div class="tags">
+          <span class="tag2">Mercado de energia</span>
+          <span class="tag2">Acesso à rede</span>
+          <span class="tag2">VaR / CVaR</span>
+          <span class="tag2">Portfólio</span>
+          <span class="tag2">Data Science</span>
+          <span class="tag2">Python / RPA</span>
+          <span class="tag2">Power BI</span>
+          <span class="tag2">DEC/FEC</span>
+          <span class="tag2">ArcGIS</span>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec-title">Idiomas</h2>
+        <div class="lang-row"><span>Português</span><span class="lv">nativo</span></div>
+        <div class="lang-row"><span>Inglês</span><span class="lv">prof. pleno</span></div>
+      </section>
+
+      <section>
+        <h2 class="sec-title">Honors</h2>
+        <div class="award"><span class="mk">⌁</span><span><strong>Melhor Trabalho Técnico</strong> — XX SENDI (RJ)</span></div>
+        <div class="award"><span class="mk">⌁</span><span><strong>Elogio (Copel)</strong> — R$ 5M em compensações DIC/FIC/DMIC</span></div>
+        <div class="award"><span class="mk">⌁</span><span>Juiz de Rodeio de Eletricistas — Nacional &amp; Copel</span></div>
+      </section>
+
+      <section>
+        <h2 class="sec-title">Publicações</h2>
+        <div class="pub">Trabalho técnico — <strong>IX SENDI</strong></div>
+        <div class="pub">Trabalho técnico — <strong>XX SENDI</strong></div>
+        <div class="pub">Palestrante — <strong>Congresso Latino-am. de Distribuição</strong></div>
+        <div class="pub">Gerente de Projeto de P&amp;D</div>
+      </section>
+    </aside>
+  </div>
+
+  <footer>
+    <span><strong>&gt;_</strong> bruno.sartori // especialista regulatório · energia elétrica</span>
+    <span>PDF: imprimir → salvar como PDF</span>
+  </footer>
+
+  </div><!-- /inner -->
+</div><!-- /sheet -->
+</div><!-- /wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  var RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var SMALL = window.matchMedia && matchMedia('(max-width: 820px)').matches;
+
+  /* ---------- CSS 3D tilt on module cards ---------- */
+  var tilts = document.querySelectorAll('.tilt');
+  if(!RM && !SMALL){
+    tilts.forEach(function(card){
+      card.addEventListener('mousemove', function(e){
+        var r = card.getBoundingClientRect();
+        var x = (e.clientX - r.left)/r.width - .5;
+        var y = (e.clientY - r.top)/r.height - .5;
+        card.style.transform = 'perspective(800px) rotateY('+(x*9)+'deg) rotateX('+(-y*9)+'deg) translateZ(8px)';
+        card.style.setProperty('--gx', (x*100+50)+'%');
+        card.style.setProperty('--gy', (y*100+50)+'%');
+      });
+      card.addEventListener('mouseleave', function(){ card.style.transform=''; });
+    });
+  }
+
+  /* ---------- WebGL scene ---------- */
+  var canvas = document.getElementById('gl');
+  if(!window.THREE){ canvas.style.display='none'; return; }
+
+  var renderer, scene, camera;
+  try{
+    renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+  }catch(err){ canvas.style.display='none'; return; }
+
+  renderer.setClearColor(0x000000, 0);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x05070c, 0.02);
+  camera = new THREE.PerspectiveCamera(60, 1, 0.1, 120);
+  camera.position.set(0, 0.6, 8);
+
+  var CYAN=0x34e7ff, VIOLET=0xa274ff, LIME=0xaef34e;
+
+  /* --- energy core: wireframe icosahedron + inner pulse + vertex sparks + orbit rings --- */
+  var core = new THREE.Group();
+
+  var icoGeo = new THREE.IcosahedronGeometry(1.55, 1);
+  var shell = new THREE.LineSegments(
+    new THREE.EdgesGeometry(icoGeo),
+    new THREE.LineBasicMaterial({color:CYAN, transparent:true, opacity:0.9})
+  );
+  core.add(shell);
+
+  var inner = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(0.62, 0),
+    new THREE.MeshBasicMaterial({color:CYAN, wireframe:true, transparent:true, opacity:1})
+  );
+  core.add(inner);
+
+  var sparks = new THREE.Points(icoGeo, new THREE.PointsMaterial({
+    color:LIME, size:0.12, transparent:true, opacity:0.95,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  core.add(sparks);
+
+  function ring(radius, color, rx, rz){
+    var r = new THREE.Mesh(
+      new THREE.TorusGeometry(radius, 0.022, 8, 90),
+      new THREE.MeshBasicMaterial({color:color, transparent:true, opacity:0.8})
+    );
+    r.rotation.x = rx; r.rotation.z = rz;
+    return r;
+  }
+  var ring1 = ring(2.15, CYAN,   Math.PI/2.4, 0.4);
+  var ring2 = ring(2.5,  VIOLET, Math.PI/1.7, -0.7);
+  core.add(ring1); core.add(ring2);
+
+  /* glow halo sprites */
+  function glowTexture(r,g,b){
+    var c=document.createElement('canvas'); c.width=c.height=256;
+    var x=c.getContext('2d');
+    var gr=x.createRadialGradient(128,128,0,128,128,128);
+    gr.addColorStop(0,'rgba('+r+','+g+','+b+',0.9)');
+    gr.addColorStop(0.35,'rgba('+r+','+g+','+b+',0.3)');
+    gr.addColorStop(1,'rgba('+r+','+g+','+b+',0)');
+    x.fillStyle=gr; x.fillRect(0,0,256,256);
+    return new THREE.CanvasTexture(c);
+  }
+  var halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:glowTexture(52,231,255), transparent:true, opacity:0.85,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  halo.scale.set(7.5,7.5,1);
+  core.add(halo);
+
+  core.position.set(3.4, 1.3, 0.2);
+  scene.add(core);
+
+  /* satellite artifact — violet octahedron, bottom-left */
+  var sat = new THREE.Group();
+  var satWire = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.OctahedronGeometry(0.72, 0)),
+    new THREE.LineBasicMaterial({color:VIOLET, transparent:true, opacity:0.95})
+  );
+  sat.add(satWire);
+  var satHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:glowTexture(162,116,255), transparent:true, opacity:0.7,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  satHalo.scale.set(3.4,3.4,1);
+  sat.add(satHalo);
+  sat.position.set(-3.8,-2.7,0.6);
+  scene.add(sat);
+
+  /* --- particle field --- */
+  var N = SMALL ? 260 : 720;
+  var pos = new Float32Array(N*3), col = new Float32Array(N*3), vel = new Float32Array(N);
+  var palette = [new THREE.Color(CYAN), new THREE.Color(VIOLET), new THREE.Color(LIME)];
+  for(var i=0;i<N;i++){
+    pos[i*3]   = (Math.random()-.5)*30;
+    pos[i*3+1] = (Math.random()-.5)*18;
+    pos[i*3+2] = -6 + Math.random()*10;
+    var c = palette[Math.random()<0.62 ? 0 : (Math.random()<0.6 ? 1 : 2)];
+    col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+    vel[i] = 0.002 + Math.random()*0.006;
+  }
+  var pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  pGeo.setAttribute('color', new THREE.BufferAttribute(col,3));
+  var dust = new THREE.Points(pGeo, new THREE.PointsMaterial({
+    size:0.1, vertexColors:true, transparent:true, opacity:0.95,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  scene.add(dust);
+
+  /* --- perspective grid floor --- */
+  var grid = new THREE.GridHelper(70, 70, CYAN, 0x14384a);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.32;
+  grid.position.y = -4.4;
+  scene.add(grid);
+
+  /* --- 3D lightning bolts --- */
+  function boltPoints(x0){
+    var pts=[], x=x0, z=-4-Math.random()*3;
+    var steps=9+Math.floor(Math.random()*4);
+    for(var i=0;i<=steps;i++){
+      var t=i/steps;
+      pts.push(new THREE.Vector3(x, 7-14*t, z));
+      x += (Math.random()-.5)*1.1;
+      z += (Math.random()-.5)*0.4;
+    }
+    return pts;
+  }
+  function makeBolt(x0, color){
+    var g = new THREE.BufferGeometry().setFromPoints(boltPoints(x0));
+    var m = new THREE.LineBasicMaterial({color:color, transparent:true, opacity:0, blending:THREE.AdditiveBlending});
+    var line = new THREE.Line(g, m);
+    line.userData = {x0:x0, next: 1.5+Math.random()*4, phase:-1};
+    scene.add(line);
+    return line;
+  }
+  var bolts = [ makeBolt(-6, CYAN), makeBolt(6.5, VIOLET), makeBolt(-1.5, CYAN) ];
+
+  /* --- interaction state --- */
+  var mx=0,my=0, px=0,py=0, sy=0;
+  if(!SMALL){
+    window.addEventListener('pointermove', function(e){
+      mx = e.clientX/innerWidth - .5;
+      my = e.clientY/innerHeight - .5;
+    }, {passive:true});
+  }
+  window.addEventListener('scroll', function(){ sy = window.scrollY||0; }, {passive:true});
+
+  function resize(){
+    var w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    var narrow = w < 820;
+    if(narrow){ core.position.set(0, 2.7, -1.4); core.scale.setScalar(0.85); sat.position.set(-1.6,-3.6,0.2); }
+    else{ core.position.set(3.4, 1.3, 0.2); core.scale.setScalar(1.12); sat.position.set(-3.8,-2.7,0.6); }
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  /* --- animation loop --- */
+  var clock = new THREE.Clock();
+  var running = true;
+  document.addEventListener('visibilitychange', function(){
+    running = !document.hidden;
+    if(running && !RM) requestAnimationFrame(tick);
+  });
+
+  function tick(){
+    if(!running) return;
+    var t = clock.getElapsedTime();
+
+    core.rotation.y += 0.0032;
+    core.rotation.x = 0.15 + sy*0.0006;
+    inner.rotation.y -= 0.011;
+    inner.rotation.x += 0.007;
+    var s = 1 + Math.sin(t*2.1)*0.1;
+    inner.scale.setScalar(s);
+    shell.material.opacity = 0.7 + Math.sin(t*2.1)*0.25;
+    ring1.rotation.z += 0.004;
+    ring2.rotation.z -= 0.003;
+    halo.material.opacity = 0.7 + Math.sin(t*2.1)*0.2;
+    sat.rotation.y += 0.008;
+    sat.rotation.x += 0.005;
+    satWire.position.y = Math.sin(t*0.9)*0.22;
+    satHalo.material.opacity = 0.55 + Math.sin(t*1.7+1)*0.2;
+
+    /* dust drift upward with wrap */
+    var p = pGeo.attributes.position.array;
+    for(var i=0;i<N;i++){
+      p[i*3+1] += vel[i];
+      if(p[i*3+1] > 9) p[i*3+1] = -9;
+    }
+    pGeo.attributes.position.needsUpdate = true;
+
+    /* grid slow flow toward camera */
+    grid.position.z = (grid.position.z + 0.008) % 1;
+
+    /* lightning flicker */
+    for(var b=0;b<bolts.length;b++){
+      var L = bolts[b], u = L.userData;
+      if(u.phase < 0){
+        u.next -= 1/60;
+        if(u.next <= 0){
+          L.geometry.dispose();
+          L.geometry = new THREE.BufferGeometry().setFromPoints(boltPoints(u.x0));
+          u.phase = 0;
+        }
+      }else{
+        u.phase += 1/60;
+        var ph = u.phase;
+        L.material.opacity =
+          ph<0.05 ? 0.95 :
+          ph<0.10 ? 0.25 :
+          ph<0.16 ? 0.8 :
+          ph<0.30 ? Math.max(0, 0.55-(ph-0.16)*4) : 0;
+        if(ph > 0.34){ u.phase = -1; u.next = 2.5+Math.random()*5; L.material.opacity = 0; }
+      }
+    }
+
+    /* camera parallax */
+    px += (mx - px)*0.045;
+    py += (my - py)*0.045;
+    camera.position.x = px*1.5;
+    camera.position.y = 0.6 - py*0.9;
+    camera.position.z = 8 + Math.min(sy*0.0015, 1.6);
+    camera.lookAt(0.9, 0.3, 0);
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+
+  if(RM){
+    renderer.render(scene, camera);   /* single static frame */
+  }else{
+    tick();
+  }
+})();
+</script>
+</body>
+</html>

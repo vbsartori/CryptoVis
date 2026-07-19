@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Visualization Lab — Oito Mundos, Um Mercado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hub.css">
+</head>
+<body>
+
+<canvas id="bg-shader"></canvas>
+<div class="grain"></div>
+<div id="tint"></div>
+<div id="cursor"></div>
+
+<main data-screen-label="Crypto Lab Hub">
+
+  <!-- top bar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Crypto Lab <strong>// vol. 03</strong></span>
+    </div>
+    <div class="topbar-right">
+      <div class="lang-toggle" role="group" aria-label="Idioma">
+        <button data-lang="pt" class="on" type="button">PT</button>
+        <button data-lang="en" type="button">EN</button>
+      </div>
+      <div class="switch" role="tablist" aria-label="Papel de parede">
+        <span class="switch-label" data-i18n="ui.wallpaper">Papel de parede</span>
+        <button class="swatch" data-shader="plasma" aria-label="Plasma" title="Plasma — cromo líquido"></button>
+        <button class="swatch" data-shader="voronoi" aria-label="Voronoi" title="Voronoi — células"></button>
+        <button class="swatch" data-shader="nebula" aria-label="Nebulosa" title="Nebulosa — campo estelar"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- hero -->
+  <section class="hero" data-screen-label="Hero">
+    <div class="hero-eyebrow" data-i18n="hero.eyebrow">Oito mundos · um mercado · vol. 03</div>
+    <h1 data-i18n="hero.h1">Cripto, mas você pode <em>caminhar por dentro.</em></h1>
+    <div class="hero-row">
+      <p class="hero-lead" data-i18n="hero.lead">Uma coleção de painéis experimentais — formas diferentes de <em>sentir</em> o mercado além da vela verde-e-vermelha. Passe o mouse pelo índice. Escolha um mundo. Fique um pouco.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">08</div><div class="lab" data-i18n="hero.stat.viz">Visualizações</div></div>
+        <div class="stat"><div class="num live">LIVE</div><div class="lab" data-i18n="hero.stat.data">Dados ao vivo</div></div>
+        <div class="stat"><div class="num" id="clock">--:--:--</div><div class="lab" data-i18n="hero.stat.utc">UTC agora</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- live ticker -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+
+  <!-- ======== THE INDEX · WORLDS ======== -->
+  <div class="index" data-screen-label="Índice de mundos">
+    <div class="section-head">
+      <h2><span class="idx">01</span> <span data-i18n="sec.worlds.h">Mundos</span></h2>
+      <p class="desc" data-i18n="sec.worlds.desc">Formas atmosféricas e sensoriais de habitar o mercado — feitas para sentir, não só ler.</p>
+    </div>
+
+    <a class="irow" href="themes/crypto-galaxy.html" data-pv="galaxy" data-reveal style="--a: var(--c-galaxy);">
+      <span class="ridx">01</span>
+      <span class="rmain">
+        <span class="rt">Crypto Galaxy</span>
+        <span class="rs" data-i18n="galaxy.sub">Cada moeda é um corpo celeste — o Bitcoin é o sol.</span>
+      </span>
+      <span class="rtag" data-i18n="galaxy.tag">Cósmico / orbital</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/crypto-bubbles.html" data-pv="bubbles" data-reveal style="--a: var(--c-bubbles);">
+      <span class="ridx">02</span>
+      <span class="rmain">
+        <span class="rt">Crypto Bubbles</span>
+        <span class="rs" data-i18n="bubbles.sub">Esferas iridescentes: verde sobe, vermelho afunda. Estoure uma.</span>
+      </span>
+      <span class="rtag" data-i18n="bubbles.tag">Flutuante / sabão</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/crypto-grand-prix.html" data-pv="prix" data-reveal style="--a: var(--c-prix);">
+      <span class="ridx">03</span>
+      <span class="rmain">
+        <span class="rt">Crypto Grand Prix</span>
+        <span class="rs" data-i18n="prix.sub">As maiores moedas correm o desempenho de 24h numa pista.</span>
+      </span>
+      <span class="rtag" data-i18n="prix.tag">Corrida / classificação</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/neo-crypto-city.html" data-pv="city" data-reveal style="--a: var(--c-city);">
+      <span class="ridx">04</span>
+      <span class="rmain">
+        <span class="rt">Neo-Crypto City</span>
+        <span class="rs" data-i18n="city.sub">Uma cidade synthwave onde cada token é um prédio.</span>
+      </span>
+      <span class="rtag" data-i18n="city.tag">Cyberpunk / grade</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/matrix-crypto-terminal.html" data-pv="matrix" data-reveal style="--a: var(--c-matrix);">
+      <span class="ridx">05</span>
+      <span class="rmain">
+        <span class="rt">Matrix Terminal</span>
+        <span class="rs" data-i18n="matrix.sub">Os preços caem em katakana verde. O mercado te pegou.</span>
+      </span>
+      <span class="rtag" data-i18n="matrix.tag">Chuva digital</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/crypto-sentiment-terminal.html" data-pv="sentiment" data-reveal style="--a: var(--c-sentiment);">
+      <span class="ridx">06</span>
+      <span class="rmain">
+        <span class="rt">Sentiment Terminal</span>
+        <span class="rs" data-i18n="sentiment.sub">Um pregão às 3h da manhã — medo, ganância, RSI e notícias.</span>
+      </span>
+      <span class="rtag" data-i18n="sentiment.tag">Touros vs Ursos</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <!-- ======== THE INDEX · INSTRUMENTS ======== -->
+    <div class="section-head">
+      <h2><span class="idx">02</span> <span data-i18n="sec.instr.h">Instrumentos</span></h2>
+      <p class="desc" data-i18n="sec.instr.desc">Ferramentas de precisão para quando você quer o dado direto — preços ao vivo e análise técnica clássica.</p>
+    </div>
+
+    <a class="irow" href="themes/painel-mercado.html" data-pv="pulse" data-reveal style="--a: var(--c-pulse);">
+      <span class="ridx">07</span>
+      <span class="rmain">
+        <span class="rt">Pulse</span>
+        <span class="rs" data-i18n="pulse.sub">BTC, ETH, ouro, S&amp;P e Nasdaq numa tela calma.</span>
+      </span>
+      <span class="rtag" data-i18n="pulse.tag">Painel de mercado</span>
+      <span class="rgo">→</span>
+    </a>
+
+    <a class="irow" href="themes/btc-ichimoku.html" data-pv="ichimoku" data-reveal style="--a: var(--c-ichimoku);">
+      <span class="ridx">08</span>
+      <span class="rmain">
+        <span class="rt">Ichimoku Kinkō Hyō</span>
+        <span class="rs" data-i18n="ichimoku.sub">O Bitcoin lido pela nuvem japonesa de equilíbrio.</span>
+      </span>
+      <span class="rtag" data-i18n="ichimoku.tag">Nuvem de Ichimoku</span>
+      <span class="rgo">→</span>
+    </a>
+  </div>
+
+  <!-- ======== OPERATOR / CV ======== -->
+  <section class="operator" data-screen-label="O operador (CV)">
+    <div class="op-copy" data-reveal>
+      <div class="op-tag" data-i18n="op.tag">O operador · quem constrói isso</div>
+      <h2 data-i18n="op.h2">Por trás do <em>laboratório.</em></h2>
+      <p data-i18n="op.p">Victor Bruno Sartori — engenheiro eletricista transitando entre energia, dados e mercados. Regulação de energia, inteligência de mercado, ciência de dados, I.A. e DeFi: este laboratório é onde tudo isso colide.</p>
+    </div>
+    <a class="op-card" href="cv-victor-sartori.html" data-reveal>
+      <div class="op-head">
+        <div class="op-ava">VS</div>
+        <div class="op-id">
+          <span class="op-name">Victor Bruno Sartori</span>
+          <span class="op-role" data-i18n="op.role">Engenheiro Eletricista · Data Scientist</span>
+        </div>
+      </div>
+      <div class="op-fields">
+        <span>Energia</span>
+        <span>Regulação</span>
+        <span>Dados</span>
+        <span>A.I.</span>
+        <span>DeFi</span>
+      </div>
+      <div class="op-foot">
+        <span class="op-status"><span class="dot"></span><span data-i18n="op.status">Aberto a projetos</span></span>
+        <span class="op-btn"><span data-i18n="op.btn">Abrir currículo</span> <span class="arrow">→</span></span>
+      </div>
+    </a>
+  </section>
+
+  <!-- ======== BITCOFFEE ======== -->
+  <section class="coffee" data-screen-label="Bitcoffee">
+    <div class="coffee-inner">
+      <div>
+        <div class="coffee-tag" data-i18n="coffee.tag">Bitcoffee · mantenha o lab aberto</div>
+        <h2 data-i18n="coffee.h2">Me paga um <em>Bitcoffee.</em></h2>
+        <p data-i18n="coffee.p">Se algum desses mundos te fez sorrir, me paga um gole. Cada satoshi volta para criar formas mais estranhas e bonitas de olhar o mercado.
+          <span class="signature" data-i18n="coffee.sig">— Feito com cafeína e curiosidade</span>
+        </p>
+      </div>
+      <div class="addr-list">
+        <div class="addr" style="--chip: var(--btc);">
+          <div class="addr-icon" aria-hidden="true">₿</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Bitcoin</b> · BTC · native segwit</div>
+            <div class="addr-value" id="btc-addr">bc1qsvwduqdsdlxgsqcjhaudxh0ceg9vzm9gyymdy6</div>
+          </div>
+          <button class="copy-btn" data-copy="#btc-addr" aria-label="Copiar endereço Bitcoin" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+            <span class="lbl" data-i18n="ui.copy">Copiar</span>
+          </button>
+        </div>
+        <div class="addr" style="--chip: var(--eth);">
+          <div class="addr-icon" aria-hidden="true">Ξ</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Ethereum</b> · ETH · ERC-20</div>
+            <div class="addr-value" id="eth-addr">0xc4782a815f358B1b4a9D0bd2BF8eA1802c58d388</div>
+          </div>
+          <button class="copy-btn" data-copy="#eth-addr" aria-label="Copiar endereço Ethereum" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+            <span class="lbl" data-i18n="ui.copy">Copiar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© Crypto Lab · vol. 03</span>
+    <span data-i18n="footer.mid">Mexa o mouse. Clique e segure. Teste os três papéis de parede.</span>
+    <span><a href="cv-victor-sartori.html" data-i18n="footer.cv">Currículo</a> · <span data-i18n="footer.right">Feito com cafeína ✦</span></span>
+  </footer>
+</main>
+
+<!-- cursor-chasing preview panel -->
+<div id="peek" aria-hidden="true">
+  <div class="peek-card">
+
+    <div class="pv pv-galaxy" data-pv="galaxy">
+      <span class="star" style="left: 12%; top: 22%;"></span><span class="star" style="left: 28%; top: 14%; animation-delay: .6s;"></span>
+      <span class="star" style="left: 42%; top: 28%; animation-delay: 1.2s;"></span><span class="star" style="left: 78%; top: 18%; animation-delay: .3s;"></span>
+      <span class="star" style="left: 88%; top: 36%; animation-delay: 1.8s;"></span><span class="star" style="left: 18%; top: 76%; animation-delay: .9s;"></span>
+      <div class="orbit o2"></div><div class="orbit"></div><div class="sun"></div>
+      <div class="planet"></div><div class="planet p2"></div>
+    </div>
+
+    <div class="pv pv-bubbles" data-pv="bubbles">
+      <div class="b b3 down"></div><div class="b b1 up"></div><div class="b b2 up"></div><div class="b b4 neu"></div>
+    </div>
+
+    <div class="pv pv-prix" data-pv="prix">
+      <div class="lights"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span></div>
+      <div class="chequer"></div><div class="speed">+3.42% · LAP 24</div>
+    </div>
+
+    <div class="pv pv-city" data-pv="city">
+      <div class="sun"></div><div class="skyline"></div><div class="grid-floor"></div>
+    </div>
+
+    <div class="pv pv-matrix" data-pv="matrix" id="pv-matrix"></div>
+
+    <div class="pv pv-sentiment" data-pv="sentiment">
+      <div class="stack">
+        <div class="row bull"><span class="label">BTC</span><span class="bar" style="--w: 72%;"></span><span class="pct">+72</span></div>
+        <div class="row bear"><span class="label">ETH</span><span class="bar" style="--w: 54%;"></span><span class="pct">-54</span></div>
+        <div class="row bull"><span class="label">SOL</span><span class="bar" style="--w: 88%;"></span><span class="pct">+88</span></div>
+        <div class="row bear"><span class="label">DOGE</span><span class="bar" style="--w: 42%;"></span><span class="pct">-42</span></div>
+        <div class="row bull"><span class="label">XRP</span><span class="bar" style="--w: 61%;"></span><span class="pct">+61</span></div>
+      </div>
+    </div>
+
+    <div class="pv pv-pulse" data-pv="pulse">
+      <div class="tapes">
+        <div class="trow"><span class="tsym">BTC</span><svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none"><path stroke="#0ecb81" d="M0,18 L14,15 L28,16 L42,9 L56,11 L70,6 L84,7 L100,2"></path></svg><span class="tchg up">+2.4%</span></div>
+        <div class="trow"><span class="tsym">ETH</span><svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none"><path stroke="#0ecb81" d="M0,16 L14,17 L28,12 L42,13 L56,8 L70,10 L84,5 L100,6"></path></svg><span class="tchg up">+1.1%</span></div>
+        <div class="trow"><span class="tsym">GOLD</span><svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none"><path stroke="#f4b740" d="M0,10 L14,11 L28,9 L42,12 L56,10 L70,11 L84,9 L100,10"></path></svg><span class="tchg up">+0.3%</span></div>
+        <div class="trow"><span class="tsym">S&amp;P</span><svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none"><path stroke="#38bdf8" d="M0,8 L14,10 L28,9 L42,13 L56,12 L70,15 L84,14 L100,17"></path></svg><span class="tchg dn">-0.6%</span></div>
+        <div class="trow"><span class="tsym">NDX</span><svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none"><path stroke="#a78bfa" d="M0,12 L14,9 L28,11 L42,7 L56,9 L70,5 L84,8 L100,4"></path></svg><span class="tchg up">+0.9%</span></div>
+      </div>
+    </div>
+
+    <div class="pv pv-ichimoku" data-pv="ichimoku">
+      <span class="kanji">一目均衡表</span>
+      <svg viewBox="0 0 300 188" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="kumo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#36b285" stop-opacity="0.42"></stop>
+            <stop offset="1" stop-color="#36b285" stop-opacity="0.06"></stop>
+          </linearGradient>
+        </defs>
+        <path d="M0,120 C40,108 70,128 110,112 C150,96 190,116 230,96 C260,82 285,92 300,84 L300,150 C285,150 260,150 230,150 C190,150 150,150 110,150 C70,150 40,150 0,150 Z" fill="url(#kumo)"></path>
+        <path d="M0,150 C40,150 70,150 110,150 C150,150 190,150 230,150 C260,150 285,150 300,150" fill="none" stroke="#e2533c" stroke-width="1.2" stroke-opacity="0.5"></path>
+        <path d="M0,120 C40,108 70,128 110,112 C150,96 190,116 230,96 C260,82 285,92 300,84" fill="none" stroke="#36b285" stroke-width="1.4" stroke-opacity="0.7"></path>
+        <path class="price" d="M0,140 C30,138 50,130 80,134 C110,138 130,118 160,108 C190,98 210,104 240,86 C265,72 285,78 300,66"></path>
+        <path class="lag" d="M0,150 C40,146 70,140 110,138 C150,136 190,128 230,120 C260,114 285,110 300,104"></path>
+      </svg>
+    </div>
+
+    <div class="peek-label" data-i18n="peek.enter">Entrar →</div>
+  </div>
+</div>
+
+<script src="shaders.js"></script>
+<script src="hub.js"></script>
+
+</body>
+</html>

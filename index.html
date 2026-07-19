@@ -3,297 +3,345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Lab — Voyage · Nove Mundos, Um Mercado</title>
+<title>Crypto Lab — Atlas · todos os mundos, um mercado</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&amp;family=Space+Grotesk:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="voyage.css">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700;800&amp;family=Manrope:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="atlas.css">
 </head>
 <body>
 
-<canvas id="stars"></canvas>
-<div class="aurora"></div>
-<div class="vignette"></div>
+<canvas id="bg-shader"></canvas>
+<div class="grain"></div>
+<div id="tint"></div>
+<div id="cursor"></div>
+<div class="progress"><i></i></div>
 
-<header class="bar">
-  <span class="brand"><i></i> Crypto Lab // Voyage</span>
-  <span class="bar-right">
-    <span class="btc-mini" id="btc-mini"><b>BTC</b> ····</span>
-    <a class="bar-cv" href="cv-victor-sartori.html">Currículo ↗</a>
-  </span>
-</header>
+<main data-screen-label="Crypto Lab Atlas">
 
-<nav class="rail" id="rail" aria-label="Navegação dos mundos"></nav>
+  <!-- top bar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Crypto Lab <strong>// Atlas</strong></span>
+    </div>
+    <div class="switch" role="tablist" aria-label="Papel de parede">
+      <span class="switch-label">Papel de parede</span>
+      <button class="swatch is-active" data-shader="plasma" aria-label="Plasma" title="Plasma — cromo líquido" type="button"></button>
+      <button class="swatch" data-shader="voronoi" aria-label="Voronoi" title="Voronoi — células" type="button"></button>
+      <button class="swatch" data-shader="nebula" aria-label="Nebulosa" title="Nebulosa — campo estelar" type="button"></button>
+    </div>
+  </div>
 
-<main>
-
-  <!-- ════════ INTRO ════════ -->
-  <section class="panel p-intro" data-label="Início" data-acc="#f7931a" data-screen-label="Intro">
-    <div class="scene">
-      <div class="ring"><span class="sat"></span></div>
-      <div class="ring r2"><span class="sat"></span></div>
-    </div>
-    <div class="content">
-      <div class="kicker">Crypto Visualization Lab · vol. 03</div>
-      <h1>Nove mundos.<br><em>Um mercado.</em></h1>
-      <p class="desc">Uma expedição vertical por formas diferentes de sentir os mercados — da galáxia cripto ao S&amp;P 500. Role para descer. Cada parada é um mundo clicável.</p>
-    </div>
-    <div class="scroll-hint">Role</div>
-  </section>
-
-  <!-- ════════ 01 · GALAXY ════════ -->
-  <section class="panel p-galaxy" data-label="Galaxy" data-acc="#f7931a" data-screen-label="Crypto Galaxy">
-    <div class="scene">
-      <div class="gx-sun"></div>
-      <div class="gx-orbit" style="--d: 320px; --t: 11s;"><span class="pl" style="--s: 14px; --pc: #627eea;"></span></div>
-      <div class="gx-orbit" style="--d: 500px; --t: 19s; animation-direction: reverse;"><span class="pl" style="--s: 10px; --pc: #34e0a1;"></span></div>
-      <div class="gx-orbit" style="--d: 700px; --t: 29s;"><span class="pl" style="--s: 8px; --pc: #ff5470;"></span></div>
-    </div>
-    <div class="content">
-      <div class="kicker">Mundo 01 · Cósmico / Orbital</div>
-      <h2>Crypto<span class="ghost">Galaxy</span></h2>
-      <p class="desc">Cada moeda é um corpo celeste orbitando em tempo real — o Bitcoin é o sol, o market cap define a massa. Navegue pelo sistema e inspecione cada planeta.</p>
-      <a class="cta" href="themes/crypto-galaxy.html">Entrar na galáxia <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">01</span>
-  </section>
-
-  <!-- ════════ 02 · PULSE ════════ -->
-  <section class="panel p-pulse" data-label="Pulse" data-acc="#22d3ee" data-screen-label="Pulse">
-    <div class="scene">
-      <svg class="ekg" viewBox="0 0 1400 120" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0,60 L240,60 L270,60 L290,18 L310,102 L330,42 L350,60 L640,60 L668,60 L688,24 L708,98 L728,46 L748,60 L1040,60 L1068,60 L1088,20 L1108,100 L1128,44 L1148,60 L1400,60"></path>
-      </svg>
-    </div>
-    <div class="content">
-      <div class="kicker">Mundo 02 · Painel de preços</div>
-      <h2>Pulse</h2>
-      <p class="desc">O batimento do mercado numa tela calma — preços ao vivo, variação de 24h e a linha dos últimos 7 dias de cada ativo.</p>
-      <div class="pulse-grid">
-        <div class="pcard" data-id="bitcoin">
-          <div class="sym"><b>BTC</b><span>Bitcoin</span></div>
-          <div class="price">····</div>
-          <div class="chg">— · 24h</div>
-          <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none"><path class="line" stroke="#3a3a4a" d="M0,20 L120,20"></path></svg>
-        </div>
-        <div class="pcard" data-id="ethereum">
-          <div class="sym"><b>ETH</b><span>Ethereum</span></div>
-          <div class="price">····</div>
-          <div class="chg">— · 24h</div>
-          <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none"><path class="line" stroke="#3a3a4a" d="M0,20 L120,20"></path></svg>
-        </div>
-        <div class="pcard" data-id="solana">
-          <div class="sym"><b>SOL</b><span>Solana</span></div>
-          <div class="price">····</div>
-          <div class="chg">— · 24h</div>
-          <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none"><path class="line" stroke="#3a3a4a" d="M0,20 L120,20"></path></svg>
-        </div>
-        <div class="pcard" data-id="binancecoin">
-          <div class="sym"><b>BNB</b><span>BNB Chain</span></div>
-          <div class="price">····</div>
-          <div class="chg">— · 24h</div>
-          <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none"><path class="line" stroke="#3a3a4a" d="M0,20 L120,20"></path></svg>
-        </div>
-        <div class="pcard" data-id="ripple">
-          <div class="sym"><b>XRP</b><span>Ripple</span></div>
-          <div class="price">····</div>
-          <div class="chg">— · 24h</div>
-          <svg class="spark" viewBox="0 0 120 40" preserveAspectRatio="none"><path class="line" stroke="#3a3a4a" d="M0,20 L120,20"></path></svg>
-        </div>
-      </div>
-      <a class="cta" href="themes/painel-mercado.html">Abrir o painel completo <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">02</span>
-  </section>
-
-  <!-- ════════ 03 · BUBBLES ════════ -->
-  <section class="panel p-bubbles" data-label="Bubbles" data-acc="#34e0a1" data-screen-label="Crypto Bubbles">
-    <div class="scene">
-      <div class="bub up"  style="width: 190px; height: 190px; right: 14%; top: 18%; --t: 10s;"></div>
-      <div class="bub dn"  style="width: 120px; height: 120px; right: 34%; top: 52%; --t: 8s; animation-delay: -3s;"></div>
-      <div class="bub up"  style="width: 86px;  height: 86px;  right: 8%;  top: 60%; --t: 12s; animation-delay: -5s;"></div>
-      <div class="bub neu" style="width: 54px;  height: 54px;  right: 28%; top: 12%; --t: 9s; animation-delay: -2s;"></div>
-      <div class="bub dn"  style="width: 40px;  height: 40px;  right: 47%; top: 30%; --t: 11s; animation-delay: -6s;"></div>
-      <div class="bub up"  style="width: 28px;  height: 28px;  right: 20%; top: 80%; --t: 7s; animation-delay: -1s;"></div>
-    </div>
-    <div class="content">
-      <div class="kicker">Mundo 03 · Flutuante</div>
-      <h2>Crypto<span class="ghost">Bubbles</span></h2>
-      <p class="desc">Esferas iridescentes flutuando num espaço escuro: verde sobe, vermelho afunda, o tamanho é o market cap. Toque numa bolha para estourá-la.</p>
-      <a class="cta" href="themes/crypto-bubbles.html">Entrar nas bolhas <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">03</span>
-  </section>
-
-  <!-- ════════ 04 · SP500 GALAXY ════════ -->
-  <section class="panel p-sp500" data-label="S&amp;P 500" data-acc="#5b9cff" data-screen-label="SP500 Galaxy">
-    <div class="scene">
-      <div class="gx-sun sp"></div>
-      <div class="gx-orbit" style="--d: 320px; --t: 13s; border-color: rgba(91,156,255,0.18);"><span class="pl" style="--s: 13px; --pc: #7be0c0;"></span></div>
-      <div class="gx-orbit" style="--d: 500px; --t: 21s; animation-direction: reverse; border-color: rgba(91,156,255,0.13);"><span class="pl" style="--s: 10px; --pc: #ffd86b;"></span></div>
-      <div class="gx-orbit" style="--d: 700px; --t: 31s; border-color: rgba(91,156,255,0.09);"><span class="pl" style="--s: 8px; --pc: #ff7eb6;"></span></div>
-      <div class="ufo" aria-hidden="true">
-        <div class="beam"></div>
-        <div class="saucer"></div>
-        <div class="dome"></div>
-        <div class="lights"><span></span><span></span><span></span></div>
+  <!-- hero -->
+  <section class="hero" data-screen-label="Hero">
+    <div class="hero-eyebrow">Índice mestre · vol. 03 · 20 construções</div>
+    <h1>Todos os mundos.<br><em>Um só mercado.</em></h1>
+    <div class="hero-row">
+      <p class="hero-lead">O acervo completo do laboratório — de galáxias de moedas e mapas de liquidez a jogos em neon e um portal dourado. Cada peça é autoral e clicável. Escolha um dossiê e entre.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">20</div><div class="lab">Construções</div></div>
+        <div class="stat"><div class="num live">LIVE</div><div class="lab">Dados ao vivo</div></div>
+        <div class="stat"><div class="num" id="clock">--:--:--</div><div class="lab">UTC agora</div></div>
       </div>
     </div>
-    <div class="content">
-      <div class="kicker">Mundo 04 · Bolsa / Orbital</div>
-      <h2>S&amp;P 500<span class="ghost">Galaxy</span></h2>
-      <p class="desc">As 500 maiores empresas dos EUA viram um sistema estelar — o índice S&amp;P 500 é o sol e cada ação orbita pela própria capitalização. Fique de olho: às vezes um OVNI cruza o céu. 🛸</p>
-      <a class="cta" href="themes/sp500-galaxy.html">Entrar na galáxia do S&amp;P <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">04</span>
   </section>
 
-  <!-- ════════ 05 · GRAND PRIX ════════ -->
-  <section class="panel p-prix" data-label="Grand Prix" data-acc="#ef4444" data-screen-label="Crypto Grand Prix">
-    <div class="scene">
-      <div class="speedlines"></div>
-      <div class="start-lights"><span></span><span></span><span></span><span></span><span></span></div>
-      <div class="chequer-strip"></div>
+  <!-- ticker -->
+  <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker-track"></div></div>
+
+  <!-- ══════════ DOSSIÊ 01 · ECONOMICS ══════════ -->
+  <section class="dossier" data-screen-label="Economics">
+    <div class="dhead">
+      <h2><span class="didx">01</span> Economics</h2>
+      <div class="dmeta"><b>13</b> painéis · mercados, dados &amp; DeFi</div>
     </div>
-    <div class="content">
-      <div class="kicker">Mundo 05 · Corrida</div>
-      <h2>Grand<span class="ghost">Prix</span></h2>
-      <p class="desc">As maiores moedas largam juntas e correm o próprio desempenho de 24h numa pista. Semáforo apaga, mercado acelera — quem cruza primeiro?</p>
-      <a class="cta" href="themes/crypto-grand-prix.html">Ir ao grid de largada <span class="arr">→</span></a>
+    <div class="grid">
+
+      <a class="card feat" href="themes/crypto-galaxy.html" style="--a:#f7931a" data-reveal>
+        <div class="viz mo-orbit"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">01</span><span class="card-tag">Cósmico · orbital</span></div>
+          <h3 class="card-title">Crypto Galaxy</h3>
+          <p class="card-desc">A galáxia das criptomoedas: cada moeda é um corpo celeste em órbita e o Bitcoin é o sol no centro.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/painel-mercado.html" style="--a:#22d3ee" data-reveal>
+        <div class="viz mo-bars"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">02</span><span class="card-tag">Painel · preços</span></div>
+          <h3 class="card-title">Painel de Mercado</h3>
+          <p class="card-desc">Painel de preços do mercado, calmo e direto, para acompanhar as cotações de relance.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/sp500-galaxy.html" style="--a:#38bdf8" data-reveal>
+        <div class="viz mo-orbit"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">03</span><span class="card-tag">Cósmico · ações</span></div>
+          <h3 class="card-title">S&amp;P 500 Galaxy</h3>
+          <p class="card-desc">A galáxia do S&amp;P 500: as 500 maiores empresas americanas orbitando como estrelas.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/liquidity-scanner.html" style="--a:#34e0a1" data-reveal>
+        <div class="viz mo-radar"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">04</span><span class="card-tag">Scanner · DeFi</span></div>
+          <h3 class="card-title">Liquidity Scanner</h3>
+          <p class="card-desc">Scanner de pools de liquidez em Uniswap, Curve, Aave, Meteora, Ondo e centenas de protocolos.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/mapa-liquidez-btc.html" style="--a:#fb923c" data-reveal>
+        <div class="viz mo-heat"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">05</span><span class="card-tag">Heatmap · liquidação</span></div>
+          <h3 class="card-title">Mapa de Liquidez BTC</h3>
+          <p class="card-desc">O mapa de liquidez dos shorts e longs de Bitcoin — onde o preço vai caçar as alavancagens.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/vertice-terminal.html" style="--a:#a78bfa" data-reveal>
+        <div class="viz mo-candles"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">06</span><span class="card-tag">Terminal · gráficos</span></div>
+          <h3 class="card-title">Vértice Terminal</h3>
+          <p class="card-desc">Uma versão livre do TradingView: gráficos, candles e ferramentas de análise sem custo.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/crypto-bubbles.html" style="--a:#34e0a1" data-reveal>
+        <div class="viz mo-bubbles"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">07</span><span class="card-tag">Flutuante · sabão</span></div>
+          <h3 class="card-title">Crypto Bubbles</h3>
+          <p class="card-desc">Monitoramento de preço cripto por bolhas: verde sobe, vermelho afunda. Estoure uma.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/crypto-grand-prix.html" style="--a:#ef4444" data-reveal>
+        <div class="viz mo-vector"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">08</span><span class="card-tag">Corrida · ranking</span></div>
+          <h3 class="card-title">Crypto Grand Prix</h3>
+          <p class="card-desc">Grand Prix Crypto: as maiores moedas correm o desempenho de 24h numa pista de F1.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/btc-ichimoku.html" style="--a:#e0b24a" data-reveal>
+        <div class="viz mo-cloud"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">09</span><span class="card-tag">Nuvem · Ichimoku</span></div>
+          <h3 class="card-title">Ichimoku BTC</h3>
+          <p class="card-desc">A análise Ichimoku do Bitcoin — a nuvem japonesa de equilíbrio lendo tendência e suporte.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/crypto-sentiment-terminal-v2.html" style="--a:#00ff88" data-reveal>
+        <div class="viz mo-bars"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">10</span><span class="card-tag">Touros vs Ursos</span></div>
+          <h3 class="card-title">Sentiment Terminal</h3>
+          <p class="card-desc">Painel de sentimento do mercado — medo, ganância, RSI e o humor coletivo em tempo real.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/neonhash-miner.html" style="--a:#f7931a" data-reveal>
+        <div class="viz mo-hash"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">11</span><span class="card-tag">Minerador · hash</span></div>
+          <h3 class="card-title">NeonHash Miner</h3>
+          <p class="card-desc">Um minerador de Bitcoin em neon: hashes correndo, dificuldade subindo, blocos fechando.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card feat" href="themes/neo-crypto-city-v3.html" style="--a:#ff007a" data-reveal>
+        <div class="viz mo-city"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">12</span><span class="card-tag">Cyberpunk · grade</span></div>
+          <h3 class="card-title">Neo-Crypto City</h3>
+          <p class="card-desc">Uma cidade cyberpunk synthwave onde cada token vira um arranha-céu de neon sob o sol partido.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/matrix-crypto-terminal-v2.html" style="--a:#00ff66" data-reveal>
+        <div class="viz mo-matrix"></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">13</span><span class="card-tag">Chuva digital</span></div>
+          <h3 class="card-title">Matrix Terminal</h3>
+          <p class="card-desc">Painel de preços estilo Matrix: as cotações caem em katakana verde. O mercado te pegou.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
     </div>
-    <span class="bignum">05</span>
   </section>
 
-  <!-- ════════ 06 · NEO CITY ════════ -->
-  <section class="panel p-city" data-label="Neo City" data-acc="#ff007a" data-screen-label="Neo-Crypto City">
-    <div class="scene">
-      <div class="city-sun"></div>
-      <div class="city-floor"></div>
+  <!-- ══════════ DOSSIÊ 02 · ENTERTAINMENT ══════════ -->
+  <section class="dossier" data-screen-label="Entertainment">
+    <div class="dhead">
+      <h2><span class="didx">02</span> Entertainment</h2>
+      <div class="dmeta"><b>6</b> jogos &amp; experiências</div>
     </div>
-    <div class="content">
-      <div class="kicker">Mundo 06 · Cyberpunk</div>
-      <h2>Neo-Crypto<span class="ghost">City</span></h2>
-      <p class="desc">Uma cidade synthwave onde cada token é um prédio: a altura é o preço, o brilho é o volume. Dirija pela grade até o pôr do sol que nunca chega.</p>
-      <a class="cta" href="themes/neo-crypto-city.html">Entrar na cidade <span class="arr">→</span></a>
+    <div class="grid">
+
+      <a class="card" href="themes/asteroids-neon-void.html" style="--a:#22d3ee" data-reveal>
+        <div class="viz mo-vector"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">01</span><span class="card-tag">Arcade · vetorial</span></div>
+          <h3 class="card-title">Asteroids Neon Void</h3>
+          <p class="card-desc">Jogo inspirado no clássico Asteroids do Atari — nave vetorial e rochas girando no vazio.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card feat" href="themes/kaleidoscope-2077-v2.html" style="--a:#b347ff" data-reveal>
+        <div class="viz mo-kaleido"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">02</span><span class="card-tag">Visual · caleidoscópio</span></div>
+          <h3 class="card-title">Kaleidoscope 2077</h3>
+          <p class="card-desc">Um caleidoscópio generativo — simetria hipnótica de cor e luz que nunca se repete.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/neon-maze.html" style="--a:#ffd400" data-reveal>
+        <div class="viz mo-maze"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">03</span><span class="card-tag">Arcade · labirinto</span></div>
+          <h3 class="card-title">Neon Maze</h3>
+          <p class="card-desc">O clássico Pac-Man reimaginado em neon — labirinto brilhante, fantasmas e pastilhas.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/abundancia-888.html" style="--a:#ffc94d" data-reveal>
+        <div class="viz mo-rays"></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">04</span><span class="card-tag">Ritual · dourado</span></div>
+          <h3 class="card-title">Abundância 888</h3>
+          <p class="card-desc">Um agregador de mentalidade positiva — raios dourados e o número da prosperidade para manifestar.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/revanche-estelar.html" style="--a:#ff5470" data-reveal>
+        <div class="viz mo-vector"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">05</span><span class="card-tag">Arcade · 3D</span></div>
+          <h3 class="card-title">Revanche Estelar</h3>
+          <p class="card-desc">Inspirado no clássico Yar's Revenge do Atari, reconstruído em 3D — a revanche estelar definitiva.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
+      <a class="card" href="themes/pinguim-doki.html" style="--a:#7dd7ee" data-reveal>
+        <div class="viz mo-arcade"><i></i></div>
+        <div class="card-body">
+          <div class="card-top"><span class="card-idx">06</span><span class="card-tag">Puzzle · retrô</span></div>
+          <h3 class="card-title">Pinguim Doki</h3>
+          <p class="card-desc">Inspirado no Doki Doki Penguin Land — empurre blocos de gelo e leve o ovo em segurança.</p>
+        </div>
+        <span class="card-go">→</span>
+      </a>
+
     </div>
-    <span class="bignum">06</span>
   </section>
 
-  <!-- ════════ 07 · MATRIX ════════ -->
-  <section class="panel p-matrix" data-label="Matrix" data-acc="#00ff66" data-screen-label="Matrix Terminal">
-    <div class="scene">
-      <canvas id="matrix-canvas"></canvas>
+  <!-- ══════════ DOSSIÊ 03 · CURRÍCULO ══════════ -->
+  <section class="dossier" data-screen-label="Currículo">
+    <div class="dhead">
+      <h2><span class="didx">03</span> Quem eu sou</h2>
+      <div class="dmeta"><b>01</b> dossiê · o operador do lab</div>
     </div>
-    <div class="content">
-      <div class="kicker">Mundo 07 · Chuva digital</div>
-      <h2>Matrix<span class="ghost">Terminal</span></h2>
-      <p class="desc">Os preços caem em katakana verde por um terminal antigo. Siga o coelho branco — o mercado já te pegou.</p>
-      <a class="cta" href="themes/matrix-crypto-terminal.html">Seguir o coelho <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">07</span>
-  </section>
-
-  <!-- ════════ 08 · SENTIMENT ════════ -->
-  <section class="panel p-sentiment" data-label="Sentiment" data-acc="#00ff88" data-screen-label="Sentiment Terminal">
-    <div class="scene"></div>
-    <div class="content">
-      <div class="kicker">Mundo 08 · Touros vs Ursos</div>
-      <h2>Sentiment<span class="ghost">Terminal</span></h2>
-      <p class="desc">Um pregão às 3h da manhã: medo e ganância, RSI, notícias e o cabo de guerra eterno entre touros e ursos.</p>
-      <div class="tug">
-        <div class="tug-bar"><span class="bull-side"></span><span class="bear-side"></span></div>
-        <div class="tug-labels"><span class="bulls">Touros</span><span class="bears">Ursos</span></div>
-      </div>
-      <a class="cta" href="themes/crypto-sentiment-terminal.html">Entrar no pregão <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">08</span>
-  </section>
-
-  <!-- ════════ 09 · ICHIMOKU ════════ -->
-  <section class="panel p-ichimoku" data-label="Ichimoku" data-acc="#e0b24a" data-screen-label="BTC Ichimoku">
-    <div class="scene">
-      <span class="ichi-kanji">一目均衡表</span>
-      <svg class="ichi-svg" viewBox="0 0 1200 400" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="kumoFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#36b285" stop-opacity="0.35"></stop>
-            <stop offset="1" stop-color="#36b285" stop-opacity="0.03"></stop>
-          </linearGradient>
-        </defs>
-        <path class="kumo" fill="url(#kumoFill)" d="M0,260 C140,236 240,278 380,246 C520,214 640,250 780,212 C900,180 1060,200 1200,170 L1200,330 C1060,330 900,330 780,330 C640,330 520,330 380,330 C240,330 140,330 0,330 Z"></path>
-        <path fill="none" stroke="#e2533c" stroke-width="1.4" stroke-opacity="0.5" d="M0,330 C140,330 240,330 380,330 C520,330 640,330 780,330 C900,330 1060,330 1200,330"></path>
-        <path fill="none" stroke="#36b285" stroke-width="1.6" stroke-opacity="0.7" d="M0,260 C140,236 240,278 380,246 C520,214 640,250 780,212 C900,180 1060,200 1200,170"></path>
-        <path class="price-line" d="M0,300 C100,294 160,272 250,280 C340,288 400,244 490,224 C580,204 640,216 730,184 C820,152 880,164 970,130 C1060,100 1130,112 1200,84"></path>
-      </svg>
-    </div>
-    <div class="content">
-      <div class="kicker">Mundo 09 · Análise técnica</div>
-      <h2>Ichimoku<span class="ghost">Kinkō Hyō</span></h2>
-      <p class="desc">O Bitcoin lido pela nuvem japonesa de equilíbrio — Tenkan, Kijun, Senkou e Chikou num gráfico vivo de candles.</p>
-      <a class="cta" href="themes/btc-ichimoku.html">Ler a nuvem <span class="arr">→</span></a>
-    </div>
-    <span class="bignum">09</span>
-  </section>
-
-  <!-- ════════ FINAL · OPERATOR + CAFÉ ════════ -->
-  <section class="panel p-end" data-label="Operador" data-acc="#a78bfa" data-screen-label="Operador e Café">
-    <div class="end-grid">
-      <div class="content">
-        <div class="kicker">Fim da expedição · o operador</div>
-        <h2>Por trás do <em>laboratório</em></h2>
-        <a class="op-card" href="cv-victor-sartori.html">
-          <div class="op-head">
-            <div class="op-ava">VS</div>
-            <div>
-              <div class="op-name">Victor Bruno Sartori</div>
-              <div class="op-role">Engenheiro Eletricista · Data Scientist</div>
+    <div class="cv">
+      <div class="cv-inner">
+        <div class="cv-copy" data-reveal>
+          <div class="cv-tag">O operador · quem constrói isto</div>
+          <h2>Por trás do <em>laboratório.</em></h2>
+          <p>Bruno Sartori — especialista regulatório em energia elétrica transitando entre geração, transmissão, distribuição e comercialização. Regulação, inteligência de mercado, ciência de dados, I.A. e DeFi colidem aqui, num console que também é currículo.</p>
+        </div>
+        <a class="cv-card" href="themes/curriculo-bruno-sartori-v2-hud-3d.html" data-reveal>
+          <div class="cv-head">
+            <div class="cv-ava">BS</div>
+            <div class="cv-id">
+              <span class="cv-name">Bruno Sartori</span>
+              <span class="cv-role">Especialista Regulatório · Energia Elétrica</span>
             </div>
           </div>
-          <div class="op-fields">
+          <div class="cv-fields">
             <span>Energia</span><span>Regulação</span><span>Dados</span><span>A.I.</span><span>DeFi</span>
           </div>
-          <div class="op-open"><span>Abrir currículo</span><span class="arr">→</span></div>
+          <div class="cv-foot">
+            <span class="cv-status"><span class="dot"></span>Aberto a projetos</span>
+            <span class="cv-open">Abrir currículo <span aria-hidden="true">→</span></span>
+          </div>
         </a>
       </div>
-      <div class="content">
-        <div class="coffee-box">
-          <div class="coffee-head">
-            <div class="coffee-cup" aria-hidden="true">
-              <span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span>
-              <span class="cup"></span><span class="handle"></span>
-            </div>
-            <h3>Me paga um <em>Café</em></h3>
+    </div>
+  </section>
+
+  <!-- ══════════ SUPPORT / BITCOFFEE + ETHER.FI ══════════ -->
+  <section class="support" data-screen-label="Apoie o lab">
+    <div class="support-inner">
+      <div data-reveal>
+        <div class="support-tag">Bitcoffee · mantenha o lab aberto</div>
+        <h2>Me paga um <em>Bitcoffee.</em></h2>
+        <p>Se algum desses mundos te fez sorrir, me paga um gole. Cada satoshi volta para construir formas mais estranhas e bonitas de olhar o mercado.</p>
+        <a class="etherfi" href="https://www.ether.fi/@secret" target="_blank" rel="noopener">
+          <span class="dot"></span>
+          <span>Faça seu ETH render — <b>stake na ether.fi</b> →</span>
+        </a>
+      </div>
+      <div class="addr-list" data-reveal>
+        <div class="addr" style="--chip:var(--btc)">
+          <div class="addr-icon" aria-hidden="true">₿</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Bitcoin</b> · BTC · native segwit</div>
+            <div class="addr-value" id="btc-addr">bc1qsvwduqdsdlxgsqcjhaudxh0ceg9vzm9gyymdy6</div>
           </div>
-          <p>Se algum desses mundos te fez sorrir, me paga um gole. Cada satoshi volta para criar formas mais bonitas de olhar o mercado.</p>
-          <div class="addr" style="--chip: var(--btc);">
-            <div class="addr-icon">₿</div>
-            <div class="addr-info">
-              <div class="addr-label"><b>Bitcoin</b> · native segwit</div>
-              <div class="addr-value" id="btc-addr">bc1qsvwduqdsdlxgsqcjhaudxh0ceg9vzm9gyymdy6</div>
-            </div>
-            <button class="copy-btn" data-copy="#btc-addr" type="button">Copiar</button>
+          <button class="copy-btn" data-copy="#btc-addr" aria-label="Copiar endereço Bitcoin" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+            <span class="lbl">Copiar</span>
+          </button>
+        </div>
+        <div class="addr" style="--chip:var(--eth)">
+          <div class="addr-icon" aria-hidden="true">Ξ</div>
+          <div class="addr-info">
+            <div class="addr-label"><b>Ethereum</b> · ETH · ERC-20</div>
+            <div class="addr-value" id="eth-addr">0xc4782a815f358B1b4a9D0bd2BF8eA1802c58d388</div>
           </div>
-          <div class="addr" style="--chip: var(--eth);">
-            <div class="addr-icon">Ξ</div>
-            <div class="addr-info">
-              <div class="addr-label"><b>Ethereum</b> · ERC-20</div>
-              <div class="addr-value" id="eth-addr">0xc4782a815f358B1b4a9D0bd2BF8eA1802c58d388</div>
-            </div>
-            <button class="copy-btn" data-copy="#eth-addr" type="button">Copiar</button>
-          </div>
+          <button class="copy-btn" data-copy="#eth-addr" aria-label="Copiar endereço Ethereum" type="button">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+            <span class="lbl">Copiar</span>
+          </button>
         </div>
       </div>
     </div>
-    <footer class="end-footer">
-      <span>© Crypto Lab · vol. 03 · Voyage</span>
-      <span class="alt-versions"><a href="index-v2.html">Versão índice</a><a href="index-v1.html">Versão clássica</a></span>
-      <span><a href="cv-victor-sartori.html">Currículo</a> · Feito com cafeína ✦</span>
-    </footer>
   </section>
 
+  <footer>
+    <span>© Crypto Lab · vol. 03 · Atlas</span>
+    <span>Mexa o mouse · troque o papel de parede (1·2·3)</span>
+    <span><a href="index-voyage.html">Versão Voyage</a> · <a href="https://www.ether.fi/@secret" target="_blank" rel="noopener">ether.fi</a> · Feito com cafeína ✦</span>
+  </footer>
 </main>
 
-<script src="voyage.js"></script>
-
+<script src="shaders.js"></script>
+<script src="atlas.js"></script>
 </body>
 </html>

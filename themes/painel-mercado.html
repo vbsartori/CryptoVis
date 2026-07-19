@@ -23,6 +23,8 @@
   body{
     font-family:var(--sans);color:var(--text);
     background:
+      repeating-linear-gradient(0deg, rgba(140,160,200,0.035) 0 1px, transparent 1px 56px),
+      repeating-linear-gradient(90deg, rgba(140,160,200,0.035) 0 1px, transparent 1px 56px),
       radial-gradient(1200px 700px at 12% -8%, rgba(34,211,238,0.10), transparent 60%),
       radial-gradient(1100px 800px at 100% 0%, rgba(167,139,250,0.10), transparent 55%),
       radial-gradient(900px 700px at 50% 120%, rgba(14,203,129,0.07), transparent 60%),
@@ -48,12 +50,20 @@
   .wrap{position:relative;z-index:1;max-width:1480px;margin:0 auto;padding:26px 22px 60px}
 
   header.top{
+    position:relative;overflow:hidden;
     display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
     padding:14px 20px;margin-bottom:14px;border-radius:18px;
     background:linear-gradient(135deg, rgba(20,27,44,0.85), rgba(12,17,30,0.7));
     border:1px solid var(--border);backdrop-filter:blur(14px);
     box-shadow:0 18px 50px -28px rgba(0,0,0,0.9);
   }
+  .top .brand,.top .hstatus{position:relative;z-index:2}
+  .ecg{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none;z-index:1}
+  .ecg path{fill:none;stroke-width:1.6;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+  .ecg-dim{stroke:rgba(140,160,200,0.16)}
+  .ecg-hot{stroke:var(--ecg,#22d3ee);stroke-dasharray:16 84;stroke-dashoffset:100;
+    animation:ecgrun var(--bpm,2.6s) linear infinite;filter:drop-shadow(0 0 7px var(--ecg,#22d3ee))}
+  @keyframes ecgrun{to{stroke-dashoffset:0}}
   .brand{display:flex;align-items:center;gap:14px}
   .logo{width:42px;height:42px;border-radius:12px;flex:none;position:relative;
     background:conic-gradient(from 200deg, var(--cyan), var(--violet), var(--up), var(--cyan));
@@ -61,7 +71,9 @@
   @keyframes logoSpin{to{filter:hue-rotate(360deg)}}
   .logo::after{content:"";position:absolute;inset:3px;border-radius:9px;background:var(--bg2)}
   .logo svg{position:absolute;inset:0;margin:auto;z-index:2}
-  .brand h1{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin:0;line-height:1}
+  .brand h1{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin:0;line-height:1;
+    background:linear-gradient(92deg,#e8edf6 10%,var(--cyan) 55%,var(--violet) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
   .brand .sub{font-size:11.5px;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;margin-top:5px}
   .hstatus{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
   .clock{font-family:var(--mono);font-size:15px;font-weight:500;letter-spacing:0.03em}
@@ -97,6 +109,19 @@
   .tp .c{font-weight:600;font-size:11.5px;padding:1px 7px;border-radius:6px}
   .tp .c.up{color:var(--up);background:rgba(14,203,129,0.1)}
   .tp .c.down{color:var(--down);background:rgba(246,69,93,0.1)}
+
+  /* ---------- section eyebrows ---------- */
+  .eyebrow{display:flex;align-items:center;gap:12px;margin:2px 2px 10px;font-family:var(--mono);
+    font-size:10.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+  .eyebrow::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--ec,var(--cyan));
+    box-shadow:0 0 10px -1px var(--ec,var(--cyan));flex:none}
+  .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border-strong),transparent)}
+
+  /* ---------- cursor sheen ---------- */
+  .sheen{--mx:50%;--my:50%}
+  .sheen::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s;
+    background:radial-gradient(320px circle at var(--mx) var(--my), color-mix(in srgb,var(--ac,var(--cyan)) 9%, transparent), transparent 70%)}
+  .sheen:hover::after{opacity:1}
 
   /* ---------- global stats ---------- */
   .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
@@ -206,7 +231,11 @@
 .home-link:active{transform:scale(.94);}
 </style>
 <div class="wrap">
-  <header class="top">
+  <header class="top" id="topHeader">
+    <svg class="ecg" viewBox="0 0 600 64" preserveAspectRatio="none" aria-hidden="true">
+      <path class="ecg-dim" pathLength="100" d="M0,40 H58 Q64,33 70,40 H88 L96,36 102,12 110,50 116,40 H138 Q146,31 154,40 H258 Q264,33 270,40 H288 L296,36 302,12 310,50 316,40 H338 Q346,31 354,40 H458 Q464,33 470,40 H488 L496,36 502,12 510,50 516,40 H538 Q546,31 554,40 H600"/>
+      <path class="ecg-hot" pathLength="100" d="M0,40 H58 Q64,33 70,40 H88 L96,36 102,12 110,50 116,40 H138 Q146,31 154,40 H258 Q264,33 270,40 H288 L296,36 302,12 310,50 316,40 H338 Q346,31 354,40 H458 Q464,33 470,40 H488 L496,36 502,12 510,50 516,40 H538 Q546,31 554,40 H600"/>
+    </svg>
     <div class="brand">
       <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
       <div class="logo">
@@ -230,15 +259,17 @@
 
   <div class="tape" id="tape" aria-hidden="true"><div class="tape-track" id="tapeTrack"></div></div>
 
+  <div class="eyebrow" style="--ec:var(--cyan)" id="eb1">Visão global</div>
   <section class="stats-row" id="statsRow">
-    <div class="stat" style="--sc:var(--cyan)"><span class="k" id="st-cap-k">Capitalização global</span><span class="v" id="st-cap">—</span></div>
-    <div class="stat" style="--sc:var(--violet)"><span class="k" id="st-vol-k">Volume 24h</span><span class="v" id="st-vol">—</span></div>
-    <div class="stat" style="--sc:var(--amber)"><span class="k" id="st-btc-k">Dominância BTC</span><span class="v" id="st-btc">—</span><div class="dombar"><i id="st-btc-bar"></i></div></div>
-    <div class="stat" style="--sc:#7b8cf0"><span class="k" id="st-eth-k">Dominância ETH</span><span class="v" id="st-eth">—</span><div class="dombar eth"><i id="st-eth-bar"></i></div></div>
+    <div class="stat sheen" style="--sc:var(--cyan)"><span class="k" id="st-cap-k">Capitalização global</span><span class="v" id="st-cap">—</span></div>
+    <div class="stat sheen" style="--sc:var(--violet)"><span class="k" id="st-vol-k">Volume 24h</span><span class="v" id="st-vol">—</span></div>
+    <div class="stat sheen" style="--sc:var(--amber)"><span class="k" id="st-btc-k">Dominância BTC</span><span class="v" id="st-btc">—</span><div class="dombar"><i id="st-btc-bar"></i></div></div>
+    <div class="stat sheen" style="--sc:#7b8cf0"><span class="k" id="st-eth-k">Dominância ETH</span><span class="v" id="st-eth">—</span><div class="dombar eth"><i id="st-eth-bar"></i></div></div>
   </section>
 
+  <div class="eyebrow" style="--ec:var(--amber)" id="eb2">Sentimento do mercado</div>
   <section class="sent-row">
-    <div class="gauge-card" id="fg-crypto" style="--accent:var(--amber)">
+    <div class="gauge-card sheen" id="fg-crypto" style="--accent:var(--amber)">
       <div class="gauge-svg" id="fg-crypto-svg"></div>
       <div class="gauge-info">
         <div class="label" id="fg-crypto-label"></div>
@@ -247,7 +278,7 @@
         <svg class="spark" id="fg-crypto-spark" preserveAspectRatio="none"></svg>
       </div>
     </div>
-    <div class="gauge-card" id="fg-us" style="--accent:var(--cyan)">
+    <div class="gauge-card sheen" id="fg-us" style="--accent:var(--cyan)">
       <div class="gauge-svg" id="fg-us-svg"></div>
       <div class="gauge-info">
         <div class="label" id="fg-us-label"></div>
@@ -258,6 +289,7 @@
     </div>
   </section>
 
+  <div class="eyebrow" style="--ec:var(--violet)" id="eb3">Mercados &amp; gráficos</div>
   <section class="grid" id="grid"></section>
 
   <footer><span id="footer1"></span><br><span id="footer2"></span></footer>
@@ -295,6 +327,7 @@ const I18N = {
     hint:'scroll: zoom · arraste: mover · 2× clique: resetar',
     loading:'carregando…', err1:'dados indisponíveis no momento', err2:'tente atualizar', unavailable:'indisponível',
     stCap:'Capitalização cripto global', stVol:'Volume 24h', stBtc:'Dominância BTC', stEth:'Dominância ETH',
+    eb1:'Visão global', eb2:'Sentimento do mercado', eb3:'Mercados & gráficos',
     live:'AO VIVO',
     footer1:'Dados ao vivo · Cripto, Ouro e Dólar via Binance (WebSocket em tempo real) · S&amp;P 500 e Nasdaq via Yahoo Finance · Métricas globais via CoinGecko · Sentimento via alternative.me &amp; feargreedchart.com',
     footer2:'Cotações com possível atraso. Conteúdo informativo — não é recomendação de investimento.',
@@ -312,6 +345,7 @@ const I18N = {
     hint:'scroll: zoom · drag: pan · double-click: reset',
     loading:'loading…', err1:'data unavailable right now', err2:'try refreshing', unavailable:'unavailable',
     stCap:'Global crypto market cap', stVol:'24h volume', stBtc:'BTC dominance', stEth:'ETH dominance',
+    eb1:'Global overview', eb2:'Market sentiment', eb3:'Markets & charts',
     live:'LIVE',
     footer1:'Live data · Crypto, Gold &amp; Dollar via Binance (real-time WebSocket) · S&amp;P 500 &amp; Nasdaq via Yahoo Finance · Global metrics via CoinGecko · Sentiment via alternative.me &amp; feargreedchart.com',
     footer2:'Quotes may be delayed. Informational only — not investment advice.',
@@ -545,10 +579,11 @@ function renderGauge(el,score){
   const cx=100,cy=112,r=84;
   const zones=[[0,25,'#f6465d'],[25,45,'#ff8a4c'],[45,55,'#f4d03f'],[55,75,'#7ed957'],[75,100,'#0ecb81']];
   let bands='';zones.forEach(z=>{bands+=`<path d="${arcPath(cx,cy,r,v2deg(z[0]),v2deg(z[1]))}" stroke="${z[2]}" stroke-width="14" fill="none" opacity="0.92"/>`;});
+  let ticks='';for(let v=0;v<=100;v+=10){const major=v%50===0;const[tx1,ty1]=pol(cx,cy,r+9,v2deg(v)),[tx2,ty2]=pol(cx,cy,r+(major?15:12),v2deg(v));ticks+=`<line x1="${tx1.toFixed(1)}" y1="${ty1.toFixed(1)}" x2="${tx2.toFixed(1)}" y2="${ty2.toFixed(1)}" stroke="rgba(180,190,210,${major?0.35:0.16})" stroke-width="${major?1.4:1}"/>`;}
   const col=zoneColor(score);
   el.innerHTML=`<svg viewBox="0 0 200 132" width="100%">
     <defs><filter id="gglow-${el.id}" filterUnits="userSpaceOnUse" x="0" y="0" width="200" height="132"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-    <path d="${arcPath(cx,cy,r,180,0)}" stroke="rgba(255,255,255,0.06)" stroke-width="14" fill="none" stroke-linecap="round"/>${bands}
+    <path d="${arcPath(cx,cy,r,180,0)}" stroke="rgba(255,255,255,0.06)" stroke-width="14" fill="none" stroke-linecap="round"/>${ticks}${bands}
     <g class="needle" filter="url(#gglow-${el.id})"><line x1="${cx}" y1="${cy}" x2="${cx+(r-22)}" y2="${cy}" stroke="${col}" stroke-width="3.2" stroke-linecap="round"/></g>
     <circle cx="${cx}" cy="${cy}" r="7" fill="${col}"/><circle cx="${cx}" cy="${cy}" r="3" fill="#070a12"/>
     <text class="score" x="${cx}" y="86" text-anchor="middle" fill="#e8edf6" font-family="JetBrains Mono, monospace" font-size="34" font-weight="700">0</text>
@@ -613,7 +648,7 @@ async function loadGlobal(){
 const cards={};
 const state={cryptoFG:null,usFG:null,lastUpdate:null};
 function buildCard(asset){
-  const el=document.createElement('div'); el.className='card'; el.style.setProperty('--ac',asset.color);
+  const el=document.createElement('div'); el.className='card sheen'; el.style.setProperty('--ac',asset.color);
   el.style.animationDelay=(ASSETS.indexOf(asset)*70)+'ms';
   el.innerHTML=`<div class="card-head"><div class="asset-id"><div class="asset-icon">${asset.icon}</div><div><div class="asset-name" data-name></div><div class="asset-sym">${asset.sym}<span class="live-pill" data-live></span></div></div></div><div class="price-box"><div class="price" data-price>—</div><div class="chg" data-chg></div></div></div>
     <div class="toolbar"><div class="tfs" data-tfs></div><div class="tools"><button class="icon-btn" data-ma>MA</button><button class="icon-btn" data-type><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-6 4 3 6-8 3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="icon-btn" data-expand><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
@@ -729,8 +764,18 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 window.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* ===================== SENTIMENT ===================== */
+function setEcg(score){
+  const h=document.getElementById('topHeader');
+  h.style.setProperty('--ecg',zoneColor(score));
+  h.style.setProperty('--bpm',(1.3+(clamp(score,0,100)/100)*2.1).toFixed(2)+'s');
+}
+document.addEventListener('pointermove',e=>{
+  const t=e.target&&e.target.closest?e.target.closest('.sheen'):null;if(!t)return;
+  const r=t.getBoundingClientRect();
+  t.style.setProperty('--mx',(e.clientX-r.left)+'px');t.style.setProperty('--my',(e.clientY-r.top)+'px');
+});
 function paintSentiment(){
-  if(state.cryptoFG){renderGauge(document.getElementById('fg-crypto-svg'),state.cryptoFG.score);const v=document.getElementById('fg-crypto-verdict');v.textContent=fgLabel(state.cryptoFG.score);v.style.color=zoneColor(state.cryptoFG.score);renderSpark(document.getElementById('fg-crypto-spark'),state.cryptoFG.history);}
+  if(state.cryptoFG){renderGauge(document.getElementById('fg-crypto-svg'),state.cryptoFG.score);const v=document.getElementById('fg-crypto-verdict');v.textContent=fgLabel(state.cryptoFG.score);v.style.color=zoneColor(state.cryptoFG.score);renderSpark(document.getElementById('fg-crypto-spark'),state.cryptoFG.history);setEcg(state.cryptoFG.score);}
   if(state.usFG){renderGauge(document.getElementById('fg-us-svg'),state.usFG.score);const v=document.getElementById('fg-us-verdict');v.textContent=fgLabel(state.usFG.score);v.style.color=zoneColor(state.usFG.score);renderSpark(document.getElementById('fg-us-spark'),state.usFG.history);}
 }
 async function loadSentiment(){
@@ -752,6 +797,9 @@ function applyLang(){
   document.getElementById('st-vol-k').textContent=L().stVol;
   document.getElementById('st-btc-k').textContent=L().stBtc;
   document.getElementById('st-eth-k').textContent=L().stEth;
+  document.getElementById('eb1').textContent=L().eb1;
+  document.getElementById('eb2').textContent=L().eb2;
+  document.getElementById('eb3').textContent=L().eb3;
   document.getElementById('footer1').innerHTML=L().footer1;
   document.getElementById('footer2').innerHTML=L().footer2;
   document.querySelectorAll('[data-hint]').forEach(h=>h.textContent=L().hint);

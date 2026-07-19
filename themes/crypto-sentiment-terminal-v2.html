@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRYPTO SENTIMENT TERMINAL v2 • Bulls vs Bears Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================
+   CRYPTO SENTIMENT TERMINAL — v2 "FABLE EDITION"
+   Design: Trading floor meets neon noir
+   Novidades v2:
+     • Arena de batalha (cabo de guerra animado)
+     • Fear & Greed Index ao vivo (score da internet)
+     • Battle Score composto (influencers + momentum + F&G)
+     • Painel global (market cap, dominância BTC/ETH)
+     • Modo edição: clique no card do influencer p/ mudar lado
+   ========================================================== */
+
+:root {
+  --bg-deep:        #060609;
+  --bg-base:        #0a0b12;
+  --bg-card:        #11121b;
+  --bg-card-2:      #161823;
+  --border-dim:     #1d2030;
+  --border:         #262a40;
+  --border-bright:  #3a3f5c;
+
+  --text:           #e9ebf5;
+  --text-dim:       #8b90a8;
+  --text-faint:     #565a72;
+
+  --bull:           #00ff88;
+  --bull-glow:      #00ff8830;
+  --bear:           #ff3866;
+  --bear-glow:      #ff386630;
+  --neutral:        #ffb547;
+  --neutral-glow:   #ffb54730;
+
+  --btc:            #f7931a;
+  --eth:            #627eea;
+  --accent:         #00d4ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ambient background — slow gradient + noise grain */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, #00ff8810 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 80% 100%, #ff386610 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, #00d4ff08 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambient 30s ease-in-out infinite;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+  mix-blend-mode: overlay;
+}
+@keyframes ambient {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2%, -1%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+/* scanline overlay (subtle terminal feel) */
+.scanlines {
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 2px,
+    rgba(255,255,255,0.012) 2px,
+    rgba(255,255,255,0.012) 3px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+main {
+  position: relative;
+  z-index: 10;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 28px 60px;
+}
+
+/* ============== HEADER ============== */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: linear-gradient(180deg, rgba(10,11,18,0.95), rgba(10,11,18,0.7));
+  backdrop-filter: blur(8px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.brand-mark {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--bull) 0%, var(--bear) 100%);
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,255,136,0.25), 0 0 60px rgba(255,56,102,0.15);
+}
+.brand-mark::before {
+  content: '⚔';
+  position: absolute;
+  inset: 0;
+  display: grid; place-items: center;
+  font-size: 22px;
+  color: #060609;
+  font-weight: 900;
+}
+.brand-text h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  background: linear-gradient(90deg, #fff, #8b90a8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.brand-text p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+.meta-item .label {
+  color: var(--text-faint);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+.meta-item .value {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.live-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--bull);
+  box-shadow: 0 0 0 0 var(--bull);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.live-dot.error {
+  background: var(--bear);
+  box-shadow: 0 0 0 0 var(--bear);
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor, 0 0 8px currentColor; opacity: 1; }
+  50% { box-shadow: 0 0 0 8px transparent, 0 0 16px currentColor; opacity: 0.7; }
+}
+
+button.refresh {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+button.refresh:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+}
+button.refresh.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============== TICKER ============== */
+.ticker {
+  margin: 22px 0 28px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+  overflow: hidden;
+  position: relative;
+}
+.ticker::before, .ticker::after {
+  content: '';
+  position: absolute; top: 0; bottom: 0;
+  width: 80px;
+  z-index: 5;
+  pointer-events: none;
+}
+.ticker::before { left: 0; background: linear-gradient(90deg, var(--bg-deep), transparent); }
+.ticker::after { right: 0; background: linear-gradient(-90deg, var(--bg-deep), transparent); }
+
+.ticker-track {
+  display: flex;
+  gap: 56px;
+  animation: ticker 50s linear infinite;
+  width: max-content;
+}
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.ticker-item .sym { color: var(--text-dim); font-weight: 700; letter-spacing: 0.05em; }
+.ticker-item .px { color: var(--text); font-weight: 600; }
+.ticker-item .pct { font-weight: 700; }
+.ticker-item .pct.up { color: var(--bull); }
+.ticker-item .pct.down { color: var(--bear); }
+.ticker-item img { width: 18px; height: 18px; border-radius: 50%; }
+
+/* ============== GLOBAL STRIP ============== */
+.global-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+.global-cell {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.global-cell .g-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.global-cell .g-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum";
+}
+.global-cell .g-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-top: 5px;
+  color: var(--text-dim);
+}
+.global-cell .g-sub.up { color: var(--bull); }
+.global-cell .g-sub.down { color: var(--bear); }
+.global-cell.btc-dom .g-value { color: var(--btc); }
+.global-cell.eth-dom .g-value { color: var(--eth); }
+
+.dom-bar {
+  margin-top: 8px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+.dom-bar .fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btc-dom .dom-bar .fill { background: linear-gradient(90deg, #b86a0e, var(--btc)); }
+.eth-dom .dom-bar .fill { background: linear-gradient(90deg, #3a4ea8, var(--eth)); }
+
+/* ============== ARENA (BATTLE TUG-OF-WAR) ============== */
+.arena {
+  margin-bottom: 24px;
+  padding: 32px 36px 28px;
+  background:
+    linear-gradient(135deg, rgba(0,255,136,0.05) 0%, transparent 45%, transparent 55%, rgba(255,56,102,0.05) 100%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.arena::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.08), transparent 60%);
+  pointer-events: none;
+}
+
+.arena-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+  position: relative;
+}
+.arena-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.arena-header h2 .vs {
+  color: var(--text-faint);
+  margin: 0 14px;
+  font-size: 26px;
+}
+.arena-header h2 .bulls-text { color: var(--bull); text-shadow: 0 0 24px var(--bull-glow); }
+.arena-header h2 .bears-text { color: var(--bear); text-shadow: 0 0 24px var(--bear-glow); }
+
+.arena-score-box {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+.arena-score-box .label {
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.arena-score-box .score-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 700;
+  transition: color 0.4s;
+}
+.arena-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+  color: var(--text-dim);
+  position: relative;
+}
+.arena-status strong { font-weight: 800; }
+
+/* o campo de batalha */
+.battlefield {
+  position: relative;
+  display: grid;
+  grid-template-columns: 110px 1fr 110px;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+
+.fighter {
+  text-align: center;
+  position: relative;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s;
+}
+.fighter .avatar {
+  font-size: 64px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s;
+}
+.fighter.bull .avatar { filter: drop-shadow(0 0 18px var(--bull-glow)); transform: scaleX(-1); }
+.fighter.bear .avatar { filter: drop-shadow(0 0 18px var(--bear-glow)); }
+
+.fighter.winning .avatar { animation: stomp 1.1s ease-in-out infinite; }
+.fighter.bull.winning .avatar { filter: drop-shadow(0 0 30px var(--bull)); }
+.fighter.bear.winning .avatar { filter: drop-shadow(0 0 30px var(--bear)); }
+.fighter.losing { filter: saturate(0.55) brightness(0.75); }
+.fighter.losing .avatar { animation: tremble 0.5s ease-in-out infinite; }
+
+@keyframes stomp {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.06); }
+}
+.fighter.bull.winning .avatar { animation: stompBull 1.1s ease-in-out infinite; }
+@keyframes stompBull {
+  0%, 100% { transform: scaleX(-1) translateY(0) scale(1); }
+  50% { transform: scaleX(-1) translateY(-6px) scale(1.06); }
+}
+@keyframes tremble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-1.5px); }
+  75% { transform: translateX(1.5px); }
+}
+.fighter.bull.losing .avatar { animation: trembleBull 0.5s ease-in-out infinite; }
+@keyframes trembleBull {
+  0%, 100% { transform: scaleX(-1) translateX(0); }
+  25% { transform: scaleX(-1) translateX(-1.5px); }
+  75% { transform: scaleX(-1) translateX(1.5px); }
+}
+
+.fighter .crown {
+  position: absolute;
+  top: -22px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+  opacity: 0;
+  transition: opacity 0.4s, transform 0.4s;
+  pointer-events: none;
+}
+.fighter.winning .crown { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+.fighter .hp {
+  margin-top: 12px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+.fighter .hp .hp-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fighter.bull .hp-fill { background: linear-gradient(90deg, #00cc6a, var(--bull)); box-shadow: 0 0 10px var(--bull-glow); }
+.fighter.bear .hp-fill { background: linear-gradient(90deg, var(--bear), #cc2950); box-shadow: 0 0 10px var(--bear-glow); }
+.fighter .hp-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.fighter.bull .hp-num { color: var(--bull); }
+.fighter.bear .hp-num { color: var(--bear); }
+
+/* a corda / território */
+.rope-track {
+  position: relative;
+  height: 64px;
+  border-radius: 12px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+}
+.territory {
+  position: absolute;
+  top: 0; bottom: 0;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1), left 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.territory.bull-zone {
+  left: 0;
+  background:
+    repeating-linear-gradient(-45deg, transparent 0, transparent 8px, rgba(0,0,0,0.12) 8px, rgba(0,0,0,0.12) 16px),
+    linear-gradient(90deg, rgba(0,255,136,0.5), rgba(0,255,136,0.85));
+}
+.territory.bear-zone {
+  right: 0; left: auto;
+  background:
+    repeating-linear-gradient(45deg, transparent 0, transparent 8px, rgba(0,0,0,0.12) 8px, rgba(0,0,0,0.12) 16px),
+    linear-gradient(90deg, rgba(255,56,102,0.85), rgba(255,56,102,0.5));
+}
+
+/* linha de frente (clash) */
+.frontline {
+  position: absolute;
+  top: -6px; bottom: -6px;
+  width: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 14px #fff, 0 0 30px var(--accent);
+  transition: left 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 4;
+}
+.frontline .clash {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  filter: drop-shadow(0 0 10px #fff);
+  animation: clashPulse 0.9s ease-in-out infinite;
+}
+@keyframes clashPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50% { transform: translate(-50%, -50%) scale(1.25) rotate(8deg); }
+}
+
+.rope-ticks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  pointer-events: none;
+}
+.rope-ticks span {
+  width: 1px;
+  height: 100%;
+  background: rgba(255,255,255,0.05);
+}
+
+.arena-axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.14em;
+  margin-top: 8px;
+  padding: 0 2px;
+}
+
+/* componentes do score */
+.score-breakdown {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  position: relative;
+}
+.score-comp {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.score-comp .sc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.score-comp .sc-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.score-comp .sc-weight {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 1px solid var(--border-dim);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.score-comp .sc-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 800;
+  font-feature-settings: "tnum";
+}
+.score-comp .sc-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.sc-meter {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-dim);
+  position: relative;
+  overflow: hidden;
+}
+.sc-meter::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.18);
+  z-index: 2;
+}
+.sc-meter .sc-fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 3px;
+}
+
+/* ============== FEAR & GREED + BAR ROW ============== */
+.sentiment-row {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 18px;
+  margin-bottom: 44px;
+}
+@media (max-width: 900px) {
+  .sentiment-row { grid-template-columns: 1fr; }
+}
+
+.fng-card {
+  background:
+    radial-gradient(circle at 50% 110%, rgba(0,212,255,0.07), transparent 60%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.fng-card .fng-title {
+  align-self: flex-start;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.fng-card .fng-sub {
+  align-self: flex-start;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.fng-gauge { width: 100%; max-width: 280px; }
+.fng-value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 56px;
+  line-height: 1;
+  margin-top: -42px;
+  transition: color 0.5s;
+}
+.fng-class {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: 4px;
+  transition: color 0.5s;
+}
+.fng-delta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 10px;
+}
+.fng-needle {
+  transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: 100px 100px;
+}
+
+/* barra de proporção (legado v1, mantida) */
+.battle {
+  padding: 26px 30px;
+  background:
+    linear-gradient(135deg, rgba(0,255,136,0.04) 0%, transparent 50%, rgba(255,56,102,0.04) 100%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.battle h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.12em;
+  margin-bottom: 18px;
+}
+
+.battle-bar {
+  height: 56px;
+  background: var(--bg-deep);
+  border-radius: 10px;
+  border: 1px solid var(--border-dim);
+  overflow: hidden;
+  display: flex;
+  position: relative;
+}
+.battle-bar .seg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  color: #060609;
+  position: relative;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.battle-bar .seg::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0,
+    transparent 8px,
+    rgba(0,0,0,0.06) 8px,
+    rgba(0,0,0,0.06) 16px
+  );
+  animation: stripe 2s linear infinite;
+}
+@keyframes stripe {
+  to { transform: translateX(-22.6px); }
+}
+.seg-bull { background: linear-gradient(90deg, var(--bull) 0%, #00cc6a 100%); box-shadow: inset -1px 0 0 rgba(255,255,255,0.2); }
+.seg-neutral { background: linear-gradient(90deg, #b8862e 0%, var(--neutral) 100%); }
+.seg-bear { background: linear-gradient(90deg, #cc2950 0%, var(--bear) 100%); box-shadow: inset 1px 0 0 rgba(255,255,255,0.2); }
+.seg .seg-label { position: relative; z-index: 1; text-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+
+.battle-legend {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.legend-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.legend-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  line-height: 1;
+}
+.legend-bull .legend-num { color: var(--bull); }
+.legend-bear .legend-num { color: var(--bear); }
+.legend-neu  .legend-num { color: var(--neutral); }
+.legend-label {
+  color: var(--text-faint);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+.legend-detail {
+  color: var(--text);
+  font-size: 13px;
+  max-width: 320px;
+}
+
+/* ============== SECTION TITLE ============== */
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  color: var(--text);
+  margin: 8px 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 22px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  box-shadow: 0 0 12px var(--accent);
+}
+.section-title .count {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.12em;
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* ============== CRYPTO GRID ============== */
+.crypto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-bottom: 50px;
+}
+.crypto-grid .featured {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(247,147,26,0.08), transparent 60%), var(--bg-card);
+  border-color: rgba(247,147,26,0.3);
+}
+@media (max-width: 760px) {
+  .crypto-grid .featured { grid-column: span 1; }
+}
+
+.crypto-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, box-shadow 0.3s;
+  opacity: 0;
+  animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.crypto-card:nth-child(1) { animation-delay: 0.05s; }
+.crypto-card:nth-child(2) { animation-delay: 0.12s; }
+.crypto-card:nth-child(3) { animation-delay: 0.19s; }
+.crypto-card:nth-child(4) { animation-delay: 0.26s; }
+.crypto-card:nth-child(5) { animation-delay: 0.33s; }
+.crypto-card:nth-child(6) { animation-delay: 0.40s; }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.crypto-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-bright);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px var(--border-bright);
+}
+.crypto-card.flash-up { animation: flashUp 0.8s ease-out; }
+.crypto-card.flash-down { animation: flashDown 0.8s ease-out; }
+@keyframes flashUp {
+  0%   { box-shadow: 0 0 0 0 var(--bull); border-color: var(--bull); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes flashDown {
+  0%   { box-shadow: 0 0 0 0 var(--bear); border-color: var(--bear); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.crypto-card.loading {
+  background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-card-2) 50%, var(--bg-card) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.cc-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.cc-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--bg-card-2);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px var(--border-dim);
+}
+.featured .cc-icon { width: 56px; height: 56px; }
+.cc-icon img { width: 100%; height: 100%; border-radius: 50%; }
+.cc-name {
+  flex: 1;
+  min-width: 0;
+}
+.cc-name .name {
+  font-family: 'Manrope', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.featured .cc-name .name { font-size: 22px; }
+.cc-name .symbol {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.cc-rank {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 1px solid var(--border-dim);
+  padding: 3px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+}
+
+.cc-price {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 14px;
+  font-feature-settings: "tnum";
+  transition: color 0.3s;
+}
+.featured .cc-price { font-size: 42px; }
+.cc-price .currency { color: var(--text-faint); font-size: 0.55em; margin-right: 4px; }
+.cc-price.flash-up { color: var(--bull); }
+.cc-price.flash-down { color: var(--bear); }
+
+.cc-changes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.change-cell {
+  background: var(--bg-card-2);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.change-cell .label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.change-cell .value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.change-cell.up { border-color: rgba(0,255,136,0.25); background: linear-gradient(135deg, rgba(0,255,136,0.06), transparent); }
+.change-cell.up .value { color: var(--bull); }
+.change-cell.down { border-color: rgba(255,56,102,0.25); background: linear-gradient(135deg, rgba(255,56,102,0.06), transparent); }
+.change-cell.down .value { color: var(--bear); }
+
+.cc-spark {
+  width: 100%;
+  height: 50px;
+}
+.featured .cc-spark { height: 70px; }
+
+/* ============== INFLUENCERS ============== */
+.edit-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.edit-hint .dot-bull { color: var(--bull); }
+.edit-hint .dot-bear { color: var(--bear); }
+.edit-hint .dot-neu { color: var(--neutral); }
+button.reset-btn {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+button.reset-btn:hover {
+  border-color: var(--neutral);
+  color: var(--neutral);
+}
+.custom-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid rgba(0,212,255,0.35);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.influencer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.inf-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  animation: cardIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  cursor: pointer;
+  user-select: none;
+}
+.inf-card.bull { border-color: rgba(0,255,136,0.25); }
+.inf-card.bear { border-color: rgba(255,56,102,0.25); }
+.inf-card.neutral { border-color: rgba(255,181,71,0.2); }
+.inf-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.inf-card.bull:hover { border-color: var(--bull); box-shadow: 0 0 24px var(--bull-glow), 0 12px 32px rgba(0,0,0,0.4); }
+.inf-card.bear:hover { border-color: var(--bear); box-shadow: 0 0 24px var(--bear-glow), 0 12px 32px rgba(0,0,0,0.4); }
+.inf-card.neutral:hover { border-color: var(--neutral); box-shadow: 0 0 24px var(--neutral-glow), 0 12px 32px rgba(0,0,0,0.4); }
+.inf-card:active { transform: scale(0.985); }
+.inf-card.flip .inf-emoji { animation: flipEmoji 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes flipEmoji {
+  0% { transform: rotateY(0); }
+  50% { transform: rotateY(90deg) scale(0.8); }
+  100% { transform: rotateY(0); }
+}
+
+.inf-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--side-color, transparent) 0%, transparent 30%);
+  opacity: 0.06;
+  pointer-events: none;
+}
+.inf-card.bull { --side-color: var(--bull); }
+.inf-card.bear { --side-color: var(--bear); }
+.inf-card.neutral { --side-color: var(--neutral); }
+
+.inf-side {
+  position: absolute;
+  top: 0; right: 0;
+  padding: 6px 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  border-bottom-left-radius: 8px;
+  font-weight: 700;
+}
+.inf-card.bull .inf-side { background: var(--bull); color: #060609; }
+.inf-card.bear .inf-side { background: var(--bear); color: #fff; }
+.inf-card.neutral .inf-side { background: var(--neutral); color: #060609; }
+
+.inf-custom {
+  position: absolute;
+  top: 30px; right: 0;
+  padding: 3px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  background: rgba(0,212,255,0.1);
+  border-bottom-left-radius: 8px;
+}
+
+.inf-emoji {
+  font-size: 38px;
+  line-height: 1;
+  margin: 8px 0 14px;
+  display: inline-block;
+  filter: drop-shadow(0 2px 12px var(--side-color, transparent));
+}
+.inf-name {
+  font-family: 'Manrope', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.inf-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.inf-socials {
+  display: flex;
+  gap: 8px;
+}
+.inf-social {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card-2);
+  color: var(--text-dim);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.inf-social:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,212,255,0.08);
+  transform: translateY(-1px);
+}
+.inf-social.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.inf-social svg { width: 16px; height: 16px; }
+
+/* ============== FOOTER ============== */
+footer {
+  margin-top: 60px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-dim);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.08em;
+}
+footer a { color: var(--text-dim); text-decoration: none; }
+footer a:hover { color: var(--accent); }
+
+/* error banner */
+.error-banner {
+  background: rgba(255,56,102,0.08);
+  border: 1px solid rgba(255,56,102,0.3);
+  color: var(--bear);
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  margin-bottom: 24px;
+  display: none;
+}
+.error-banner.show { display: block; }
+
+@media (max-width: 600px) {
+  main { padding: 0 16px 40px; }
+  header { padding: 16px; }
+  .arena { padding: 22px 16px; }
+  .arena-header h2 { font-size: 26px; }
+  .arena-score-box .score-value { font-size: 34px; }
+  .battlefield { grid-template-columns: 70px 1fr 70px; gap: 10px; }
+  .fighter .avatar { font-size: 44px; }
+  .rope-track { height: 50px; }
+  .battle { padding: 20px 16px; }
+  .battle-bar { height: 44px; }
+  .battle-bar .seg { font-size: 18px; }
+  .cc-price { font-size: 26px; }
+  .featured .cc-price { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+<style>
+.home-link{--hl:#00d4ff;display:inline-flex;align-items:center;height:40px;min-width:40px;border-radius:999px;background:rgba(8,9,14,.55);border:1px solid color-mix(in srgb,var(--hl) 45%,transparent);color:var(--hl);text-decoration:none;overflow:hidden;flex:0 0 auto;margin-right:8px;align-self:center;backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%);box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 18px -8px var(--hl);transition:min-width .35s cubic-bezier(.2,0,.2,1),background .3s,box-shadow .3s,border-color .3s,transform .15s;font-family:'JetBrains Mono',monospace;}
+.home-link .hl-ico{flex:0 0 40px;height:40px;display:grid;place-items:center;}
+.home-link .hl-ico svg{width:18px;height:18px;display:block;}
+.home-link .hl-txt{max-width:0;opacity:0;white-space:nowrap;font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;transition:max-width .35s cubic-bezier(.2,0,.2,1),opacity .25s,padding .35s;}
+.home-link:hover{background:color-mix(in srgb,var(--hl) 16%,rgba(8,9,14,.55));border-color:color-mix(in srgb,var(--hl) 70%,transparent);box-shadow:0 8px 26px rgba(0,0,0,.5),0 0 26px -4px var(--hl);}
+.home-link:hover .hl-txt{max-width:120px;opacity:1;padding-right:15px;}
+.home-link:active{transform:scale(.94);}
+</style>
+
+<div class="scanlines"></div>
+
+<header>
+  <a class="home-link" href="../index.html" title="Back to Crypto Lab" aria-label="Back to Crypto Lab home"><span class="hl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6 12 3l9 7.6"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg></span><span class="hl-txt">Home</span></a>
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div class="brand-text">
+      <h1>SENTIMENT TERMINAL</h1>
+      <p>Live Crypto · Bulls vs Bears · v2.0 Arena</p>
+    </div>
+  </div>
+
+  <div class="header-meta">
+    <div class="meta-item">
+      <span class="live-dot" id="live-dot"></span>
+      <span class="label">Live</span>
+      <span class="value" id="live-status">Online</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Última atualização</span>
+      <span class="value" id="last-update">--:--:--</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Próxima em</span>
+      <span class="value" id="next-update">5:00</span>
+    </div>
+    <button class="refresh" id="refresh-btn" title="Atualizar agora">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      <span>Refresh</span>
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <!-- error banner (shown on API failures) -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- LIVE TICKER -->
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track"></div>
+  </div>
+
+  <!-- GLOBAL MARKET STRIP -->
+  <div class="global-strip" id="global-strip">
+    <div class="global-cell">
+      <div class="g-label">Market cap global</div>
+      <div class="g-value" id="g-mcap">—</div>
+      <div class="g-sub" id="g-mcap-ch">—</div>
+    </div>
+    <div class="global-cell">
+      <div class="g-label">Volume 24h</div>
+      <div class="g-value" id="g-vol">—</div>
+      <div class="g-sub">todos os mercados</div>
+    </div>
+    <div class="global-cell btc-dom">
+      <div class="g-label">Dominância BTC</div>
+      <div class="g-value" id="g-btc-dom">—</div>
+      <div class="dom-bar"><div class="fill" id="g-btc-bar" style="width:0%"></div></div>
+    </div>
+    <div class="global-cell eth-dom">
+      <div class="g-label">Dominância ETH</div>
+      <div class="g-value" id="g-eth-dom">—</div>
+      <div class="dom-bar"><div class="fill" id="g-eth-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- ⚔️ ARENA: BULLS VS BEARS TUG OF WAR -->
+  <section class="arena">
+    <div class="arena-header">
+      <h2>
+        <span class="bulls-text">ARENA</span>
+        <span class="vs">·</span>
+        <span class="bears-text">BULLS VS BEARS</span>
+      </h2>
+      <div class="arena-score-box">
+        <div class="label">Battle Score</div>
+        <div class="score-value" id="battle-score">0</div>
+      </div>
+    </div>
+    <div class="arena-status" id="arena-status">Calculando forças…</div>
+
+    <div class="battlefield">
+      <div class="fighter bull" id="fighter-bull">
+        <span class="crown">👑</span>
+        <span class="avatar">🐂</span>
+        <div class="hp"><div class="hp-fill" id="hp-bull" style="width:50%"></div></div>
+        <div class="hp-num" id="hp-bull-num">50</div>
+      </div>
+
+      <div class="rope-track">
+        <div class="rope-ticks">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="territory bull-zone" id="zone-bull" style="width:50%"></div>
+        <div class="territory bear-zone" id="zone-bear" style="width:50%"></div>
+        <div class="frontline" id="frontline" style="left:50%">
+          <span class="clash">💥</span>
+        </div>
+      </div>
+
+      <div class="fighter bear" id="fighter-bear">
+        <span class="crown">👑</span>
+        <span class="avatar">🐻</span>
+        <div class="hp"><div class="hp-fill" id="hp-bear" style="width:50%"></div></div>
+        <div class="hp-num" id="hp-bear-num">50</div>
+      </div>
+    </div>
+
+    <div class="arena-axis">
+      <span>◀ DOMÍNIO BULL +100</span>
+      <span>EQUILÍBRIO 0</span>
+      <span>DOMÍNIO BEAR −100 ▶</span>
+    </div>
+
+    <!-- componentes do score composto -->
+    <div class="score-breakdown">
+      <div class="score-comp">
+        <div class="sc-head">
+          <span class="sc-title">🎙 Influencers</span>
+          <span class="sc-weight">peso 40%</span>
+        </div>
+        <div class="sc-value" id="comp-inf">—</div>
+        <div class="sc-detail" id="comp-inf-detail">—</div>
+        <div class="sc-meter"><div class="sc-fill" id="meter-inf"></div></div>
+      </div>
+      <div class="score-comp">
+        <div class="sc-head">
+          <span class="sc-title">📈 Momentum 24h</span>
+          <span class="sc-weight">peso 30%</span>
+        </div>
+        <div class="sc-value" id="comp-mom">—</div>
+        <div class="sc-detail" id="comp-mom-detail">—</div>
+        <div class="sc-meter"><div class="sc-fill" id="meter-mom"></div></div>
+      </div>
+      <div class="score-comp">
+        <div class="sc-head">
+          <span class="sc-title">🧠 Fear &amp; Greed</span>
+          <span class="sc-weight">peso 30%</span>
+        </div>
+        <div class="sc-value" id="comp-fng">—</div>
+        <div class="sc-detail" id="comp-fng-detail">—</div>
+        <div class="sc-meter"><div class="sc-fill" id="meter-fng"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEAR & GREED GAUGE + PROPORÇÃO DOS INFLUENCERS -->
+  <div class="sentiment-row">
+    <div class="fng-card">
+      <div class="fng-title">🧠 FEAR &amp; GREED INDEX</div>
+      <div class="fng-sub">Score da internet · alternative.me</div>
+      <svg class="fng-gauge" viewBox="0 0 200 115">
+        <defs>
+          <linearGradient id="fngGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"  stop-color="#ff3866"/>
+            <stop offset="35%" stop-color="#ffb547"/>
+            <stop offset="65%" stop-color="#ffe14d"/>
+            <stop offset="100%" stop-color="#00ff88"/>
+          </linearGradient>
+        </defs>
+        <path d="M 14 100 A 86 86 0 0 1 186 100" fill="none" stroke="#1d2030" stroke-width="16" stroke-linecap="round"/>
+        <path d="M 14 100 A 86 86 0 0 1 186 100" fill="none" stroke="url(#fngGrad)" stroke-width="16" stroke-linecap="round" opacity="0.9"/>
+        <!-- marca central -->
+        <line x1="100" y1="6" x2="100" y2="20" stroke="#060609" stroke-width="2" opacity="0.5"/>
+        <!-- ponteiro -->
+        <g class="fng-needle" id="fng-needle" style="transform: rotate(-90deg)">
+          <line x1="100" y1="100" x2="100" y2="28" stroke="#e9ebf5" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="100" cy="100" r="7" fill="#e9ebf5"/>
+          <circle cx="100" cy="100" r="3.5" fill="#060609"/>
+        </g>
+        <text x="16" y="113" font-family="JetBrains Mono, monospace" font-size="9" fill="#565a72">0 MEDO</text>
+        <text x="184" y="113" font-family="JetBrains Mono, monospace" font-size="9" fill="#565a72" text-anchor="end">GANÂNCIA 100</text>
+      </svg>
+      <div class="fng-value" id="fng-value">—</div>
+      <div class="fng-class" id="fng-class">carregando…</div>
+      <div class="fng-delta" id="fng-delta">—</div>
+    </div>
+
+    <section class="battle">
+      <h3>PROPORÇÃO DOS INFLUENCERS</h3>
+      <div class="battle-bar" id="battle-bar">
+        <div class="seg seg-bull" id="seg-bull" style="width:33.33%"><span class="seg-label" id="seg-bull-label">0%</span></div>
+        <div class="seg seg-neutral" id="seg-neutral" style="width:33.33%"><span class="seg-label" id="seg-neutral-label">0%</span></div>
+        <div class="seg seg-bear" id="seg-bear" style="width:33.33%"><span class="seg-label" id="seg-bear-label">0%</span></div>
+      </div>
+
+      <div class="battle-legend">
+        <div class="legend-group legend-bull">
+          <div class="legend-num" id="legend-bull-num">0</div>
+          <div>
+            <div class="legend-label">Bullish</div>
+            <div class="legend-detail" id="legend-bull-names">—</div>
+          </div>
+        </div>
+        <div class="legend-group legend-neu">
+          <div class="legend-num" id="legend-neu-num">0</div>
+          <div>
+            <div class="legend-label">Neutro</div>
+            <div class="legend-detail" id="legend-neu-names">—</div>
+          </div>
+        </div>
+        <div class="legend-group legend-bear">
+          <div class="legend-num" id="legend-bear-num">0</div>
+          <div>
+            <div class="legend-label">Bearish</div>
+            <div class="legend-detail" id="legend-bear-names">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- CRYPTOS -->
+  <h2 class="section-title">
+    Mercado em tempo real
+    <span class="count" id="crypto-count">— ATIVOS</span>
+  </h2>
+  <div class="crypto-grid" id="crypto-grid"></div>
+
+  <!-- INFLUENCERS -->
+  <h2 class="section-title">
+    Painel de influencers
+    <span class="count" id="influencer-count">— PERFIS</span>
+  </h2>
+
+  <div class="edit-hint">
+    <span>✏️ <strong>Modo edição:</strong> clique em um card para alternar</span>
+    <span class="dot-bull">🐂 BULL</span>
+    <span>→</span>
+    <span class="dot-bear">🐻 BEAR</span>
+    <span>→</span>
+    <span class="dot-neu">⚖️ NEUTRO</span>
+    <span>· salvo no navegador</span>
+    <button class="reset-btn" id="reset-btn" title="Voltar ao sentimento definido no código">↺ Restaurar padrão</button>
+  </div>
+
+  <div class="influencer-grid" id="influencer-grid"></div>
+
+  <footer>
+    <div>DATA · CoinGecko Public API + alternative.me F&amp;G · Atualização automática a cada 5 min</div>
+    <div>Não é recomendação financeira · DYOR</div>
+  </footer>
+
+</main>
+
+<script>
+/* ==============================================================
+   ⚙️  CONFIGURAÇÃO  —  EDITE AQUI
+
+   Para mudar o sentimento PADRÃO de um influencer, troque o
+   valor de "sentiment" para um destes três:
+       "bull"     🐂  (otimista / comprado)
+       "bear"     🐻  (pessimista / vendido)
+       "neutral"  ⚖️  (indefinido / em cima do muro)
+
+   ✨ NOVO NA v2: você também pode simplesmente CLICAR no card
+   do influencer na própria página. A mudança fica salva no
+   navegador (localStorage) e sobrescreve o padrão do código.
+   O botão "Restaurar padrão" desfaz todas as edições de clique.
+
+   Em "twitter" e "youtube" coloque o handle (sem @) ou a URL
+   completa. Deixe em branco ("") se não quiser mostrar o ícone.
+
+   Os dados de preço (CoinGecko) e o Fear & Greed Index
+   (alternative.me) são puxados automaticamente a cada 5 min.
+   ============================================================== */
+
+const INFLUENCERS = [
+  {
+    name: "Augusto Backes",
+    sentiment: "bull",
+    twitter: "",                    // ex: "augustobackes"
+    youtube: "@augustobackes",      // ex: "@augustobackes" ou URL
+  },
+  {
+    name: "Caio Vicentino",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "@caiovicentino",
+  },
+  {
+    name: "Rogério Menezes",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "@RogerioMenezes",
+  },
+  {
+    name: "Daniel Duarte",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "@daniloduartec",
+  },
+  {
+    name: "mQm",
+    sentiment: "neutral",
+    twitter: "",
+    youtube: "@mQm",
+  },
+  {
+    name: "Carl Moon Runefelt",
+    sentiment: "bear",
+    twitter: "TheMoonCarl",
+    youtube: "@TheMoonCarl",
+  },
+  {
+    name: "Crypto Kid",
+    sentiment: "bear",
+    twitter: "",
+    youtube: "",
+  },
+  {
+    name: "MMCrypto",
+    sentiment: "bear",
+    twitter: "mmcrypto",
+    youtube: "@MMCrypto",
+  },
+  {
+    name: "Da Vinci",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "",
+  },
+  {
+    name: "Criptomaníacos",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "@Criptomaniacos",
+  },
+  {
+    name: "João Hazim",
+    sentiment: "bear",
+    twitter: "",
+    youtube: "@joaohazim",
+  },
+  {
+    name: "Papini Outsiders",
+    sentiment: "bull",
+    twitter: "",
+    youtube: "@PapiniOutsiders",
+  },
+];
+
+// IDs do CoinGecko (não mude a ordem se quiser manter BTC em destaque)
+const COINS = [
+  { id: "bitcoin",     featured: true  },
+  { id: "ethereum",    featured: false },
+  { id: "solana",      featured: false },
+  { id: "hyperliquid", featured: false },
+  { id: "chainlink",   featured: false },
+];
+
+const REFRESH_MS = 5 * 60 * 1000; // 5 minutos
+
+// Pesos do Battle Score (some 1.0). Componentes sem dado são
+// ignorados e os pesos restantes são renormalizados.
+const WEIGHTS = {
+  influencers: 0.40,  // sentimento dos cards abaixo
+  momentum:    0.30,  // variação 24h do mercado (BTC pesa 3x)
+  feargreed:   0.30,  // índice Fear & Greed da internet
+};
+
+/* ==============================================================
+   ⬆️  FIM DA CONFIGURAÇÃO  —  daqui pra baixo é o motor
+   ============================================================== */
+
+const API_URL =
+  "https://api.coingecko.com/api/v3/coins/markets" +
+  "?vs_currency=usd" +
+  "&ids=" + COINS.map(c => c.id).join(",") +
+  "&order=market_cap_desc&per_page=20&page=1" +
+  "&sparkline=true&price_change_percentage=24h,7d";
+
+const GLOBAL_URL = "https://api.coingecko.com/api/v3/global";
+const FNG_URL = "https://api.alternative.me/fng/?limit=2";
+
+const STORAGE_KEY = "cst_sentiment_overrides_v2";
+
+let lastPrices = {};     // para detectar variação e disparar flash
+let countdownEnd = 0;    // timestamp do próximo refresh
+let refreshing = false;
+
+// estado vivo dos componentes do score
+const state = {
+  momentum: null,   // -100..+100 ou null
+  momentumRaw: null,
+  feargreed: null,  // -100..+100 ou null
+  fngValue: null,
+  fngClass: "",
+  fngYesterday: null,
+};
+
+// ----------- OVERRIDES (modo edição por clique) -----------
+let memoryOverrides = {}; // fallback se localStorage não estiver disponível
+
+function loadOverrides() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return memoryOverrides;
+  }
+}
+function saveOverrides(ov) {
+  memoryOverrides = ov;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(ov)); } catch (e) {}
+}
+function clearOverrides() {
+  memoryOverrides = {};
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+
+function effectiveSentiment(inf) {
+  const ov = loadOverrides();
+  const s = (ov[inf.name] || inf.sentiment || "neutral").toLowerCase();
+  return ["bull", "bear", "neutral"].includes(s) ? s : "neutral";
+}
+function hasOverride(inf) {
+  const ov = loadOverrides();
+  return ov[inf.name] != null && ov[inf.name] !== inf.sentiment;
+}
+function cycleSentiment(s) {
+  return s === "bull" ? "bear" : s === "bear" ? "neutral" : "bull";
+}
+
+// ----------- FORMATAÇÃO -----------
+function fmtPrice(p) {
+  if (p == null) return "—";
+  if (p >= 1000)   return p.toLocaleString("en-US", { maximumFractionDigits: 0 });
+  if (p >= 1)      return p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 0.01)   return p.toLocaleString("en-US", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  return p.toPrecision(4);
+}
+function fmtPct(p) {
+  if (p == null || isNaN(p)) return "—";
+  const sign = p >= 0 ? "+" : "";
+  return `${sign}${p.toFixed(2)}%`;
+}
+function fmtBig(n) {
+  if (n == null || isNaN(n)) return "—";
+  if (n >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
+  if (n >= 1e9)  return "$" + (n / 1e9).toFixed(1) + "B";
+  if (n >= 1e6)  return "$" + (n / 1e6).toFixed(1) + "M";
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+function arrow(p) { return p >= 0 ? "▲" : "▼"; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function signFmt(v) { return (v >= 0 ? "+" : "") + Math.round(v); }
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+// ----------- SPARKLINE -----------
+function sparklineSvg(prices, isUp, w = 280, h = 50) {
+  if (!prices || prices.length < 2) return "";
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const stepX = w / (prices.length - 1);
+  const pad = 4;
+  const innerH = h - pad * 2;
+
+  const pts = prices.map((p, i) => {
+    const x = i * stepX;
+    const y = pad + innerH - ((p - min) / range) * innerH;
+    return [x, y];
+  });
+
+  const linePath = "M " + pts.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(" L ");
+  const areaPath = linePath + ` L ${w},${h} L 0,${h} Z`;
+
+  const color = isUp ? "var(--bull)" : "var(--bear)";
+  const gradId = "g" + Math.random().toString(36).slice(2, 9);
+
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block;width:100%;height:100%;">
+      <defs>
+        <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${isUp ? '#00ff88' : '#ff3866'}" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="${isUp ? '#00ff88' : '#ff3866'}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#${gradId})"/>
+      <path d="${linePath}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="2.6" fill="${color}">
+        <animate attributeName="r" values="2.6;4;2.6" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  `;
+}
+
+// ----------- INFLUENCERS render -----------
+function renderInfluencers() {
+  const grid = document.getElementById("influencer-grid");
+  document.getElementById("influencer-count").textContent = INFLUENCERS.length + " PERFIS";
+
+  grid.innerHTML = INFLUENCERS.map((inf, i) => {
+    const valid = effectiveSentiment(inf);
+    const emoji = valid === "bull" ? "🐂" : valid === "bear" ? "🐻" : "⚖️";
+    const sideLabel = valid === "bull" ? "BULL" : valid === "bear" ? "BEAR" : "NEUTRO";
+    const tag = valid === "bull" ? "Otimista" : valid === "bear" ? "Pessimista" : "Em cima do muro";
+    const edited = hasOverride(inf);
+
+    // Twitter / X
+    let tw = (inf.twitter || "").trim();
+    let twHref = "";
+    if (tw) {
+      twHref = tw.startsWith("http") ? tw : `https://x.com/${tw.replace(/^@/, "")}`;
+    }
+    // YouTube
+    let yt = (inf.youtube || "").trim();
+    let ytHref = "";
+    if (yt) {
+      if (yt.startsWith("http")) ytHref = yt;
+      else if (yt.startsWith("@")) ytHref = `https://youtube.com/${yt}`;
+      else ytHref = `https://youtube.com/@${yt}`;
+    }
+
+    const xIcon  = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+    const ytIcon = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12z"/></svg>`;
+
+    return `
+      <div class="inf-card ${valid}" data-name="${escapeHtml(inf.name)}" style="animation-delay:${0.05 + i * 0.05}s" title="Clique para alternar BULL → BEAR → NEUTRO">
+        <div class="inf-side">${sideLabel}</div>
+        ${edited ? `<div class="inf-custom">EDITADO</div>` : ""}
+        <div class="inf-emoji">${emoji}</div>
+        <div class="inf-name">${escapeHtml(inf.name)}</div>
+        <div class="inf-tag">${tag}</div>
+        <div class="inf-socials">
+          <a class="inf-social ${tw ? "" : "disabled"}" ${tw ? `href="${twHref}" target="_blank" rel="noopener"` : ""} title="${tw ? "X / Twitter: " + tw : "Sem Twitter configurado"}">${xIcon}</a>
+          <a class="inf-social ${yt ? "" : "disabled"}" ${yt ? `href="${ytHref}" target="_blank" rel="noopener"` : ""} title="${yt ? "YouTube: " + yt : "Sem YouTube configurado"}">${ytIcon}</a>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // clique no card → alterna sentimento (sem disparar nos links sociais)
+  grid.querySelectorAll(".inf-card").forEach(card => {
+    card.addEventListener("click", (ev) => {
+      if (ev.target.closest("a")) return; // não intercepta cliques nos links
+      const name = card.getAttribute("data-name");
+      const inf = INFLUENCERS.find(x => x.name === name);
+      if (!inf) return;
+      const ov = loadOverrides();
+      const next = cycleSentiment(effectiveSentiment(inf));
+      if (next === inf.sentiment) delete ov[name]; else ov[name] = next;
+      saveOverrides(ov);
+      renderInfluencers();
+      renderSentimentBar();
+      renderArena();
+      // animação de flip no card recém-renderizado
+      const fresh = grid.querySelector(`.inf-card[data-name="${CSS.escape(name)}"]`);
+      if (fresh) fresh.classList.add("flip");
+    });
+  });
+}
+
+// ----------- COMPONENTES DO SCORE -----------
+function influencerComponent() {
+  const groups = { bull: 0, bear: 0, neutral: 0 };
+  INFLUENCERS.forEach(inf => { groups[effectiveSentiment(inf)]++; });
+  const total = INFLUENCERS.length || 1;
+  const score = ((groups.bull - groups.bear) / total) * 100;
+  return { score, groups, total };
+}
+
+function computeBattleScore() {
+  const inf = influencerComponent();
+  const parts = [
+    { key: "influencers", value: inf.score,        weight: WEIGHTS.influencers },
+    { key: "momentum",    value: state.momentum,   weight: WEIGHTS.momentum },
+    { key: "feargreed",   value: state.feargreed,  weight: WEIGHTS.feargreed },
+  ].filter(p => p.value != null && !isNaN(p.value));
+
+  const totalW = parts.reduce((a, p) => a + p.weight, 0) || 1;
+  const score = parts.reduce((a, p) => a + p.value * (p.weight / totalW), 0);
+  return { score: clamp(Math.round(score), -100, 100), inf };
+}
+
+// ----------- ARENA render -----------
+function setMeter(fillEl, value) {
+  // value: -100..+100 → barra a partir do centro
+  const v = clamp(value, -100, 100);
+  const half = Math.abs(v) / 2; // % de largura
+  if (v >= 0) {
+    fillEl.style.left = "50%";
+    fillEl.style.right = "auto";
+    fillEl.style.width = half + "%";
+    fillEl.style.background = "linear-gradient(90deg, rgba(0,255,136,0.5), var(--bull))";
+  } else {
+    fillEl.style.right = "50%";
+    fillEl.style.left = "auto";
+    fillEl.style.width = half + "%";
+    fillEl.style.background = "linear-gradient(90deg, var(--bear), rgba(255,56,102,0.5))";
+  }
+}
+
+function renderArena() {
+  const { score, inf } = computeBattleScore();
+
+  // placar
+  const sv = document.getElementById("battle-score");
+  sv.textContent = signFmt(score);
+  sv.style.color = score > 10 ? "var(--bull)" : score < -10 ? "var(--bear)" : "var(--neutral)";
+  sv.style.textShadow = `0 0 22px ${score > 10 ? "var(--bull-glow)" : score < -10 ? "var(--bear-glow)" : "var(--neutral-glow)"}`;
+
+  // status textual
+  const status = document.getElementById("arena-status");
+  let msg;
+  if (score >= 60)       msg = `<strong style="color:var(--bull)">🐂 OS TOUROS DOMINAM A ARENA</strong> — euforia no campo de batalha`;
+  else if (score >= 25)  msg = `<strong style="color:var(--bull)">🐂 Touros na frente</strong> — pressão compradora vencendo`;
+  else if (score >= -24) msg = `<strong style="color:var(--neutral)">⚖️ Batalha equilibrada</strong> — ninguém cede terreno`;
+  else if (score >= -59) msg = `<strong style="color:var(--bear)">🐻 Ursos na frente</strong> — pressão vendedora vencendo`;
+  else                   msg = `<strong style="color:var(--bear)">🐻 OS URSOS DOMINAM A ARENA</strong> — pânico no campo de batalha`;
+  status.innerHTML = msg;
+
+  // linha de frente: score +100 → linha em 90% (bulls empurraram); -100 → 10%
+  const linePct = 50 + (score * 0.4); // 10..90
+  document.getElementById("frontline").style.left = linePct + "%";
+  document.getElementById("zone-bull").style.width = linePct + "%";
+  document.getElementById("zone-bear").style.width = (100 - linePct) + "%";
+
+  // HP de cada lutador (50 = empate)
+  const bullHp = clamp(Math.round(50 + score / 2), 0, 100);
+  const bearHp = 100 - bullHp;
+  document.getElementById("hp-bull").style.width = bullHp + "%";
+  document.getElementById("hp-bear").style.width = bearHp + "%";
+  document.getElementById("hp-bull-num").textContent = bullHp;
+  document.getElementById("hp-bear-num").textContent = bearHp;
+
+  // estados visuais dos lutadores
+  const fb = document.getElementById("fighter-bull");
+  const fr = document.getElementById("fighter-bear");
+  fb.classList.toggle("winning", score > 10);
+  fb.classList.toggle("losing",  score < -10);
+  fr.classList.toggle("winning", score < -10);
+  fr.classList.toggle("losing",  score > 10);
+
+  // breakdown — influencers
+  const ci = document.getElementById("comp-inf");
+  ci.textContent = signFmt(inf.score);
+  ci.style.color = inf.score > 10 ? "var(--bull)" : inf.score < -10 ? "var(--bear)" : "var(--neutral)";
+  document.getElementById("comp-inf-detail").textContent =
+    `${inf.groups.bull} bull · ${inf.groups.bear} bear · ${inf.groups.neutral} neutro`;
+  setMeter(document.getElementById("meter-inf"), inf.score);
+
+  // breakdown — momentum
+  const cm = document.getElementById("comp-mom");
+  if (state.momentum != null) {
+    cm.textContent = signFmt(state.momentum);
+    cm.style.color = state.momentum > 10 ? "var(--bull)" : state.momentum < -10 ? "var(--bear)" : "var(--neutral)";
+    document.getElementById("comp-mom-detail").textContent =
+      `média ponderada 24h: ${fmtPct(state.momentumRaw)} (BTC peso 3×)`;
+    setMeter(document.getElementById("meter-mom"), state.momentum);
+  } else {
+    cm.textContent = "—";
+    cm.style.color = "var(--text-faint)";
+    document.getElementById("comp-mom-detail").textContent = "aguardando dados de mercado…";
+  }
+
+  // breakdown — fear & greed
+  const cf = document.getElementById("comp-fng");
+  if (state.feargreed != null) {
+    cf.textContent = signFmt(state.feargreed);
+    cf.style.color = state.feargreed > 10 ? "var(--bull)" : state.feargreed < -10 ? "var(--bear)" : "var(--neutral)";
+    document.getElementById("comp-fng-detail").textContent =
+      `índice ${state.fngValue}/100 · ${state.fngClass}`;
+    setMeter(document.getElementById("meter-fng"), state.feargreed);
+  } else {
+    cf.textContent = "—";
+    cf.style.color = "var(--text-faint)";
+    document.getElementById("comp-fng-detail").textContent = "aguardando alternative.me…";
+  }
+}
+
+// ----------- BARRA DE PROPORÇÃO (legado v1) -----------
+function renderSentimentBar() {
+  const groups = { bull: [], bear: [], neutral: [] };
+  INFLUENCERS.forEach(inf => { groups[effectiveSentiment(inf)].push(inf.name); });
+  const total = INFLUENCERS.length || 1;
+  const bullPct = (groups.bull.length / total) * 100;
+  const bearPct = (groups.bear.length / total) * 100;
+  const neuPct  = (groups.neutral.length / total) * 100;
+
+  document.getElementById("seg-bull").style.width    = bullPct + "%";
+  document.getElementById("seg-neutral").style.width = neuPct  + "%";
+  document.getElementById("seg-bear").style.width    = bearPct + "%";
+
+  document.getElementById("seg-bull-label").textContent    = bullPct >= 8 ? Math.round(bullPct) + "%" : "";
+  document.getElementById("seg-neutral-label").textContent = neuPct  >= 8 ? Math.round(neuPct)  + "%" : "";
+  document.getElementById("seg-bear-label").textContent    = bearPct >= 8 ? Math.round(bearPct) + "%" : "";
+
+  document.getElementById("legend-bull-num").textContent = groups.bull.length;
+  document.getElementById("legend-bear-num").textContent = groups.bear.length;
+  document.getElementById("legend-neu-num").textContent  = groups.neutral.length;
+  document.getElementById("legend-bull-names").textContent = groups.bull.join(", ") || "—";
+  document.getElementById("legend-bear-names").textContent = groups.bear.join(", ") || "—";
+  document.getElementById("legend-neu-names").textContent  = groups.neutral.join(", ") || "—";
+}
+
+// ----------- FEAR & GREED -----------
+const FNG_PT = {
+  "Extreme Fear": "Medo Extremo",
+  "Fear": "Medo",
+  "Neutral": "Neutro",
+  "Greed": "Ganância",
+  "Extreme Greed": "Ganância Extrema",
+};
+
+async function fetchFearGreed() {
+  try {
+    const res = await fetch(FNG_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const today = json && json.data && json.data[0];
+    const yest  = json && json.data && json.data[1];
+    if (!today) throw new Error("Sem dados F&G");
+
+    const value = parseInt(today.value, 10);
+    state.fngValue = value;
+    state.fngClass = FNG_PT[today.value_classification] || today.value_classification || "";
+    state.feargreed = (value - 50) * 2; // 0..100 → -100..+100
+    state.fngYesterday = yest ? parseInt(yest.value, 10) : null;
+
+    renderFngGauge();
+  } catch (err) {
+    console.error("F&G:", err);
+    document.getElementById("fng-class").textContent = "indisponível";
+    state.feargreed = null;
+  }
+  renderArena();
+}
+
+function renderFngGauge() {
+  const v = state.fngValue;
+  if (v == null) return;
+
+  // ponteiro: 0 → -90°, 100 → +90°
+  const angle = -90 + (clamp(v, 0, 100) / 100) * 180;
+  document.getElementById("fng-needle").style.transform = `rotate(${angle}deg)`;
+
+  const color =
+    v <= 25 ? "var(--bear)" :
+    v <= 45 ? "var(--neutral)" :
+    v <= 55 ? "#ffe14d" :
+    "var(--bull)";
+
+  const fv = document.getElementById("fng-value");
+  fv.textContent = v;
+  fv.style.color = color;
+  fv.style.textShadow = "0 0 18px rgba(255,255,255,0.14)";
+
+  const fc = document.getElementById("fng-class");
+  fc.textContent = state.fngClass;
+  fc.style.color = color;
+
+  const fd = document.getElementById("fng-delta");
+  if (state.fngYesterday != null) {
+    const d = v - state.fngYesterday;
+    const dir = d > 0 ? "▲" : d < 0 ? "▼" : "•";
+    fd.textContent = `ontem: ${state.fngYesterday} ${dir} ${d > 0 ? "+" : ""}${d} pts`;
+  } else {
+    fd.textContent = "";
+  }
+}
+
+// ----------- GLOBAL MARKET -----------
+async function fetchGlobal() {
+  try {
+    const res = await fetch(GLOBAL_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    const d = json && json.data;
+    if (!d) throw new Error("Sem dados globais");
+
+    const mcap = d.total_market_cap && d.total_market_cap.usd;
+    const vol  = d.total_volume && d.total_volume.usd;
+    const chg  = d.market_cap_change_percentage_24h_usd;
+    const btcD = d.market_cap_percentage && d.market_cap_percentage.btc;
+    const ethD = d.market_cap_percentage && d.market_cap_percentage.eth;
+
+    document.getElementById("g-mcap").textContent = fmtBig(mcap);
+    const mc = document.getElementById("g-mcap-ch");
+    mc.textContent = `${arrow(chg ?? 0)} ${fmtPct(chg)} em 24h`;
+    mc.className = "g-sub " + ((chg ?? 0) >= 0 ? "up" : "down");
+
+    document.getElementById("g-vol").textContent = fmtBig(vol);
+
+    document.getElementById("g-btc-dom").textContent = btcD != null ? btcD.toFixed(1) + "%" : "—";
+    document.getElementById("g-btc-bar").style.width = (btcD || 0) + "%";
+    document.getElementById("g-eth-dom").textContent = ethD != null ? ethD.toFixed(1) + "%" : "—";
+    document.getElementById("g-eth-bar").style.width = (ethD || 0) + "%";
+  } catch (err) {
+    console.error("Global:", err);
+  }
+}
+
+// ----------- CRYPTO RENDER -----------
+function buildLoadingCards() {
+  const grid = document.getElementById("crypto-grid");
+  grid.innerHTML = COINS.map(c => `
+    <div class="crypto-card loading ${c.featured ? "featured" : ""}" style="height:${c.featured ? 240 : 220}px"></div>
+  `).join("");
+}
+
+function computeMomentum(data) {
+  // média ponderada da variação 24h (BTC peso 3, demais peso 1)
+  let sum = 0, w = 0;
+  data.forEach(c => {
+    const ch = c.price_change_percentage_24h_in_currency;
+    if (ch == null || isNaN(ch)) return;
+    const weight = c.id === "bitcoin" ? 3 : 1;
+    sum += ch * weight;
+    w += weight;
+  });
+  if (!w) { state.momentum = null; state.momentumRaw = null; return; }
+  const avg = sum / w;
+  state.momentumRaw = avg;
+  // ±6% no dia já é movimento extremo → mapeia para ±100
+  state.momentum = clamp((avg / 6) * 100, -100, 100);
+}
+
+function renderCryptos(data) {
+  const grid = document.getElementById("crypto-grid");
+  document.getElementById("crypto-count").textContent = data.length + " ATIVOS";
+
+  // mantém a ordem definida em COINS
+  const byId = {};
+  data.forEach(d => byId[d.id] = d);
+
+  grid.innerHTML = COINS.map(c => {
+    const coin = byId[c.id];
+    if (!coin) {
+      return `<div class="crypto-card ${c.featured ? "featured" : ""}">
+        <div class="cc-top">
+          <div class="cc-icon"></div>
+          <div class="cc-name"><div class="name">${escapeHtml(c.id)}</div><div class="symbol">indisponível</div></div>
+        </div>
+        <div class="cc-price">—</div>
+      </div>`;
+    }
+
+    const ch24 = coin.price_change_percentage_24h_in_currency;
+    const ch7  = coin.price_change_percentage_7d_in_currency;
+    const up24 = (ch24 ?? 0) >= 0;
+    const up7  = (ch7  ?? 0) >= 0;
+    const sparkline = (coin.sparkline_in_7d && coin.sparkline_in_7d.price) || [];
+    const sparkUp = sparkline.length >= 2 && sparkline[sparkline.length - 1] >= sparkline[0];
+
+    // detect flash
+    const prev = lastPrices[coin.id];
+    let flashClass = "";
+    if (prev != null && coin.current_price !== prev) {
+      flashClass = coin.current_price > prev ? "flash-up" : "flash-down";
+    }
+    lastPrices[coin.id] = coin.current_price;
+
+    return `
+      <div class="crypto-card ${c.featured ? "featured" : ""} ${flashClass}" data-id="${coin.id}">
+        <div class="cc-top">
+          <div class="cc-icon"><img src="${coin.image}" alt="${escapeHtml(coin.name)}" loading="lazy"></div>
+          <div class="cc-name">
+            <div class="name">${escapeHtml(coin.name)}</div>
+            <div class="symbol">${escapeHtml(coin.symbol)}</div>
+          </div>
+          <div class="cc-rank">#${coin.market_cap_rank ?? "?"}</div>
+        </div>
+
+        <div class="cc-price ${flashClass}">
+          <span class="currency">$</span>${fmtPrice(coin.current_price)}
+        </div>
+
+        <div class="cc-changes">
+          <div class="change-cell ${up24 ? "up" : "down"}">
+            <div class="label">24h</div>
+            <div class="value">${arrow(ch24 ?? 0)} ${fmtPct(ch24)}</div>
+          </div>
+          <div class="change-cell ${up7 ? "up" : "down"}">
+            <div class="label">7 dias</div>
+            <div class="value">${arrow(ch7 ?? 0)} ${fmtPct(ch7)}</div>
+          </div>
+        </div>
+
+        <div class="cc-spark">${sparklineSvg(sparkline, sparkUp)}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderTicker(data) {
+  const track = document.getElementById("ticker-track");
+  const items = data.map(c => {
+    const ch = c.price_change_percentage_24h_in_currency ?? 0;
+    const up = ch >= 0;
+    return `
+      <div class="ticker-item">
+        <img src="${c.image}" alt="">
+        <span class="sym">${(c.symbol || "").toUpperCase()}</span>
+        <span class="px">$${fmtPrice(c.current_price)}</span>
+        <span class="pct ${up ? "up" : "down"}">${arrow(ch)} ${fmtPct(ch)}</span>
+      </div>
+    `;
+  }).join("");
+  // duplicado para loop infinito sem corte
+  track.innerHTML = items + items;
+}
+
+// ----------- API FETCH -----------
+async function fetchData() {
+  if (refreshing) return;
+  refreshing = true;
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+
+  // dispara em paralelo (cada um trata o próprio erro)
+  fetchFearGreed();
+  fetchGlobal();
+
+  try {
+    const res = await fetch(API_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error("Sem dados");
+
+    computeMomentum(data);
+    renderCryptos(data);
+    renderTicker(data);
+    renderArena();
+    document.getElementById("last-update").textContent = new Date().toLocaleTimeString("pt-BR");
+    document.getElementById("error-banner").classList.remove("show");
+    document.getElementById("live-dot").classList.remove("error");
+    document.getElementById("live-status").textContent = "Online";
+
+    countdownEnd = Date.now() + REFRESH_MS;
+  } catch (err) {
+    console.error(err);
+    const banner = document.getElementById("error-banner");
+    banner.classList.add("show");
+    banner.textContent = "⚠ Falha ao buscar dados (" + err.message + "). Tentaremos novamente em 30s.";
+    document.getElementById("live-dot").classList.add("error");
+    document.getElementById("live-status").textContent = "Erro";
+    countdownEnd = Date.now() + 30000; // retry em 30s
+  } finally {
+    btn.classList.remove("spinning");
+    refreshing = false;
+  }
+}
+
+// ----------- COUNTDOWN -----------
+function updateCountdown() {
+  const remaining = Math.max(0, countdownEnd - Date.now());
+  const m = Math.floor(remaining / 60000);
+  const s = Math.floor((remaining % 60000) / 1000);
+  document.getElementById("next-update").textContent = `${m}:${String(s).padStart(2, "0")}`;
+  if (remaining <= 0 && !refreshing) {
+    fetchData();
+  }
+}
+
+// ----------- INIT -----------
+function init() {
+  renderInfluencers();
+  renderSentimentBar();
+  renderArena();
+  buildLoadingCards();
+  fetchData();
+  setInterval(updateCountdown, 1000);
+
+  document.getElementById("refresh-btn").addEventListener("click", () => {
+    countdownEnd = Date.now();
+    fetchData();
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", () => {
+    clearOverrides();
+    renderInfluencers();
+    renderSentimentBar();
+    renderArena();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+
+</body>
+</html>
